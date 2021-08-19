@@ -1,3 +1,6 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
 class Curve:
 
     def __init__ (self, a, b, inverse = True):
@@ -148,7 +151,7 @@ class Demand(Curve):
         
         return 0.5 * tri_base * tri_height
     
-    def plot_surplus(self, supply, ax = ax, annotate = False):
+    def plot_surplus(self, supply, ax, annotate = False):
         
         p,q = self.equilibrium(supply)
         
@@ -192,7 +195,7 @@ class Supply(Curve):
         
         return tri_area + rect_area
         
-    def plot_surplus(self, demand, ax = ax, annotate = False):
+    def plot_surplus(self, demand, ax, annotate = False):
         
         p,q = self.equilibrium(demand)
         
@@ -209,27 +212,29 @@ class Supply(Curve):
             
 class Equilibrium:
     
-    def __init__ (self, demand, suply):
+    def __init__ (self, demand, supply):
        
         p, q = demand.equilibrium(supply)
         self.p = p
         self.q = q
+        self.demand = demand
+        self.supply = supply
         
     def plot(self, ax):
         
-        demand.equilibrium_plot(supply, ax = ax)
+        self.demand.equilibrium_plot(self.supply, ax = ax)
         
     def plot_clean(self, ax):
-        
-        demand.equilibrium_plot_cleaner(supply, ax)
+
+        self.demand.equilibrium_plot_cleaner(self.supply, ax)
         
     def plot_surplus(self, ax):
         
         p,q = self.p, self.q
         
         # CS region
-        cs_plot = ax.fill_between([0,q], y1 = [demand.intercept, p], y2 = p,  alpha = 0.1)
+        cs_plot = ax.fill_between([0,q], y1 = [self.demand.intercept, p], y2 = p,  alpha = 0.1)
         
         # fix later for negative 
-        ps_plot = ax.fill_between([0,q], y1 = [self.intercept, p], y2 = p, color = 'C1', alpha = 0.1)
+        ps_plot = ax.fill_between([0,q], y1 = [self.supply.intercept, p], y2 = p, color = 'C1', alpha = 0.1)
         
