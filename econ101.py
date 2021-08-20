@@ -1,22 +1,25 @@
+# new stuff
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 class Curve:
 
-    def __init__ (self, a, b, inverse = True):
-        
+    def __init__ (self, intercept, slope, inverse = True):
+        """Create curve with intercept and slope, specifying inverse form or not.
+        Inverse if P(Q), as opposed to Q(P)."""
         if inverse:
-            self.intercept = a
-            self.slope = b
-            self.q_intercept = -a/b
+            self.intercept = intercept
+            self.slope = slope
+            self.q_intercept = -intercept/slope
             
         else:
-            self.slope = 1/b
-            self.intercept = -a/b
-            self.q_intercept = a
+            self.slope = 1/slope
+            self.intercept = -intercept/slope
+            self.q_intercept = intercept
     
     def q(self, p):
-        """Quantity demanded at price p."""
+        """Quantity demanded or supplied at price p."""
         return (self.intercept/(-self.slope)) + (p/self.slope)
     
         
@@ -25,7 +28,7 @@ class Curve:
         self.intercept += delta   
         
     def horizontal_shift(self, delta):
-        """Shift curve horizontall by amount delta."""
+        """Shift curve horizontally by amount delta."""
         equiv_vert = delta * -self.slope
         self.intercept += equiv_vert        
 
@@ -138,10 +141,16 @@ class Curve:
         min_x = np.min([-1, min_int])
         max_x = np.max([0, max_int*1.1])
         ax.set_xlim(min_x, max_x)
+        
+        
+        
+        
             
 class Demand(Curve):
 
     def __init__ (self , a , b , inverse = True):
+        """Create demand curve with intercept and slope, specifying inverse form or not.
+        Inverse if P(Q), as opposed to Q(P).""" 
         Curve.__init__(self, a, b, inverse)
 
     def consumer_surplus(self, p):
@@ -168,6 +177,8 @@ class Demand(Curve):
 class Supply(Curve):
 
     def __init__ (self , a , b , inverse = True):
+        """Create supply curve with intercept and slope, specifying inverse form or not.
+        Inverse if P(Q), as opposed to Q(P).""" 
         Curve.__init__(self, a, b, inverse)
   
     def producer_surplus(self, p):
@@ -213,22 +224,58 @@ class Supply(Curve):
 class Equilibrium:
     
     def __init__ (self, demand, supply):
-       
+        """Equilibrium produced by demand and supply."""
         p, q = demand.equilibrium(supply)
         self.p = p
         self.q = q
         self.demand = demand
         self.supply = supply
+        self.tax = 0
+        self.subsidy = 0
+        self.p_consumer = self.p
+        self.p_producer = self.p
+        self.dwl = 0
+        self.externalities = False
         
     def plot(self, ax):
         
-        self.demand.equilibrium_plot(self.supply, ax = ax)
+        if self.tax == 0:
+            self.demand.equilibrium_plot(self.supply, ax = ax)
+        else:
+            pass
         
     def plot_clean(self, ax):
 
         self.demand.equilibrium_plot_cleaner(self.supply, ax)
         
-    def plot_surplus(self, ax):
+        # label only important points
+        important_y = self.p, self.demand.intercept
+        important_x = self.q, self.demand.q_intercept
+        
+        if self.supply.intercept >= 0:
+            important_y = self.supply.intercept, *important_y
+        if self.supply.q_intercept > 0:
+            important_x = self.supply.q_intercept, *important_x
+        
+        ax.set_xticks(important_x)
+        ax.set_yticks(important_y)
+
+        # label demand and supply curves
+        # not written yet
+
+        # set limits
+        ax.set_xlim(0, self.demand.q_intercept*1.04)
+        ax.set_ylim(0, self.demand.intercept*1.04)
+        
+        xlims = ax.get_xlim()
+        ylims = ax.get_ylim()
+        
+        # Add arrows to axes
+        ax.plot(xlims[1], 0, ">k", clip_on = False)
+        ax.plot(0, ylims[1], "^k", clip_on = False)
+
+        
+    def plot_surplus(self, ax, annotate = True):
         
         p,q = self.p, self.q
         
@@ -238,3 +285,42 @@ class Equilibrium:
         # fix later for negative 
         ps_plot = ax.fill_between([0,q], y1 = [self.supply.intercept, p], y2 = p, color = 'C1', alpha = 0.1)
         
+        if annotate:
+            x_pos = self.q/3
+
+            # meean between price and along supply curve
+            ps_y = np.mean([self.p_producer, self.supply.intercept + self.supply.slope * x_pos])
+            
+            cs_y = np.mean([self.p_consumer, self.demand.intercept + self.demand.slope * x_pos])
+
+            ax.text(x_pos, cs_y, 'CS', ha = 'center', va = 'center')
+            ax.text(x_pos, ps_y, 'PS', ha = 'center', va = 'center')
+        
+    def set_tax(self, tax):
+        """Impose a per-unit tax."""
+        
+        self.tax = tax
+        
+        self.distortion = self.tax / (self.supply.slope - self.demand.slope)
+        
+        # update q relative to market quantity
+        self.q = self.demand.equilibrium(self.supply)[1] - self.distortion
+        
+        self.p_consumer = self.demand.intercept + self.demand.slope * self.q
+        self.p_producer = self.supply.intercept + self.supply.slope * self.q
+        
+        if self.q < 0:
+            self.q = 0
+            
+        if self.p_consumer != self.p_producer:
+            self.p = self.p_consumer, self.p_producer
+        else:
+            self.p = self.p_consumer
+            
+        self.dwl = np.abs(self.distortion * self.tax * 0.5)
+        
+    def set_subsidy(self, subsidy):
+        """Impose a per-unit subsidy."""
+        self.subsidy = subsidy
+        self.set_tax(-subsidy)
+        self.distortion = -self.distortion
