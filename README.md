@@ -18,12 +18,13 @@ Given a demand object `demand` and supply object `supply`, the equilibrium is cr
 ### Aggregates
 Multiple supply curves or multiple demand curves can be aggregated with the `Aggregate` class. This performs horizontal summation, disallowing negative quantities. An equilibrium can be found between an `Aggregate` object and another `Aggregate` or a `Demand` or `Supply` object. There is no specific equilibrium object for this, but instead an Aggregate method (for now). This method uses a guessing algorithm that looks for a market-clearing price.
 
+### Costs
+
+With the `Cost` class and its subclasses, you can analyze firm costs and long-run equilibrium stuff. The total cost equation _TC(q) = 50 + q + 4q^2_ is created with `TotalCost(50,1,4)`. 
+
 ## Other Comments
 ### Who is this for? 
 Any student who is interested in solving introductory microeconomics problems and graphing might benefit from this, provided some familiarity with Python/programming. A more common use case might be from instructors or TAs, who might especially benefit from the plotting functionalities.  
-
-### Why does this exist? 
-I was sitting in the aiport and it seemed like something fun to do. It's also my first time writing nontrivial object-oriented code. 
 
 ### What will be added? 
 I would set expectations at not much more, at least soon. But I'd like to finish this out to something that can handle the basics of a first-year undergraduate microeconomics course, at least the simpler supply and demand topics. This includes:
@@ -31,11 +32,15 @@ I would set expectations at not much more, at least soon. But I'd like to finish
  2. Demand Curves
  3. Aggregated Supply and Demand Curves
  4. Equilibrium
- 5. Consumer Surplus, Producer Surplus
- 6. Taxes and Subsidies and their welfare effects (DWL, incidence)
- 7. Externalities
- 8. Monopoly?
- 9. ??
+ 6. Consumer Surplus, Producer Surplus
+ 7. Taxes and Subsidies and their welfare effects (DWL, incidence)
+ 8. Costs and Long-Run Competitive Equilibrium
+ 9. Externalities
+ 10. Monopoly and Monopsony?
+ 12. ??
 
 ### Who can help? 
-I haven't opened this up for other contributors so far. But if you are interested, message me. My github handle is also my gmail. 
+I haven't opened this up for other contributors so far. But if you are interested, message me. My github handle is also my gmail. Helping might take the form of contributing code or simply contributing ideas or pointing out bugs. 
+
+### Why does this exist? 
+I was sitting in the aiport and it seemed like something fun to do. It's also my first time writing nontrivial object-oriented code. 
