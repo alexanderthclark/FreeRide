@@ -13,7 +13,7 @@ This is built around `Demand` and `Supply` objects, which take arguments for the
 The demand curve *P* = 12 - *Q* is created with `Demand(12,-1)`. The supply curve *P* = 2 + 4*Q* is created with `Supply(2,4)`. 
 
 ### Equilibrium
-Given a demand object `demand` and supply object `supply`, the equilibrium is created with `Equilibrium(demand, supply)`. Equilibria can be further modified with methods like `set_tax()`. Note `set_tax()` is an Equilibrium object, meaning we bypass if it is nominally imposed on producers or consumers.  
+Given a demand object `demand` and supply object `supply`, the equilibrium is created with `Equilibrium(demand, supply)`. Equilibria can be further modified with methods like `set_tax()`. Note `set_tax()` is an Equilibrium method, not a Demand or Supply method, meaning we bypass if it is nominally imposed on producers or consumers.  
 
 ### Aggregates
 Multiple supply curves or multiple demand curves can be aggregated with the `Aggregate` class. This performs horizontal summation, disallowing negative quantities. An equilibrium can be found between an `Aggregate` object and another `Aggregate` or a `Demand` or `Supply` object. There is no specific equilibrium object for this, but instead an Aggregate method (for now). This method uses a guessing algorithm that looks for a market-clearing price.
