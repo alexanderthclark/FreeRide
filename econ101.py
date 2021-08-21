@@ -11,12 +11,18 @@ class Curve:
         if inverse:
             self.intercept = intercept
             self.slope = slope
-            self.q_intercept = -intercept/slope
+            if slope != 0:
+                self.q_intercept = -intercept/slope
+            else:
+                self.q_intercept = np.nan
             
         else:
             self.slope = 1/slope
             self.intercept = -intercept/slope
-            self.q_intercept = intercept
+            if slope != 0:
+                self.q_intercept = -self.intercept/self.slope
+            else:
+                self.q_intercept = np.nan
     
     def q(self, p):
         """Quantity demanded or supplied at price p."""
@@ -30,13 +36,15 @@ class Curve:
         """Shift curve vertically by amount delta. Shifts demand curve to the right.
         Shifts supply curve to the left."""
         self.intercept += delta
-        self.q_intercept = -self.intercept / self.slope
+        if self.slope != 0:
+            self.q_intercept = -self.intercept / self.slope
         
     def horizontal_shift(self, delta):
         """Shift curve horizontally by amount delta. Positive values are shifts to the right."""
         equiv_vert = delta * -self.slope
         self.intercept += equiv_vert  
-        self.q_intercept = -self.intercept / self.slope
+        if self.slope != 0:
+            self.q_intercept = -self.intercept / self.slope
 
 
     def equilibrium(self, other_curve):
@@ -61,7 +69,10 @@ class Curve:
             ax = plt.gca()
 
         # core plot
-        x2 = np.max([self.q_intercept, max_q])
+        q_ = self.q_intercept
+        if np.isnan(q_): # if slope is 0
+            q_ = 10 ** 10
+        x2 = np.max([q_, max_q])
         y2 = self.intercept + self.slope * x2
         
         xs = np.linspace(0, x2,2)
@@ -70,8 +81,7 @@ class Curve:
         ax.plot(xs, ys, color = color, linewidth = linewidth)
     
     
-    
-    def equilibrium_plot(self, other_curve, ax = None, linewidth = 2, annotate = False):
+    def equilibrium_plot(self, other_curve, ax = None, linewidth = 2, annotate = False, clean = True):
         """Plot the intersection of two curves. This can't handle taxes or other interventions."""
         if ax == None:
             fig, ax = plt.gcf(), plt.gca()
@@ -95,6 +105,9 @@ class Curve:
         if annotate:
             s = " $p = {:.1f}, q = {:.1f}$".format(p,q)
             ax.text(q,p, s, ha = 'left', va = 'center')
+
+        if clean:
+            self.equilibrium_plot_cleaner(other_curve)
   
         
     # elasticity section
@@ -135,12 +148,12 @@ class Curve:
         ax.set_ylim(min_y, max_y)
         
         # Q-axis intercepts (x-axis)
-        min_int = np.min([self.q_intercept, other_curve.q_intercept])
-        max_int = np.max([self.q_intercept, other_curve.q_intercept])
+        #min_int = np.min([self.q_intercept, other_curve.q_intercept])
+        #max_int = np.max([self.q_intercept, other_curve.q_intercept])
 
-        min_x = np.min([-1, min_int])
-        max_x = np.max([0, max_int*1.1])
-        ax.set_xlim(min_x, max_x)
+        #min_x = np.min([-1, min_int])
+        #max_x = np.max([0, max_int*1.1])
+        #ax.set_xlim(min_x, max_x)
 
     def externality(self, externality, is_signed = True, is_positive = None):
         """Creates marginal social cost or benefit given a Curve and externality."""
@@ -152,7 +165,7 @@ class Curve:
                 externality = np.abs(externality)
             else:
                 externality = - np.abs(externality)
-        if is_positive == False
+        if is_positive == False:
             if is_demand:
                 externality =  - np.abs(externality)
             else:
@@ -183,7 +196,7 @@ class Aggregate:
             total_q += np.max([0,curve.q(p)])
         return total_q
 
-    def plot(self, ax = None, color = 'black', linewidth = 2, max_q = 10):
+    def plot(self, ax = None, color = 'black', linewidth = 2, max_q = 10, clean = True):
         
         if ax == None:
             ax = plt.gca()
@@ -203,11 +216,12 @@ class Aggregate:
         else: # supply curve
 
             max_y = intercepts[-1]*2
-            y_vec = np.linspace(0,max_y, 1000)
+            y_vec = np.linspace(0,np.max([10,max_y*2]), 1000)
             x_vec = [self.q(y) for y in y_vec]
 
             ax.plot(x_vec, y_vec, color = color, linewidth = linewidth)
-
+        if clean:
+            self.plot_clean()
 
     def kinks(self):
         """Return p, q pairs for kink locations."""
@@ -307,8 +321,12 @@ class Aggregate:
         p, q = self.equilibrium(other)
 
         # reset ticks and such
+
+        if type(other) == Aggregate:
        
-        kink_list = self.kinks() + other.kinks()
+            kink_list = self.kinks() + other.kinks()
+        else:
+            kink_list = self.kinks()
 
         ys = [pair[0] for pair in kink_list] # p values
         xs = [pair[1] for pair in kink_list] # q values
@@ -343,8 +361,6 @@ class Aggregate:
 
         ax.set_yticks(important_y)
         ax.set_xticks(important_x)
-        return important_x, important_y
-
 
             
 class Demand(Curve):
@@ -436,7 +452,8 @@ class Equilibrium:
         self.dwl = 0
         self.externalities = False
         
-    def plot(self, ax = None, annotate = False, clean = True, fresh_ticks = True):
+    def plot_old(self, ax = None, annotate = False, clean = True, fresh_ticks = True):
+        """deprecated"""
         if ax == None:
             ax = plt.gca()
         if self.p_producer == self.p_consumer:
@@ -447,8 +464,7 @@ class Equilibrium:
         if clean:
             self.plot_clean(ax, fresh_ticks = fresh_ticks)
             
-    def plot2(self, ax = None, annotate = False, clean = True, fresh_ticks = True):
-
+    def plot(self, ax = None, annotate = False, clean = True, fresh_ticks = True):
         """Plot the intersection of two curves."""
         if ax == None:
             fig, ax = plt.subplots()
@@ -492,7 +508,7 @@ class Equilibrium:
             self.plot_clean(ax, fresh_ticks = fresh_ticks)
         
     def plot_clean(self, ax = None, fresh_ticks = True, axis_arrows = False):
-
+        """Clean Equilibrium plot."""
         if ax == None:
             ax = plt.gca()
             
@@ -517,18 +533,24 @@ class Equilibrium:
         combined_xticks = set(important_x).union(prev_x)
         combined_yticks = set(important_y).union(prev_y)
         
+
+
         if fresh_ticks:
-            ax.set_xticks(important_x)
-            ax.set_yticks(important_y)
+            ax.set_xticks([x for x in important_x if not np.isnan(x)])
+            ax.set_yticks([x for x in important_y if not np.isnan(x)])
         else:
-            ax.set_xticks(sorted(list(combined_xticks)))
-            ax.set_yticks(sorted(list(combined_yticks)))
+            ax.set_xticks(sorted(list([x for x in combined_xticks if not np.isnan(x)])))
+            ax.set_yticks(sorted(list([x for x in combined_yticks if not np.isnan(x)])))
 
         # label demand and supply curves
         # not written yet
 
         # set limits
-        ax.set_xlim(0, self.demand.q_intercept*1.04)
+        x_int = self.demand.q_intercept*1.04
+        if np.isnan(x_int):
+            x_int = 2*self.q
+
+        ax.set_xlim(0, x_int)
         ax.set_ylim(0, self.demand.intercept*1.04)
         
         xlims = ax.get_xlim()
@@ -550,42 +572,49 @@ class Equilibrium:
 
         return ps, cs, govt
         
-    def plot_surplus(self, ax = None, annotate = True):
+    def plot_surplus(self, ax = None, annotate = True, items = ['cs', 'ps', 'govt']):
         
         if ax == None:
             ax = plt.gca()
+
+        items = [x.lower() for x in items] 
         
         p,q = self.p, self.q
         
         # CS region
-        cs_plot = ax.fill_between([0,q], y1 = [self.demand.intercept, self.p_consumer], 
+        if 'cs' in items:
+            cs_plot = ax.fill_between([0,q], y1 = [self.demand.intercept, self.p_consumer], 
             y2 = self.p_consumer, 
             alpha = 0.1)
         
         # fix later for negative 
-        ps_plot = ax.fill_between([0,q], y1 = [self.supply.intercept, self.p_producer], 
+        if 'ps' in items:
+            ps_plot = ax.fill_between([0,q], y1 = [self.supply.intercept, self.p_producer], 
             y2 = self.p_producer, 
             color = 'C1', alpha = 0.1)
         
-        high_price, low_price = np.max(p), np.min(p)
-        g_plot = ax.fill_between([0,q], y1 = high_price, y2 = low_price,
-            color = 'C2', alpha = 0.1)
+        if type(self.p) == tuple:
+            if 'govt' in items:
+                high_price, low_price = np.max(p), np.min(p)
+                g_plot = ax.fill_between([0,q], y1 = high_price, y2 = low_price,
+                    color = 'C2', alpha = 0.1)
 
         if annotate:
             x_pos = self.q/3
 
             # meean between price and along supply curve
             ps_y = np.mean([self.p_producer, self.supply.intercept + self.supply.slope * x_pos])
-            
             cs_y = np.mean([self.p_consumer, self.demand.intercept + self.demand.slope * x_pos])
-
             govt_y = np.mean(p)
 
-            if type(p) == tuple:
-                ax.text(self.q/4, govt_y, 'Govt', ha = 'center', va = 'center')
+            if type(self.p) == tuple:
+                if 'govt' in items:
+                    ax.text(self.q/4, govt_y, 'Govt', ha = 'center', va = 'center')
 
-            ax.text(x_pos, cs_y, 'CS', ha = 'center', va = 'center')
-            ax.text(x_pos, ps_y, 'PS', ha = 'center', va = 'center')
+            if 'cs' in items:
+                ax.text(x_pos, cs_y, 'CS', ha = 'center', va = 'center')
+            if 'ps' in items:
+                ax.text(x_pos, ps_y, 'PS', ha = 'center', va = 'center')
 
     def plot_dwl(self, ax = None, annotate = True):
         """Plot deadweight loss region."""
@@ -649,4 +678,221 @@ class Equilibrium:
         self.subsidy = subsidy 
         self.distortion = -self.distortion
         self.tax = 0 # correct tax to zero
+
+
+
+### COSTS 
+
+class Cost:
+
+    def __init__ (self, constant, linear, quadratic,  currency = "$", reciprocal = 0):
+        """Create a quadratic cost curve,
+        constant + linear*q + quadratic*q^2. Reciprocal just for average costs"""
+
+        self.constant = constant
+        self.linear = linear
+        self.quadratic = quadratic
+        self.currency = currency
+        self.reciprocal = reciprocal
+
+    def cost(self, q):
+        """Return cost at quantity q."""
+        if self.reciprocal == 0: # allows for q = 0 calcs
+            return self.constant + self.linear * q + self.quadratic * (q**2)
+        return self.constant + self.linear * q + self.quadratic * (q**2) + self.reciprocal * (1/q)
+
+    def variable_cost(self):
+        """Return Cost object less fixed costs."""
+        return Cost(constant = 0, linear = self.linear, quadratic = self.quadratic, currency = self.currency)
+
+    def marginal_cost(self):
+        """Finds marginal cost, assuming cost is quadratic."""
+        return MarginalCost(constant = self.linear, linear = 2*self.quadratic, quadratic = 0, currency = self.currency)
+
+    def average_cost(self):
+        return Cost(constant = self.linear, linear = self.quadratic, quadratic = 0, reciprocal = self.constant, currency = self.currency)
+
+
+    def efficient_scale(self):
+        """Find q that minimizes average cost."""
+
+        # Avg Cost = constant/q + linear + quadratic * q
+        # d/dq Avg Cost = - constant/q**2 + quadratic = 0
+        # q**2 = constant / quadratic
+
+        return np.sqrt(self.constant/self.quadratic)
+
+    def breakeven_price(self):
+        """Assume perfect competition and find price such that economic profit is zero."""
+
+        # find MC = ATC
+        return self.marginal_cost().cost(self.efficient_scale()) 
+
+    def shutdown_price(self):
+        """Assume perfect competition and find price such that total revenue = total variable cost."""
+
+        var = self.variable_cost()
+        return var.marginal_cost().cost(var.efficient_scale())
+
+    def plot(self, ax = None, max_q = 100, label = None, min_plotted_q = 0.1):
+        """Plot the cost curve. 
+        min_plotted_q is used when the cost goes to infinity as q->0 to keep y-limits from also going to infinity."""
+        if ax == None:
+            ax = plt.gca()
+
+        x_vals = np.linspace(0, max_q, max_q*5 + 1)
+        if self.reciprocal != 0:
+            x_vals = x_vals[x_vals >= min_plotted_q]
+        y_vals = [self.cost(q) for q in x_vals]
+
+        ax.plot(x_vals, y_vals, label = label)
+        ax.set_xlabel("Quantity")
+        ax.set_ylabel("Cost ({})".format(self.currency))
+
+
+        # Make textbook-style plot window
+        ax.spines['left'].set_position('zero')
+        ax.spines['bottom'].set_position('zero')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+
+
+class TotalCost(Cost):
+    """Creates linear, downward-sloping demand curve."""
+
+    def __init__ (self , constant, linear, quadratic):
+        """Create demand curve with intercept and slope, specifying inverse form or not.
+        Inverse if P(Q), as opposed to Q(P).""" 
+        Cost.__init__(self, constant, linear, quadratic)
+
+    def long_run_plot(self, ax = None):
+
+        ac = self.average_cost()
+        mc = self.marginal_cost()
+
+        if ax == None:
+            ax = plt.gca()
+
+
+        # find price and q
+        p, q = self.breakeven_price(), self.efficient_scale()
+
+        max_q = int(2*q)
+        ac.plot(ax, label = 'LRAC', max_q = max_q)
+        mc.plot(ax, label = "MC", max_q = max_q)
+
+        ax.plot([0,q], [p,p], linestyle = 'dashed', color = 'gray')
+        ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
+        ax.plot([q], [p], marker = 'o')
+        ax.set_xlim(0,max_q)
+        ax.legend()
+
+    def cost_profit_plot(self, p, ax = None, items = ['tc', 'tr', 'profit']):
+        if ax == None:
+            ax = plt.gca()
+
+        items = [str(x).lower() for x in items]
+
+        # set p = mc
+        mc = self.marginal_cost()
+        q = mc.q(p)
+
+        # plot AC and MC 
+        self.average_cost().plot(label = "ATC")
+        mc.plot(label = "MC")
+
+
+        # plot price and quantity
+        ax.plot([0,q], [p,p], linestyle = 'dashed', color = 'gray')
+        ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
+        ax.plot([q], [p], marker = 'o')
+
+
+        atc_of_q = self.average_cost().cost(q)
+
+        if 'profit' in items:
+            # profit 
+            profit = q * (p - atc_of_q)
+            if profit > 0:
+                col = 'green'
+            else:
+                col = 'red'
+            ax.fill_between([0,q], atc_of_q, p, color = col, alpha = 0.3, label = r"$\pi$", hatch = "\\")
+
+        if 'tc' in items:
+            # total cost
+            ax.fill_between([0,q], 0, atc_of_q, facecolor = 'yellow', alpha = 0.1, label = 'TC', hatch = "/")
+
+        if 'tr' in items:
+            ax.fill_between([0,q], 0, p, facecolor = 'blue', alpha = 0.1, label = 'TR', hatch = '+')
+
+
+
+        ax.set_ylim(0,p*1.5)
+        ax.set_xlim(0,q*1.5)
+        ax.legend()
+
+
+
+
+
+
+        
+class MarginalCost(Cost):
+
+    def __init__ (self , constant, linear, quadratic, currency):
+        """Create demand curve with intercept and slope, specifying inverse form or not.
+        Inverse if P(Q), as opposed to Q(P).""" 
+        Cost.__init__(self, constant, linear, quadratic, currency)
+        
+    def q(self, p):
+
+        #p = self.constant + self.linear * q + self.quadratic * q**2
+        # self.quadratic * q**2 + self.linear * q + self.constant - p
+        roots = np.roots([self.quadratic, self.linear, self.constant - p])
+
+        if self.quadratic != 0:
+            print('No quadratic MC please.')
+
+        root = roots[0]
+
+        return root
+
+
+class LongRunCompetitiveEquilibrium:
+    def __init__ (self, demand, total_cost):
+        """Create long-run equilibrium for perfectly comepetitive market with identical firms."""
+        self.total_cost = total_cost
+        self.demand = demand
+
+        self.p = self.total_cost.breakeven_price()
+        self.firm_q = self.total_cost.efficient_scale()
+
+        self.market_q = self.demand.q(self.p)
+        self.n_firms = self.market_q / self.firm_q
+
+    def plot(self, fig = None):
+
+        #fig, ax = plt.subplots(1,2, sharey = True)
+        if fig == None:
+            fig = plt.gcf()
+
+        firm_ax = fig.add_subplot(1, 2 ,1)
+
+        self.total_cost.long_run_plot(firm_ax)
+        firm_ax.set_title('Firm')
+
+        mkt_ax = fig.add_subplot(1, 2 ,2, sharey = firm_ax)
+
+        supply_curve = Supply(self.p, 0)
+        market_eq = Equilibrium(self.demand, supply_curve)
+
+        market_eq.plot(mkt_ax)
+        mkt_ax.set_title("Market")
+
+        firm_ax.set_xlabel("Firm Quantity")
+        mkt_ax.set_xlabel("Market Quantity")
+
+
     
