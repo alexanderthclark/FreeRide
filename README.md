@@ -38,12 +38,15 @@ I would set expectations at not much more, at least soon. But I'd like to finish
  6. Consumer Surplus, Producer Surplus
  7. Taxes and Subsidies and their welfare effects (DWL, incidence)
  8. Costs and Long-Run Competitive Equilibrium
- 9. Externalities
- 10. Monopoly and Monopsony?
- 12. ??
+ 9. Public Goods
+ 10. Externalities
+ 11. Market Power - Monopoly and Monopsony?
+ 12. Market Power - Cournot
 
 ### Who can help? 
 I haven't opened this up for other contributors so far. But if you are interested, message me. My github handle is also my gmail. Helping might take the form of contributing code or simply contributing ideas or pointing out bugs. 
 
+I've already created more than I originally expected to create and I am due to refactor some code now that I have more holistic vision of everything.
+
 ### Why does this exist? 
-I was sitting in the aiport and it seemed like something fun to do. It's also my first time writing nontrivial object-oriented code. 
+I was sitting in the aiport and it seemed like something fun to do. It's also my first time writing nontrivial object-oriented code.
