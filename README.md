@@ -18,6 +18,9 @@ Given a demand object `demand` and supply object `supply`, the equilibrium is cr
 ### Aggregates
 Multiple supply curves or multiple demand curves can be aggregated with the `Aggregate` class. This performs horizontal summation, disallowing negative quantities. An equilibrium can be found between an `Aggregate` object and another `Aggregate` or a `Demand` or `Supply` object. There is no specific equilibrium object for this, but instead an Aggregate method (for now). This method uses a guessing algorithm that looks for a market-clearing price.
 
+### Public Goods
+The `SocialBenefit` class aggregates a list of demand curves by summing them vertically, as is done for public goods. Combined with a social cost curve `cost`, the efficient level of provision can be found with `.efficient_outcome(cost)`. This is done by a guessing algorithm that looks for a quantity such that MSB = MSC. The private provision game can be solved with `.private_outcome(list_of_private_marginal_costs)` where the marginal costs and original demand list are ordered identically. `private_outcome_residual_demand_plots` creates a subplot grid of residual demands governing the private contribution and total consumption on the right.
+
 ### Costs
 
 With the `Cost` class and its subclasses, you can analyze firm costs and long-run equilibrium stuff. The total cost equation _TC(q) = 50 + q + 4q^2_ is created with `TotalCost(50,1,4)`. 
