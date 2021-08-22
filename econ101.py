@@ -176,6 +176,75 @@ class Curve:
         return social_curve
 
         
+class SocialBenefit:
+    def __init__ (self, demand_array, *args):
+        """Performs vertical summation of demand curves or Marginal Social Benefit curve."""
+        if (demand_array == None):
+            demand_array = list(args)
+        self.demand_array = demand_array
+        
+    def marginal_social_benefit(self, q):
+        """Vertical summation of demand curves"""
+        benefit = 0
+        for curve in self.demand_array:
+            benefit += np.max([0,curve.p(q)])
+        return benefit
+    
+    def plot(self, ax = None, color = 'black', linewidth = 2, max_q = 10, clean = True):
+        
+        if ax == None:
+            ax = plt.gca()
+
+        intercepts = sorted([x.q_intercept for x in self.demand_array])
+        slopes = sorted([x.slope for x in self.demand_array])
+        
+        max_x = intercepts[-1]
+
+        x_vec = np.linspace(0,max_x, 1000)
+        y_vec = [self.msb(x) for x in x_vec]
+
+        ax.plot(x_vec, y_vec, color = color, linewidth = linewidth)
+
+        if clean:
+            #self.plot_clean()        
+            pass
+        
+    def efficient_outcome(self, other, quantity_guess = 1, tolerance = .05):
+        """Find MSB and quantity with another aggregate or curve object. MSB as price does not give the
+        corresponding quantity. """
+
+        # MSB - MSC
+        allocative_ineff = self.msb(quantity_guess) - other.productive_efficiency(quantity_guess)[1]
+
+        has_cycled = False
+        counter, last_counter = 0, 0
+        scale = 1
+        while np.abs(allocative_ineff) > tolerance:
+
+            if allocative_ineff > 0: 
+                # higher benefit than cost so increase quantity
+
+                quantity_guess += tolerance * scale
+
+                if counter > last_counter:
+                    has_cycled = True
+                    scale *= 0.5
+                counter += 1
+                last_counter = counter
+            else: # must be strictly negative bc while condition
+                # lower quantity
+                quantity_guess -= tolerance
+                counter += 1
+            #print(price_guess, surplus)
+            allocative_ineff = self.msb(quantity_guess) - other.productive_efficiency(quantity_guess)[1]
+            
+        return self.msb(quantity_guess), quantity_guess
+
+        
+    def msb(self,q):
+        """Abbreviation method for marginal_social_benefit()."""
+        return self.marginal_social_benefit(q)
+
 class Aggregate:
 
     def __init__ (self, curve_array = None, *args):
@@ -195,6 +264,51 @@ class Aggregate:
         for curve in self.curve_array:
             total_q += np.max([0,curve.q(p)])
         return total_q
+
+    def productive_efficiency(self, Q):
+        """Find q1, ..., qn and p at total quantity Q."""
+
+        #distributive/productive efficiency requires MB = MB or MC = MC
+        n = len(self.curve_array)
+        
+        # set up linear system to solve for q1, ..., qn, and MC.
+        # q1 + q2 + ... + qn + 0*MC = Q
+        # mc1 = MC
+        # mc2 = MC 
+
+        accounting = np.concatenate([np.ones(n), np.array([0])])
+
+        #
+        b_vec = np.array([0]+[])
+        from itertools import combinations
+
+        row_vectors = [accounting]
+        b_values = [ Q]
+        for key, curve in enumerate((self.curve_array)):
+
+            # 0 + slope*q_curve + 0 - MC =  - curve.intercept
+            c_vec = np.concatenate([np.zeros(key), 
+                        curve.slope*np.ones(1), np.zeros(n-key-1), -1*np.ones(1)])
+
+            row_vectors.append(c_vec)
+            b_values.append(-curve.intercept)
+
+        A = np.matrix(row_vectors)
+        b = np.matrix(b_values).T
+
+        #return A, b
+        x = np.linalg.inv(A) * b
+        x = x.squeeze()
+        return x[0,:-1], x[0,-1] # q1 ... qn, MC
+
+        # all 
+        #total_p = 0
+        #for curve in self.curve_array:
+        #    total_p += np.max([0,curve.p(q)])
+        #return total_p
+
+    def distributive_efficiency(self, Q):
+        return self.productive_efficiency(Q)
 
     def plot(self, ax = None, color = 'black', linewidth = 2, max_q = 10, clean = True):
         
@@ -390,10 +504,10 @@ class Demand(Curve):
     
 class Supply(Curve):
 
-    def __init__ (self , a , b , inverse = True):
+    def __init__ (self , intercept , slope , inverse = True):
         """Create supply curve with intercept and slope, specifying inverse form or not.
         Inverse if P(Q), as opposed to Q(P).""" 
-        Curve.__init__(self, a, b, inverse)
+        Curve.__init__(self, intercept, slope, inverse)
   
     def producer_surplus(self, p):
         
@@ -436,6 +550,7 @@ class Supply(Curve):
           #  ps = self.producer_surplus(p)
             
             
+
 class Equilibrium:
     
     def __init__ (self, demand, supply):
@@ -841,7 +956,7 @@ class TotalCost(Cost):
         
 class MarginalCost(Cost):
 
-    def __init__ (self , constant, linear, quadratic, currency):
+    def __init__ (self , constant, linear, quadratic = 0 , currency = '$'):
         """Create demand curve with intercept and slope, specifying inverse form or not.
         Inverse if P(Q), as opposed to Q(P).""" 
         Cost.__init__(self, constant, linear, quadratic, currency)
@@ -858,6 +973,10 @@ class MarginalCost(Cost):
         root = roots[0]
 
         return root
+
+    def supply(self):
+        """Convert to a supply object"""
+        return Supply(intercept = self.constant, slope = self.linear)
 
 
 class LongRunCompetitiveEquilibrium:
