@@ -1,6 +1,6 @@
 # Intro-Microeconomics
 
-This is a module for creating linear supply and demand curves and doing 101-style analysis and graphing.
+This is a module for creating linear supply and demand curves, among other Econ 101-inspired objects, and doing analysis and graphing.
 
 There are likely some bugs and surely inelegant code. Producer surplus isn't calculated correctly for supply curves with a positive q-intercept. The equilibrium solver fails in poorly behaved cases. Namely, it can return negative equilibrium quantities. Edge cases like perfectly elastic or inelastic curves are not well accounted for. 
 
@@ -39,9 +39,11 @@ I would set expectations at not much more, at least soon. But I'd like to finish
  7. Taxes and Subsidies and their welfare effects (DWL, incidence)
  8. Costs and Long-Run Competitive Equilibrium
  9. Public Goods
- 10. Externalities
- 11. Market Power - Monopoly and Monopsony?
- 12. Market Power - Cournot
+ 10. Game Theory 
+ 11. Externalities
+ 12. Market Power - Monopoly and Monopsony?
+ 13. Market Power - Cournot?
+ 14. ??
 
 ### Who can help? 
 I haven't opened this up for other contributors so far. But if you are interested, message me. My github handle is also my gmail. Helping might take the form of contributing code or simply contributing ideas or pointing out bugs. 
