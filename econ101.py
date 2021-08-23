@@ -1101,7 +1101,10 @@ class LongRunCompetitiveEquilibrium:
 
 
 class Game:
-    def __init__ (self, u00, u01, u10, u11, utility_profiles = True):
+    def __init__ (self, u00, u01, u10, u11, utility_profiles = True,
+        player_names = ['Player A', 'Player B'],
+        A_action_names = ['action 0', 'action 1'],
+        B_action_names = ['action 0', 'action 1']):
         """Two player game with actions 0 or 1 for each player.
         Enter payoffs for players A (row player, index 0) and B (column player, index 1)
         depending on action profiles. 
@@ -1237,10 +1240,10 @@ class Game:
                 if B_is_br:
                     sB = r"\underline{" + str(payoff[1]) + r"}"
                 if A_is_br and B_is_br:
-                    bbox = dict(color = 'lightyellow', alpha = 0.85)
+                    bbox = dict(facecolor = 'lightyellow',
+                            edgecolor = 'black', alpha = 0.85)
                 
             s = sA + ", " + sB
-            print(s)
             ax.text(xy[1] - 0.5 , xy[0] - 0.5, s, va = 'center', ha = 'center',
                    size = 31, bbox = bbox) #, font = 'Courier New')
             
