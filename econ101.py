@@ -1327,3 +1327,122 @@ class Game:
         
         return {'A': a_doms, "B": b_doms}
         
+
+### PPFS and budget lines 
+
+class LinearConstraint:
+    def __init__ (self, p1 = None, p2 = None, max1 = None, max2 = None, endowment = 1,
+                 good_names = ['Good 1', 'Good 2']):
+        """Create a linear budget line or PPF."""
+        
+        self.good_names = good_names
+        if (p1 != None):
+            self.p1 = p1
+            self.max1 = endowment / p1
+        elif (max1 != None):
+            self.p1 = endowment / max1
+            self.max1 = max1
+        else:
+            print('add error handling')
+          
+        if p2 != None:
+            self.p2 = p2
+            self.max2 = endowment / p2
+
+        elif (max2 != None):
+            self.p2 = endowment / max2
+            self.max2 = max2
+        else:
+            print('add error handling')
+            
+            
+            
+        
+    def plot(self, ax = None, linewidth = 2):
+        if ax == None:
+            ax = plt.gca()
+            
+        ax.plot([0,self.max1], [self.max2, 0], linewidth = linewidth)
+        
+        ax.set_xlabel(self.good_names[0])
+        ax.set_ylabel(self.good_names[1])
+        
+        
+        if True:
+            ax.spines['left'].set_position('zero')
+            ax.spines['bottom'].set_position('zero')
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False) 
+        
+    
+class PPF(LinearConstraint):
+
+    def __init__ (self ,p1 = None, p2 = None, max1 = None, max2 = None, endowment = 1,
+                 good_names = ['Good 1', 'Good 2']):
+        """Create demand curve with intercept and slope, specifying inverse form or not.
+        Inverse if P(Q), as opposed to Q(P).""" 
+        LinearConstraint.__init__(self, p1, p2, max1, max2, endowment,
+                 good_names)
+        
+class JointPPF:
+    def __init__ (self, ppf1, ppf2):
+        """Create a joint PPF from two linear PPFs."""
+        
+        self.ppf1 = ppf1
+        self.ppf2 = ppf2
+        
+        
+        # figure out comparative advantages
+        # who has lowest cost of good 2? 
+
+        if ppf2.p2 <= ppf1.p1: # arbitrary tiebreaker
+            comp_adv2 = 'ppf2'
+            comp_adv1 = 'ppf1'
+        else:
+            comp_adv2 = 'ppf1'
+            comp_adv1 = 'ppf2'
+
+        self.comp_adv1 = comp_adv1
+        self.comp_adv2 = comp_adv2
+
+        # three points
+        self.intercept2 = self.ppf1.max2 + self.ppf2.max2
+        self.intercept1 = self.ppf1.max1 + self.ppf2.max1
+
+        self.kink = self.__dict__[comp_adv1].max1, self.__dict__[comp_adv2].max2
+    
+    def plot(self, ax = None, title = 'Joint PPF'):
+        if ax == None:
+            ax = plt.gca()
+        
+        # intercept 2 to kink
+        ax.plot([0,self.kink[0]], [self.intercept2, self.kink[1]], color = 'black')
+        
+        # marker at kink
+        ax.plot([self.kink[0]], [self.kink[1]], marker = 'o')
+        ax.plot([self.kink[0], self.kink[0]], [0, self.kink[1]], linestyle = 'dashed', color = 'C0')
+        ax.plot([0, self.kink[0]], [self.kink[1], self.kink[1]], linestyle = 'dashed', color = 'C0')
+
+        # kink to intercept 1
+        
+        ax.plot([self.kink[0], self.intercept1], [self.kink[1], 0], color = 'black')
+        
+        if True:
+            ax.spines['left'].set_position('zero')
+            ax.spines['bottom'].set_position('zero')
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False) 
+        
+        ax.set_xlabel(self.ppf1.good_names[0])
+        ax.set_ylabel(self.ppf2.good_names[1])
+        ax.set_title(title)
+        
+        # label just the important points
+        
+        important_x = [self.kink[0], self.intercept1]
+        important_y = [0, self.kink[1], self.intercept2]
+        
+        ax.set_xticks(important_x)
+        ax.set_yticks(important_y)
+        
+    
