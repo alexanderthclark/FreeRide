@@ -31,10 +31,11 @@ Any student who is interested in solving introductory microeconomics problems an
 
 ### What will be added? 
 I would set expectations at not much more, at least soon. But I'd like to finish this out to something that can handle the basics of a first-year undergraduate microeconomics course, at least the simpler supply and demand topics. This includes:
- 1. Supply Curves
- 2. Demand Curves
- 3. Aggregated Supply and Demand Curves
- 4. Equilibrium
+ 1. Production Possibilities
+ 2. Supply Curves
+ 3. Demand Curves
+ 4. Aggregated Supply and Demand Curves
+ 5. Equilibrium
  6. Consumer Surplus, Producer Surplus
  7. Taxes and Subsidies and their welfare effects (DWL, incidence)
  8. Costs and Long-Run Competitive Equilibrium
