@@ -44,6 +44,28 @@ class PolyBase(np.polynomial.Polynomial):
         else:
             return roots
 
+    def plot(self, ax = None, max_q = 100, label = None, min_plotted_q = 0):
+        """Plot the cost curve. 
+        min_plotted_q is used when the cost goes to infinity as q->0 to keep y-limits from also going to infinity."""
+        if ax == None:
+            ax = plt.gca()
+
+        x_vals = np.linspace(0, max_q, max_q*5 + 1)
+        #if self.reciprocal != 0:
+        x_vals = x_vals[x_vals >= min_plotted_q]
+        y_vals = self(x_vals)
+
+        ax.plot(x_vals, y_vals, label = label)
+        #ax.set_xlabel("Quantity")
+        #ax.set_ylabel("Cost ({})".format(self.currency))
+
+
+        # Make textbook-style plot window
+        ax.spines['left'].set_position('zero')
+        ax.spines['bottom'].set_position('zero')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
     def _repr_latex_(self):
         
         # overwrite ABCPolyBase Method to use p/q instead of x\mapsto
@@ -284,7 +306,220 @@ class Supply(Affine):
 ############################################################
 #### Cost Classes
 
-#class Cost(PolyBase):
-    
-    
+class Cost(PolyBase):
+    """Polynomial cost curve"""
 
+    def __init__(self, *coef):
+
+        # if there's an array just use the array
+        if type(coef[0]) not in [float, int]:
+    
+            if len(coef) > 1:
+                raise ValueError("Pass a single array or all multiple scalars.")
+
+            coef = coef[0]
+        super().__init__(coef)
+
+        self.coef = coef
+    
+    def _repr_latex_(self):
+        
+        # overwrite ABCPolyBase Method to use p/q instead of x\mapsto
+        # get the scaled argument string to the basis functions
+        off, scale = self.mapparms()
+        if off == 0 and scale == 1:
+            term = 'q'
+            needs_parens = False
+        elif scale == 1:
+            term = f"{self._repr_latex_scalar(off)} + q"
+            needs_parens = True
+        elif off == 0:
+            term = f"{self._repr_latex_scalar(scale)}q"
+            needs_parens = True
+        else:
+            term = (
+                f"{self._repr_latex_scalar(off)} + "
+                f"{self._repr_latex_scalar(scale)}q"
+            )
+            needs_parens = True
+
+        mute = r"\color{{LightGray}}{{{}}}".format
+
+        parts = []
+        for i, c in enumerate(self.coef):
+            # prevent duplication of + and - signs
+            if i == 0:
+                coef_str = f"{self._repr_latex_scalar(c)}"
+            elif not isinstance(c, numbers.Real):
+                coef_str = f" + ({self._repr_latex_scalar(c)})"
+            elif not np.signbit(c):
+                coef_str = f" + {self._repr_latex_scalar(c)}"
+            else:
+                coef_str = f" - {self._repr_latex_scalar(-c)}"
+
+            # produce the string for the term
+            term_str = self._repr_latex_term(i, term, needs_parens)
+            if term_str == '1':
+                part = coef_str
+            else:
+                part = rf"{coef_str}\,{term_str}"
+
+            if c == 0:
+                part = mute(part)
+
+            parts.append(part)
+
+        if parts:
+            body = ''.join(parts)
+        else:
+            # in case somehow there are no coefficients at all
+            body = '0'
+
+        return rf"$q \mapsto {body}$"
+
+
+    def cost(self, q):
+        return self(q)
+
+    def variable_cost(self):
+        """Remove constant term in polynomial."""
+        new_coef = 0, *self.coef[1:]
+        return Cost(new_coef)
+
+    def marginal_cost(self):
+        new_coef = [(key+1)*c for key,c in enumerate(self.coef[1:])]
+        return Cost(new_coef)
+
+    def average_cost(self):
+        #new_coef = [c for c in self.coef[1:]]
+        return AverageCost(self.coef)
+
+
+
+    def efficient_scale(self):
+        """Find q that minimizes average cost."""
+
+        # Avg Cost = constant/q + linear + quadratic * q
+        # d/dq Avg Cost = - constant/q**2 + quadratic = 0
+        # q**2 = constant / quadratic
+        coef = self.coef
+        try:
+            constant = coef[0]
+            quad = coef[2]
+
+            return np.sqrt(constant/quad)
+
+        except IndexError:
+            
+            "increasing returns to scale forever"
+            if constant > 0:
+                return np.inf
+
+            elif len(coef) <= 2: # linear costs
+                raise ValueError('constant returns to scale')
+
+
+    def breakeven_price(self):
+        """Assume perfect competition and find price such that economic profit is zero."""
+
+        # find MC = ATC
+        return self.marginal_cost().cost(self.efficient_scale()) 
+
+    def shutdown_price(self):
+        """Assume perfect competition and find price such that total revenue = total variable cost."""
+
+        var = self.variable_cost()
+        return var.marginal_cost().cost(var.efficient_scale())
+
+
+
+    def long_run_plot(self, ax = None):
+        ac = self.average_cost()
+        mc = self.marginal_cost()
+
+        if ax == None:
+            ax = plt.gca()
+
+        p, q = self.breakeven_price(), self.efficient_scale()
+
+        if q == np.inf:
+
+            return 'in prog'
+
+        max_q = int(2*q)
+        #ac.plot(ax, label = 'LRAC', max_q = max_q)
+        ax_q = np.linspace(0, max_q, 1000)
+        ax_p = ac(ax_q)
+        ax.plot(ax_q, ax_p, label = 'LRAC')
+        mc.plot(ax, label = "MC", max_q = max_q)
+
+        ax.plot([0,q], [p,p], linestyle = 'dashed', color = 'gray')
+        ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
+        ax.plot([q], [p], marker = 'o')
+        ax.set_xlim(0,max_q)
+        ax.set_ylim(0,2*p)
+        ax.legend()
+
+    def cost_profit_plot(self, p, ax = None, items = ['tc', 'tr', 'profit']):
+        if ax == None:
+            ax = plt.gca()
+
+        items = [str(x).lower() for x in items]
+
+        # set p = mc
+        mc = self.marginal_cost()
+        q = mc.q(p)
+
+        # plot AC and MC 
+        self.average_cost().plot(label = "ATC")
+        mc.plot(label = "MC")
+
+
+        # plot price and quantity
+        ax.plot([0,q], [p,p], linestyle = 'dashed', color = 'gray')
+        ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
+        ax.plot([q], [p], marker = 'o')
+
+
+        atc_of_q = self.average_cost()(q)
+
+        if 'profit' in items:
+            # profit 
+            profit = q * (p - atc_of_q)
+            if profit > 0:
+                col = 'green'
+            else:
+                col = 'red'
+            ax.fill_between([0,q], atc_of_q, p, color = col, alpha = 0.3, label = r"$\pi$", hatch = "\\")
+
+        if 'tc' in items:
+            # total cost
+            ax.fill_between([0,q], 0, atc_of_q, facecolor = 'yellow', alpha = 0.1, label = 'TC', hatch = "/")
+
+        if 'tr' in items:
+            ax.fill_between([0,q], 0, p, facecolor = 'blue', alpha = 0.1, label = 'TR', hatch = '+')
+
+
+
+
+class AverageCost:
+
+    def __init__(self , coef):
+        
+        self.poly_coef = coef[1:]
+        self.coef = coef
+
+    def __call__(self, q):
+        return Cost(self.coef)(q) / q
+
+    def cost(self, q):
+        return self(q)
+
+    def plot(self, ax = None, max_q = 10):
+        
+        if ax == None:
+            ax = plt.gca()
+
+        xs = np.linspace(0.01, max_q, int(10*max_q))
+        ys = self(xs)
+        ax.plot(xs, ys, label = label)
