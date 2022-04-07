@@ -1,8 +1,8 @@
 # Intro-Microeconomics
 
-This is a module for creating linear supply and demand curves, among other Econ 101-inspired objects, and doing analysis and graphing.
+This is a module (to be a package) for introductory microeconomics topics.
 
-There are likely some bugs and surely inelegant code. Producer surplus isn't calculated correctly for supply curves with a positive q-intercept. The equilibrium solver fails in poorly behaved cases. Namely, it can return negative equilibrium quantities. Edge cases like perfectly elastic or inelastic curves are not well accounted for. 
+There are likely some bugs and surely inelegant code. Edge cases like perfectly elastic or inelastic curves are not well accounted for. 
 
 
 ## Use
@@ -47,7 +47,7 @@ I would set expectations at not much more, at least soon. But I'd like to finish
  14. ??
 
 ### Who can help? 
-I haven't opened this up for other contributors so far. But if you are interested, message me. My github handle is also my gmail. Helping might take the form of contributing code or simply contributing ideas or pointing out bugs. 
+If you are interested, message me. My github handle is also my gmail. Helping might take the form of contributing code or simply contributing ideas or pointing out bugs. 
 
 I've already created more than I originally expected to create and I am due to refactor some code now that I have more holistic vision of everything.
 
