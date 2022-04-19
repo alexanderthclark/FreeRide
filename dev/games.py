@@ -1,3 +1,5 @@
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Game:
     def __init__ (self, u00, u01, u10, u11, utility_profiles = True,
@@ -7,7 +9,7 @@ class Game:
         """Two player game with actions 0 or 1 for each player.
         Enter payoffs for players A (row player, index 0) and B (column player, index 1)
         depending on action profiles. 
-        uij: (utility to A, utility to B) if A takes action j and B takes action j
+        uij: (utility to A, utility to B) if A takes action i and B takes action j
         
         Use utility_profile = False to instead have interpretation
         uij = (utility to Player i if i takes action J and -i takes 0, 

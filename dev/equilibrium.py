@@ -1,6 +1,7 @@
 ############################################################
 #### Equilibrium Classes
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Equilibrium:
     

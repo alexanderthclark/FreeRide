@@ -1,4 +1,7 @@
 ### PPFS and budget lines class PPF(LinearConstraint):
+import matplotlib.pyplot as plt
+import numpy as np
+
 class LinearConstraint:
     def __init__ (self, p1 = None, p2 = None, max1 = None, max2 = None, endowment = 1,
                  good_names = ['Good 1', 'Good 2']):
