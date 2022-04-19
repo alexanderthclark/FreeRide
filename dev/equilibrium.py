@@ -1,5 +1,6 @@
 ############################################################
 #### Equilibrium Classes
+import numpy as np
 
 class Equilibrium:
     
