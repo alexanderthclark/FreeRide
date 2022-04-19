@@ -220,6 +220,10 @@ class Affine(PolyBase):
             # Label Axes
             ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
+
+        # fix lims
+        ylims = ax.get_ylim()
+        ax.set_ylim(0, ylims[1])
         
 class PerfectlyElastic:
     pass
