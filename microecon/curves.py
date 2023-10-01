@@ -224,7 +224,27 @@ class Affine(PolyBase):
         # fix lims
         ylims = ax.get_ylim()
         ax.set_ylim(0, ylims[1])
+
+class PiecewiseAffine:
+    '''
+    Horizontal summation of multiple Affine objects.
+    '''
+    def __init__(self, curve_array = None, *args):
+
+        if (curve_array == None):
+            curve_array = list(args)
+        self.curve_array = curve_array
+        slopes = sorted([x.slope for x in self.curve_array])
+        self.is_demand = slopes[0] < 0
+        self.is_supply = not self.is_demand
         
+    def q(self, p):
+        """Find aggregate quantity at price p."""
+        total_q = 0
+        for curve in self.curve_array:
+            total_q += np.max([0,curve.q(p)])
+        return total_q
+            
 class PerfectlyElastic:
     pass
 class PerfectlyInelastic:
@@ -261,7 +281,7 @@ class Supply(Affine):
         super().__init__(intercept, slope, inverse)
         
         if self.slope < 0:
-            raise ValueError("Downward sloping demand curve.")
+            raise ValueError("Downward sloping supply curve.")
             
             
     def producer_surplus(self, p):
@@ -519,7 +539,7 @@ class AverageCost:
     def cost(self, q):
         return self(q)
 
-    def plot(self, ax = None, max_q = 10):
+    def plot(self, ax = None, max_q = 10, label = None):
         
         if ax == None:
             ax = plt.gca()

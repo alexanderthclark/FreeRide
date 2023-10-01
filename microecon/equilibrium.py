@@ -2,23 +2,21 @@
 #### Equilibrium Classes
 import numpy as np
 import matplotlib.pyplot as plt
+from .curves import Demand, Supply
 
 class Equilibrium:
-    
-    def __init__ (self, demand, supply):
+    '''
+    Equilibrium class
+    '''
+    def __init__ (self, demand: Demand, supply: Supply) -> None:
         """Equilibrium produced by demand and supply. Initialized as market equilibrium."""
         # check types
-        
-        objs = demand, supply
-        types = type(demand).__name__, type(supply).__name__
-        if 'Demand' not in types:
-            raise TypeError("Missing Demand object")
-        if 'Supply' not in types:
-            raise TypeError("Missing Supply object")
-            
-        # flexibility if demand and supply arguments are reversed
-        demand = objs[types.index('Demand')]
-        supply = objs[types.index('Supply')]
+        # fix reversal in user input
+        if isinstance(demand, Supply) and isinstance(supply, Demand):
+            demand, supply = supply, demand
+        if not isinstance(demand, Demand) or not isinstance(supply, Supply):
+            types = type(demand).__name__, type(supply).__name__
+            raise TypeError("Expected Demand and Supply, but got {} and {}.".format(*types))
         self.demand = demand
         self.supply = supply
                 
@@ -33,7 +31,6 @@ class Equilibrium:
         self.p, self.market_p = x[0], x[0]
         self.q, self.market_q = x[1], x[1]
         
-        
         # initialize other things
         # these are hidden attributes
         self.__tax = 0
@@ -46,7 +43,9 @@ class Equilibrium:
 
     def plot(self, ax = None, annotate = False, clean = True,
             fresh_ticks = True):
-        
+        '''
+        Plot market equilibrium.
+        '''
         if ax == None:
             fig, ax = plt.subplots()
                 
@@ -161,8 +160,8 @@ class Equilibrium:
     def surplus(self):
         """Returns producer surplus, consumer surplus, government revenue.
         Negative government revenue indicates government expenditure."""
-        ps = self.supply.producer_surplus(e.p_producer)
-        cs = self.demand.consumer_surplus(e.p_consumer)
+        ps = self.supply.producer_surplus(self.__p_producer)
+        cs = self.demand.consumer_surplus(self.__p_consumer)
         # Govt revenue
         govt = (self.tax - self.subsidy) * self.q
 

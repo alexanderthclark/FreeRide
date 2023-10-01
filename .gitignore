@@ -1,0 +1,20 @@
+*.egg-info/
+
+# Sphinx documentation build output
+_build/
+_static/
+_templates/
+_autosummary/
+.doctrees/
+
+# Python bytecode files
+*.pyc
+*.pro
+*.pyd
+
+# System files
+.DS_Store
+
+# Backup files
+conf.py.bak
+conf.py~
