@@ -1,4 +1,4 @@
-# Intro-Microeconomics
+# Intro-Microeconomics (loose code)
 
 This is a module (to be a package) for introductory microeconomics topics.
 
