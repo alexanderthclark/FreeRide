@@ -1,5 +1,8 @@
 *.egg-info/
 
+# Output notebooks
+*-out.ipynb
+
 # Sphinx documentation build output
 _build/
 _static/
@@ -18,3 +21,9 @@ _autosummary/
 # Backup files
 conf.py.bak
 conf.py~
+notebooks/.ipynb_checkpoints/curves-checkpoint.ipynb
+notebooks/.ipynb_checkpoints/curves-checkpoint.ipynb
+build/lib/microecon/__init__.py
+build/lib/microecon/curves.py
+build/lib/tests/__init__.py
+build/lib/tests/test_curves.py
