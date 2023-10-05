@@ -3,53 +3,14 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import abc
 import numbers
-
-
-
-
-############################################################
-#### Plot Helpers
-plotprops = {'color': 'black', 'linewidth': 2}
-
-def textbook_axes(ax = None):
-    """
-    Create textbook-style axes on a matplotlib axis.
-
-    This function adjusts the properties of the given matplotlib axis object to create
-    textbook-style axes where the left and bottom spines are positioned at the origin,
-    and the top and right spines are removed.
-
-    Parameters
-    ----------
-        ax (matplotlib.axes._axes.Axes, optional): The matplotlib axis to modify.
-            If not provided, the current axes (`plt.gca()`) will be used.
-
-    Returns
-    ----------
-        None
-
-    Example
-    --------
-        To create textbook-style axes on the current plot:
-        
-        >>> import matplotlib.pyplot as plt
-        >>> textbook_axes()
-    """
-    if ax == None:
-        ax = plt.gca()
-    
-    ax.spines['left'].set_position('zero')
-    ax.spines['bottom'].set_position('zero')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-
-############################################################
-#### Curve Classes
+from microecon.plotting import textbook_axes
 
 
 class PolyBase(np.polynomial.Polynomial):
     """
     A base class for polynomial functions with added methods.
+    The independent variable is q instead of x to align with typical price-quantity axes.
+    The dependent variable is is explicitly named as p instead of y.
 
     This class extends NumPy's polynomial class and provides additional methods for
     working with polynomial functions.
@@ -79,29 +40,25 @@ class PolyBase(np.polynomial.Polynomial):
         >>> poly.p(2.0)  # Calculate the price at q=2.0
         1.0
     """
-
-
     def __init__(self, coef):
         """
-    Initialize a PolyBase object with the given coefficients.
+        Initialize a PolyBase object with the given coefficients.
+        The coefficients determine the polynomial represented by the object.
 
-    This method initializes an instance of the PolyBase class with the provided coefficients.
-    The coefficients determine the polynomial represented by the object.
+        Parameters
+        ----------
+            coef (array-like): Coefficients of the polynomial.
 
-    Parameters
-    ----------
-        coef (array-like): Coefficients of the polynomial.
+        Returns
+        ----------
+            PolyBase: A PolyBase object representing the polynomial.
 
-    Returns
-    ----------
-        PolyBase: A PolyBase object representing the polynomial.
+        Example
+        ----------
+            >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2x + 3x^2
+        """
+        super().__init__(coef, symbol = 'q')
 
-    Example
-    ----------
-        >>> poly = PolyBase([1, -2, 1])  # Represents x^2 - 2x + 1
-    """
-        super().__init__(coef)
-        
     def p(self, q: float):
         """
         Calculate the price given a quantity value q.
@@ -116,14 +73,12 @@ class PolyBase(np.polynomial.Polynomial):
 
         Example
         --------
-            >>> poly = PolyBase([1, -2, 1])  # Represents x^2 - 2x + 1
+            >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2x + 3x^2
             >>> poly.p(2.0)
-            1.0
-
-        
+            9.0
         """
         return self.__call__(q)
-    
+
     def q(self, p):
         """
         Calculate the quantity given a price value p.
@@ -142,10 +97,9 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly.q(1.0)
             1.0
         """
-        
         coef2 = (self.coef[0]-p, *self.coef[1:])[::-1]
         roots = np.roots(coef2)
-        
+
         if roots.shape == (1,):
             return roots[0]
         else:
@@ -153,16 +107,15 @@ class PolyBase(np.polynomial.Polynomial):
 
     def plot(self, ax = None, max_q = 100, label = None, min_plotted_q = 0):
         """
-        Plot the cost curve.
+        Plot the polynomial.
 
         Parameters
         --------
-            ax (matplotlib.axes._axes.Axes, optional): The matplotlib axis to use for plotting.
-                If not provided, the current axes will be used.
-            max_q (float, optional): The maximum quantity value for the plot. Defaults to 100.
+            ax (matplotlib.axes._axes.Axes, optional): The matplotlib Axes to use for plotting.
+                If not provided, the current Axes will be used.
+            max_q (float, optional): The maximum x-value for the plot. Defaults to 100.
             label (str, optional): The label for the plot. Defaults to None.
             min_plotted_q (float, optional): The minimum quantity value to plot.
-                Used when the cost goes to infinity as q->0 to prevent y-limits from going to infinity.
 
         Returns
         --------
@@ -258,9 +211,6 @@ class PolyBase(np.polynomial.Polynomial):
             body = '0'
 
         return rf"$p = {body}$"
-        
-############################################################
-#### Demand/Supply Classes
 
 
 class Affine(PolyBase):
@@ -330,17 +280,17 @@ class Affine(PolyBase):
         """
         if not inverse:
             slope, intercept = 1/slope, -intercept/slope
-        
+
         coef = (intercept, slope)
         super().__init__(coef)
         self.intercept = intercept
         self.slope = slope
-        
+
         if slope != 0:
             self.q_intercept = -intercept/slope
         else:
             self.q_intercept = np.nan
-                
+
     def vertical_shift(self, delta):
         """
         Shift the curve vertically by the given amount.
@@ -364,7 +314,7 @@ class Affine(PolyBase):
         self.intercept += delta
         if self.slope != 0:
             self.q_intercept = -self.intercept / self.slope
-        
+
     def horizontal_shift(self, delta):
         """
         Shift the curve horizontally by the given amount.
@@ -386,10 +336,10 @@ class Affine(PolyBase):
             >>> demand_curve.horizontal_shift(1.0)
         """
         equiv_vert = delta * -self.slope
-        self.intercept += equiv_vert  
+        self.intercept += equiv_vert
         if self.slope != 0:
             self.q_intercept = -self.intercept / self.slope
-            
+
     def price_elasticity(self, p):
         """
         Calculate the point price elasticity at a given price.
@@ -409,16 +359,16 @@ class Affine(PolyBase):
             >>> demand_curve = Affine(10.0, -2.0)
             >>> demand_curve.price_elasticity(4.0)
         """
-        
+
         if p < 0:
             raise ValueError('Negative price.')
         if p > self.intercept:
             raise ValueError("Price above choke price.")
-        
+
         q = self.q(p)
         e = (1/self.slope) * (p/q)
         return e
-    
+
     def midpoint_elasticity(self, p1, p2):
         """
         Find price elasticity between two prices using the midpoint formula.
@@ -440,17 +390,17 @@ class Affine(PolyBase):
             >>> demand_curve = Affine(10.0, -2.0)
             >>> demand_curve.midpoint_elasticity(3.0, 5.0)
         """
-        
+
         if (p1 < 0) or (p2 < 0):
             raise ValueError('Negative price.')
         if (p1 > self.intercept) or (p2 > self.intercept):
             raise ValueError("Price above choke price.")
-        
+
         mean_p = 0.5*p1 + 0.5*p2
         return self.price_elasticity(mean_p)
-  
 
-    def plot(self, ax = None, textbook_style = True, max_q = 10, 
+
+    def plot(self, ax = None, textbook_style = True, max_q = 10,
              color = 'black', linewidth = 2, label = True):
         """
         Plot the supply or demand curve.
@@ -488,9 +438,9 @@ class Affine(PolyBase):
             x2 = np.max([max_q, q_*2])
         else:
             x2 = q_
-        
+
         y2 = self(x2)
-        
+
         xs = np.linspace(0, x2,2)
         ys = np.linspace(self.intercept, y2, 2)
         #ys = np.maximum(self.p(xs), 0)
@@ -498,15 +448,15 @@ class Affine(PolyBase):
 
         if textbook_style:
             textbook_axes(ax)
-            
+
         if label == True:
-            
+
             # Label Curves
             if type(self).__name__ == 'Demand':
                 x0 = self.q_intercept * .95
             else:
                 x0 = ax.get_xlim()[1] * .9
-            
+
             y_delta = (ax.get_ylim()[1] - ax.get_ylim()[0])/30
             y0 = self.p(x0) + y_delta
             ax.text(x0, y0, type(self).__name__[0], va = 'bottom', ha = 'center', size = 14)
@@ -575,7 +525,7 @@ class PiecewiseAffine:
         slopes = sorted([x.slope for x in self.curve_array])
         self.is_demand = slopes[0] < 0
         self.is_supply = not self.is_demand
-        
+
     def q(self, p):
         """
         Find the aggregate quantity at the given price by summing the individual Affine curves.
@@ -602,12 +552,12 @@ class PiecewiseAffine:
         for curve in self.curve_array:
             total_q += np.max([0,curve.q(p)])
         return total_q
-            
+
 class PerfectlyElastic:
     pass
 class PerfectlyInelastic:
     pass
-        
+
 class Demand(Affine):
     """
     Represents a demand curve, extending the Affine class.
@@ -665,10 +615,10 @@ class Demand(Affine):
             >>> demand_curve = Demand(10.0, -2.0)
         """
         super().__init__(intercept, slope, inverse)
-        
+
         if self.slope > 0:
             raise ValueError("Upward sloping demand curve.")
-    
+
     def consumer_surplus(self, p):
         """
         Calculate consumer surplus at a given price.
@@ -690,8 +640,8 @@ class Demand(Affine):
         """
         q = np.max([0, self.q(p)])
         return (self.p(0) - p) * q * 0.5
-                
-        
+
+
     def plot_surplus(self, p, ax = None):
         """
         Plot consumer surplus.
@@ -713,13 +663,13 @@ class Demand(Affine):
             >>> demand_curve = Demand(10.0, -2.0)
             >>> demand_curve.plot_surplus(4.0)
         """
-        
+
         if ax == None:
             ax = plt.gca()
-            
+
         if p <= self.intercept:
             cs_plot = ax.fill_between([0, self.q(p)], y1 = [self.intercept, p], y2 = p,  alpha = 0.1)
-        
+
 class Supply(Affine):
     """
     Represents a supply curve, extending the Affine class.
@@ -776,11 +726,11 @@ class Supply(Affine):
             >>> supply_curve = Supply(10.0, 2.0)
         """
         super().__init__(intercept, slope, inverse)
-        
+
         if self.slope < 0:
             raise ValueError("Downward sloping supply curve.")
-            
-            
+
+
     def producer_surplus(self, p):
         """
         Calculate producer surplus at a price, disallowing negative costs/WTS.
@@ -803,19 +753,19 @@ class Supply(Affine):
         """
         if p <= self.p(0):
             return 0
-        
+
         q = self.q(p)
-        
+
 
         if self.q_intercept > 0:
             rectangle_width = np.min([q,self.q_intercept])
             rectangle_area = rectangle_width * p
             triangle_area = np.max([q - self.q_intercept]) * p * 0.5
             return rectangle_area + triangle_area
-        
+
         return (p - self.p(0)) * q * 0.5
 
-    
+
     def plot_surplus(self, p, ax = None):
         """
         Calculate producer surplus at a price, disallowing negative costs/WTS.
@@ -838,28 +788,28 @@ class Supply(Affine):
         """
         if p < 0:
             raise ValueError("Negative price.")
-        
+
         if ax == None:
             ax = plt.gca()
         q = self.q(p)
-        # fix later for negative 
-        
+        # fix later for negative
+
         if q <= 0:
             return None
-        
+
         qq = np.min([q, self.q_intercept])
 
-        if q > self.q_intercept > 0:            
-      
+        if q > self.q_intercept > 0:
+
             rectangle_plot = ax.fill_between([0, qq, q], y1 = [0,0,p], y2 = p, color = 'C1', alpha = 0.1)
-            
+
         elif self.q_intercept >= q > 0:
             rectangle_plot = ax.fill_between([0,q], y1 = 0, y2 = p, color = 'C1', alpha = 0.1)
 
         else:
             ps_plot = ax.fill_between([0,q], y1 = [self.intercept, p], y2 = p, color = 'C1', alpha = 0.1)
-        
-            
+
+
 ############################################################
 #### Cost Classes
 
@@ -931,7 +881,7 @@ class Cost(PolyBase):
 
         # if there's an array just use the array
         if type(coef[0]) not in [float, int]:
-    
+
             if len(coef) > 1:
                 raise ValueError("Pass a single array or all multiple scalars.")
 
@@ -939,7 +889,7 @@ class Cost(PolyBase):
         super().__init__(coef)
 
         self.coef = coef
-    
+
     def _repr_latex_(self):
         """
         Generate a LaTeX representation of the cost curve.
@@ -1100,7 +1050,7 @@ class Cost(PolyBase):
             return np.sqrt(constant/quad)
 
         except IndexError:
-            
+
             "increasing returns to scale forever"
             if constant > 0:
                 return np.inf
@@ -1124,7 +1074,7 @@ class Cost(PolyBase):
         """
 
         # find MC = ATC
-        return self.marginal_cost().cost(self.efficient_scale()) 
+        return self.marginal_cost().cost(self.efficient_scale())
 
     def shutdown_price(self):
         """
@@ -1168,7 +1118,7 @@ class Cost(PolyBase):
             >>> cost_curve = Cost(0.5, 0.1, -0.02)
             >>> cost_curve.long_run_plot()
         """
-        
+
         ac = self.average_cost()
         mc = self.marginal_cost()
 
@@ -1226,7 +1176,7 @@ class Cost(PolyBase):
         mc = self.marginal_cost()
         q = mc.q(p)
 
-        # plot AC and MC 
+        # plot AC and MC
         self.average_cost().plot(label = "ATC")
         mc.plot(label = "MC")
 
@@ -1240,7 +1190,7 @@ class Cost(PolyBase):
         atc_of_q = self.average_cost()(q)
 
         if 'profit' in items:
-            # profit 
+            # profit
             profit = q * (p - atc_of_q)
             if profit > 0:
                 col = 'green'
@@ -1288,7 +1238,7 @@ class AverageCost:
         ----------
             coef (array-like): Coefficients of the underlying cost function polynomial.
         """
-        
+
         self.poly_coef = coef[1:]
         self.coef = coef
 
