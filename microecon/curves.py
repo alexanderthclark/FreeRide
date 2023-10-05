@@ -15,19 +15,13 @@ class PolyBase(np.polynomial.Polynomial):
     This class extends NumPy's polynomial class and provides additional methods for
     working with polynomial functions.
 
+    .. math::
+
+       p = \sum_{k=0}^n c_k q^k
+
     Parameters
     ----------
         coef (array-like): Coefficients of the polynomial.
-
-    Methods:
-        p(q: float) -> float:
-            Calculate the price given a quantity value q.
-        q(p: float) -> float or ndarray:
-            Calculate the quantity given a price value p.
-        plot(ax=None, max_q=100, label=None, min_plotted_q=0):
-            Plot the cost curve.
-        _repr_latex_() -> str:
-            Generate LaTeX representation of the polynomial.
 
     Attributes
     ----------
@@ -51,7 +45,7 @@ class PolyBase(np.polynomial.Polynomial):
 
         Returns
         ----------
-            PolyBase: A PolyBase object representing the polynomial.
+            None
 
         Example
         ----------
@@ -105,7 +99,7 @@ class PolyBase(np.polynomial.Polynomial):
         else:
             return roots
 
-    def plot(self, ax = None, max_q = 100, label = None, min_plotted_q = 0):
+    def plot(self, ax=None, label=None, max_q=100, min_plotted_q=0):
         """
         Plot the polynomial.
 
@@ -130,14 +124,10 @@ class PolyBase(np.polynomial.Polynomial):
             ax = plt.gca()
 
         x_vals = np.linspace(0, max_q, max_q*5 + 1)
-        #if self.reciprocal != 0:
         x_vals = x_vals[x_vals >= min_plotted_q]
         y_vals = self(x_vals)
 
         ax.plot(x_vals, y_vals, label = label)
-        #ax.set_xlabel("Quantity")
-        #ax.set_ylabel("Cost ({})".format(self.currency))
-
 
         # Make textbook-style plot window
         ax.spines['left'].set_position('zero')
@@ -155,9 +145,9 @@ class PolyBase(np.polynomial.Polynomial):
 
         Example
         --------
-            >>> poly = PolyBase([1, -2, 1])  # Represents x^2 - 2x + 1
+            >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2x + 3x%2
             >>> poly._repr_latex_()
-            '$p = x^2 - 2x + 1$'
+            '$p = 1 - 2q + 3q^2$'
         """
         # overwrite ABCPolyBase Method to use p/q instead of x\mapsto
         # get the scaled argument string to the basis functions

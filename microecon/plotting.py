@@ -4,7 +4,8 @@ Plotting module.
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-def textbook_axes(ax = None):
+
+def textbook_axes(ax=None):
     """
     Creates textbook-style axes.
 
@@ -24,14 +25,14 @@ def textbook_axes(ax = None):
     Example
     --------
         To create textbook-style axes on the current plot:
-        
+
         >>> import matplotlib.pyplot as plt
         >>> plt.plot([0,1], [-1,0])
         >>> textbook_axes()
     """
     if ax is None:
         ax = plt.gca()
-    
+
     ax.spines['left'].set_position('zero')
     ax.spines['bottom'].set_position('zero')
     ax.spines['top'].set_visible(False)
