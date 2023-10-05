@@ -14,11 +14,13 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
+
 def get_version():
     with open("../microecon/__init__.py", "r") as f:
         for line in f:
             if line.startswith("__version__"):
                 return eval(line.split("=")[-1].strip())
+
 
 project = 'Microecon'
 copyright = '2023, Alexander Clark'

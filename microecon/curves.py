@@ -1,9 +1,8 @@
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import abc
 import numbers
 from microecon.plotting import textbook_axes
+from microecon.utilities import args_to_array
 
 
 class PolyBase(np.polynomial.Polynomial):
@@ -21,7 +20,8 @@ class PolyBase(np.polynomial.Polynomial):
 
     Parameters
     ----------
-        coef (array-like): Coefficients of the polynomial.
+    *coef : array-like or scalar
+        Coefficients of the polynomial. Can be specified as a list, tuple, or individual numerical arguments.
 
     Attributes
     ----------
@@ -34,24 +34,27 @@ class PolyBase(np.polynomial.Polynomial):
         >>> poly.p(2.0)  # Calculate the price at q=2.0
         1.0
     """
-    def __init__(self, coef):
+    def __init__(self, *coef):
         """
         Initialize a PolyBase object with the given coefficients.
         The coefficients determine the polynomial represented by the object.
 
         Parameters
         ----------
-            coef (array-like): Coefficients of the polynomial.
+        *coef : array-like or scalar
+            Coefficients of the polynomial. Can be specified as a list, tuple, or individual numerical arguments.
 
         Returns
         ----------
             None
 
-        Example
-        ----------
-            >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2x + 3x^2
+        Examples
+        --------
+            >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2q + 3q^2
+            >>> poly = PolyBase(1, -2, 3)  # Equivalent to the above
         """
-        super().__init__(coef, symbol = 'q')
+        coef = args_to_array(coef)
+        super().__init__(coef, symbol='q')
 
     def p(self, q: float):
         """
@@ -120,7 +123,7 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly = PolyBase([1, -2, 1])  # Represents x^2 - 2x + 1
             >>> poly.plot()
         """
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         x_vals = np.linspace(0, max_q, max_q*5 + 1)
