@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numbers
 from microecon.plotting import textbook_axes
-from microecon.utilities import args_to_array
 
 
 class PolyBase(np.polynomial.Polynomial):
@@ -34,7 +33,7 @@ class PolyBase(np.polynomial.Polynomial):
         >>> poly.p(2.0)  # Calculate the price at q=2.0
         1.0
     """
-    def __init__(self, *coef):
+    def __init__(self, *coef, symbol='q'):
         """
         Initialize a PolyBase object with the given coefficients.
         The coefficients determine the polynomial represented by the object.
@@ -53,8 +52,8 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2q + 3q^2
             >>> poly = PolyBase(1, -2, 3)  # Equivalent to the above
         """
-        coef = args_to_array(coef)
-        super().__init__(coef, symbol='q')
+        coef = np.squeeze(np.array(coef, ndmin=1))
+        super().__init__(coef, symbol=symbol)
 
     def p(self, q: float):
         """
