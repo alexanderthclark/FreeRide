@@ -220,10 +220,8 @@ class PolyBase(np.polynomial.Polynomial):
 
 class AffineElement(PolyBase):
     """
-    A class representing an affine function for supply or demand.
-
     This class extends the PolyBase class and represents an affine function commonly
-    used in supply and demand curves.
+    used in supply and demand curves. This does allow for negative quantities.
 
     Parameters
     --------
@@ -479,7 +477,33 @@ class AffineElement(PolyBase):
 
 
 def intersection(element1, element2):
-    
+    """
+    Compute the intersection point of two lines given by `element1` and `element2`.
+
+    Parameters
+    ----------
+    element1 : AffineElement
+        An AffineElement representing the first line.
+    element2 : AffineElement
+        An AffineElement representing the second line.
+
+    Returns
+    -------
+    numpy.ndarray
+        A 1D array containing the y and x coordinates of the intersection point.
+
+    Raises
+    ------
+    numpy.linalg.LinAlgError
+        If the matrix `A` is singular, i.e., the two lines are parallel.
+
+    Examples
+    --------
+    >>> line1 = AffineElement(intercept=12, slope=-1)
+    >>> line2 = AffineElement(intercept=0, slope=2)
+    >>> intersection(line1, line2)
+    array([8., 4.])
+    """
     A = np.array([[1, -element1.slope], [1, -element2.slope]])
     b = np.array([[element1.intercept], [element2.intercept]])
     yx = np.matmul(np.linalg.inv(A), b)
@@ -543,12 +567,33 @@ def horizontal_sum(*curves):
 
     return active_curves, cutoffs, midpoints
 
+
 class Affine:
 
     def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
-        '''
-        The slopes and intercepts are for the elements and not pieces
-        '''
+        """
+        Initializes an Affine object with given slopes and intercepts or elements.
+        The slopes correspond to elements, which are differentiated from pieces.
+
+        The elements represent the individual curves which are horizontally summed.
+        The pieces are the resulting functions for the piecewise expression describing the aggregate.
+
+        Parameters
+        ----------
+        intercept : float, list of float, optional
+            The y-intercept(s) of the elements.
+        slope : float, list of float, optional
+            The slope(s) of the elements.
+        elements : list of AffineElement, optional
+            A list of AffineElements whose horizontal sum defines the Affine object.
+        inverse : bool, optional
+            When inverse is True, it is assumed that equations are in the form P(Q).
+
+        Raises
+        ------
+        ValueError
+            If the lengths of `slope` and `intercept` do not match.
+        """
 
         if elements is None:
             if isinstance(slope, (int, float)):
@@ -591,7 +636,17 @@ class Affine:
         self.elements = elements
 
     def __call__(self, x):
-        # returns p given q
+        """
+        Computes p given q=x. This is wrong currently.
+
+        Parameters
+        ----------
+        x : float
+
+        Returns
+        -------
+        float
+        """
         return np.sum([np.max([0, c(x)]) for c in self.elements])
 
     def q(self, p):
