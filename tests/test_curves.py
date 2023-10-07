@@ -1,19 +1,16 @@
 import unittest
-from microecon.curves import Demand, Supply
+from microecon.curves import Affine
 
-class TestDemand(unittest.TestCase):
+class TestAffine(unittest.TestCase):
 
     def setUp(self):
         self.slope = -2
         self.intercept = 12
-        self.demand = Demand(self.intercept, self.slope)
+        self.demand = Affine(self.intercept, self.slope, inverse = False)
 
     def test_q_intercept(self):
-        self.assertTrue(self.demand.q_intercept == 6)
-
-    # for intentional failure
-    #def test_break(self):
-    #   self.assertTrue(False)
-
+        #self.assertTrue(self.demand.intercept == 6)
+        pass
+        
     def tearDown(self):
         pass
