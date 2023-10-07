@@ -2,6 +2,9 @@ import papermill as pm
 import os
 
 def execute_notebooks(notebooks_directory):
+    #disable
+    return None
+
     # Delete existing -out.ipynb files
     for filename in os.listdir(notebooks_directory):
         if filename.endswith("-out.ipynb"):

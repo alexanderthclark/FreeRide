@@ -218,7 +218,7 @@ class PolyBase(np.polynomial.Polynomial):
         return rf"$p = {body}$"
 
 
-class Affine(PolyBase):
+class AffineElement(PolyBase):
     """
     A class representing an affine function for supply or demand.
 
@@ -295,6 +295,9 @@ class Affine(PolyBase):
             self.q_intercept = -intercept/slope
         else:
             self.q_intercept = np.nan
+
+        self.inverse_expression = f'{intercept:g}{slope:+g}q'
+        self.expression = f'{self.q_intercept:g}{1/slope:+g}p'
 
     def vertical_shift(self, delta):
         """
@@ -474,843 +477,159 @@ class Affine(PolyBase):
         ylims = ax.get_ylim()
         ax.set_ylim(0, ylims[1])
 
-class PiecewiseAffine:
-    """
-    Represents the horizontal summation of multiple Affine objects.
 
-    This class combines multiple Affine objects to represent a piecewise linear function
-    that results from horizontally summing multiple supply or demand curves.
+def intersection(element1, element2):
+    
+    A = np.array([[1, -element1.slope], [1, -element2.slope]])
+    b = np.array([[element1.intercept], [element2.intercept]])
+    yx = np.matmul(np.linalg.inv(A), b)
+    return np.squeeze(yx)
+
+
+def blind_sum(*curves):
+    '''
+    Computes the horizontal summation of AffineElement objects.
 
     Parameters
-    --------
-        curve_array (list of Affine, optional): An array of Affine objects to be combined.
-            Defaults to None.
-        *args: Additional Affine objects passed as arguments to be included in the summation.
+    ----------
+    *curves : AffineElement
+        The objects to be summed.
 
-    Attributes
-    --------
-        curve_array (list of Affine): An array of Affine objects used in the summation.
-        is_demand (bool): True if the resulting curve represents demand, False if supply.
+    Returns
+    -------
+    AffineElement
+        The horizontal summation of the input curves represented as an AffineElement object.
+        Returns None if no curves are provided.
+    '''
+    if len(curves) == 0:
+        return None
+    qintercept = np.sum([-c.intercept/c.slope for c in curves])
+    qslope = np.sum([1/c.slope for c in curves])
+    return AffineElement(qintercept, qslope, inverse = False)
 
-    Methods
-    --------
-        q(self, p):
-            Find the aggregate quantity at the given price by summing the individual Affine curves.
 
-    Example
-    --------
-        >>> curve1 = Affine(10.0, -2.0)
-        >>> curve2 = Affine(5.0, -1.0)
-        >>> piecewise_curve = PiecewiseAffine(curve1, curve2)
-    """
-    def __init__(self, curve_array = None, *args):
-        """
-        Initialize a PiecewiseAffine object with a list of Affine objects.
+def horizontal_sum(*curves):
+    '''
+    Computes the active curves at different price midpoints based on the p-intercepts of input curves.
 
-        Parameters
-        --------
-            curve_array (list of Affine, optional): An array of Affine objects to be combined.
-                Defaults to None.
-            *args: Additional Affine objects passed as arguments to be included in the summation.
+    Parameters
+    ----------
+    *curves : Affine
+        The Affine curve objects for which the active curves are to be found.
 
-        Returns
-        --------
-            PiecewiseAffine: A PiecewiseAffine object representing the combined curve.
+    Returns
+    -------
+    tuple
+        A tuple containing three elements:
+        - active_curves (list): A list of AffineElement objects representing the active curves at
+          each price midpoint.
+        - cutoffs (list): A list of unique p-intercepts sorted in ascending order.
+        - midpoints (list): A list of midpoints computed based on the cutoffs.
 
-        Example
-        --------
-            >>> curve1 = Affine(10.0, -2.0)
-            >>> curve2 = Affine(5.0, -1.0)
-            >>> piecewise_curve = PiecewiseAffine(curve1, curve2)
-        """
+    Notes
+    -----
+    This function first computes the p-intercepts of the input curves, and determines the p-cutoffs.
+    It then computes the midpoints between these cutoffs to identify the price points at which
+    the active curves are to be computed. The active curves are computed using the `blind_sum`
+    function, considering only those curves which have a positive q-value at each price midpoint.
+    '''
+    intercepts = [0] + [c.intercept for c in curves]
+    cutoffs = sorted(list(set(intercepts)))
+    # get a point in each region
+    midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [cutoffs[-1]+1] 
+    
+    # get curves with positive quantity for each region
+    active_curves = [blind_sum(*[c for c in curves if c.q(price)>0]) for price in midpoints]
 
-        if (curve_array == None):
-            curve_array = list(args)
-        self.curve_array = curve_array
-        slopes = sorted([x.slope for x in self.curve_array])
-        self.is_demand = slopes[0] < 0
-        self.is_supply = not self.is_demand
+    return active_curves, cutoffs, midpoints
+
+class Affine:
+
+    def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
+        '''
+        The slopes and intercepts are for the elements and not pieces
+        '''
+
+        if elements is None:
+            if isinstance(slope, (int, float)):
+                slope = [slope]
+            if isinstance(intercept, (int, float)):
+                intercept = [intercept]
+
+            if len(slope) != len(intercept):
+                raise ValueError("Slope and intercept lengths do not match.")
+
+            zipped = zip(slope, intercept)
+            elements = [AffineElement(slope=m, intercept=b, inverse=inverse) for m, b in zipped]
+        if intercept is None:
+            intercept = [c.intercept for c in elements]
+        if slope is None:
+            slope = [c.slope for c in elements]
+
+        pieces, cuts, mids = horizontal_sum(*elements)
+
+        # for display _repr_latex_ behavior
+        cond = [f"{cuts[i]} \\leq p \\leq {cuts[i+1]}" for i in range(len(cuts)-1)]
+        cond += [f'p \geq {cuts[-1]}']
+        self.conditions = cond
+        #self.expressions = [f"{c.q_intercept:g}{1/c.slope:+g}p" if c else '0' for c in pieces]
+        self.expressions = [c.expression if c else '0' for c in pieces]
+        self.inverse_expressions = [c.inverse_expression if c else '0' for c in pieces]
+
+        intersections = list()
+        if len(pieces):
+            intersections = [intersection(pieces[i], pieces[i+1]) for i in range(len(pieces)-1) if (pieces[i]) and (pieces[i+1])]
+
+        #maxm = np.max([intercept]), np.min([intercept])
+        #choke = np.max([])
+
+        # inverse conditions and expressions
+        self.intersections = intersections
+        self.pieces = pieces
+        self.intercept = intercept
+        self.slope = slope
+        self.elements = elements
+
+    def __call__(self, x):
+        # returns p given q
+        return np.sum([np.max([0, c(x)]) for c in self.elements])
 
     def q(self, p):
-        """
-        Find the aggregate quantity at the given price by summing the individual Affine curves.
-
-        This method calculates the aggregate quantity corresponding to the given price `p`
-        by summing the individual Affine curves that make up the piecewise curve.
-
-        Parameters
-        --------
-            p (float): The price at which to calculate the aggregate quantity.
-
-        Returns
-        --------
-            float: The aggregate quantity at the specified price.
-
-        Example
-        --------
-            >>> curve1 = Affine(10.0, -2.0)
-            >>> curve2 = Affine(5.0, -1.0)
-            >>> piecewise_curve = PiecewiseAffine(curve1, curve2)
-            >>> piecewise_curve.q(4.0)
-        """
-        total_q = 0
-        for curve in self.curve_array:
-            total_q += np.max([0,curve.q(p)])
-        return total_q
-
-class PerfectlyElastic:
-    pass
-class PerfectlyInelastic:
-    pass
-
-class Demand(Affine):
-    """
-    Represents a demand curve, extending the Affine class.
-
-    This class represents a demand curve, which extends the Affine class to include specific
-    methods and properties related to demand curves.
-
-    Parameters
-    ----------
-        intercept (float): The intercept of the demand curve.
-        slope (float): The slope of the demand curve.
-        inverse (bool, optional): If True, interprets the parameters as inverse slope
-            and intercept. Defaults to True.
-
-    Attributes
-    ----------
-        intercept (float): The intercept of the demand curve.
-        slope (float): The slope of the demand curve.
-
-    Methods
-    ----------
-        __init__(self, intercept, slope, inverse=True):
-            Initialize a Demand object with intercept and slope.
-        consumer_surplus(self, p):
-            Calculate consumer surplus at a given price.
-        plot_surplus(self, p, ax=None):
-            Plot consumer surplus for a given price.
-
-    Example
-    ----------
-        >>> demand_curve = Demand(10.0, -2.0)
-        >>> demand_curve.plot()
-    """
-
-    def __init__(self, intercept, slope, inverse = True):
-        """
-        Initialize a Demand object with the given intercept and slope.
-
-        This method creates an instance of the Demand class with the specified intercept and slope.
-        The parameters can be interpreted as inverse slope and intercept if the `inverse` parameter is True.
-
-        Parameters
-        ----------
-            intercept (float): The intercept of the demand curve.
-            slope (float): The slope of the demand curve.
-            inverse (bool, optional): If True, interprets the parameters as inverse slope
-                and intercept. Defaults to True.
-
-        Returns
-        ----------
-            Demand: A Demand object representing the demand curve.
-
-        Example
-        ----------
-            >>> demand_curve = Demand(10.0, -2.0)
-        """
-        super().__init__(intercept, slope, inverse)
-
-        if self.slope > 0:
-            raise ValueError("Upward sloping demand curve.")
-
-    def consumer_surplus(self, p):
-        """
-        Calculate consumer surplus at a given price.
-
-        This method calculates the consumer surplus at the specified price `p`.
-
-        Parameters
-        ----------
-            p (float): The price at which to calculate consumer surplus.
-
-        Returns
-        ----------
-            float: The consumer surplus at the specified price.
-
-        Example
-        ----------
-            >>> demand_curve = Demand(10.0, -2.0)
-            >>> demand_curve.consumer_surplus(4.0)
-        """
-        q = np.max([0, self.q(p)])
-        return (self.p(0) - p) * q * 0.5
-
-
-    def plot_surplus(self, p, ax = None):
-        """
-        Plot consumer surplus.
-
-        This method plots the consumer surplus for a given price `p` on the specified matplotlib axis.
-
-        Parameters
-        ----------
-            p (float): The price at which to plot consumer surplus.
-            ax (matplotlib.axes._axes.Axes, optional): The matplotlib axis to use for plotting.
-                If not provided, the current axes will be used.
-
-        Returns
-        ----------
-            None
-
-        Example
-        ----------
-            >>> demand_curve = Demand(10.0, -2.0)
-            >>> demand_curve.plot_surplus(4.0)
-        """
-
-        if ax == None:
-            ax = plt.gca()
-
-        if p <= self.intercept:
-            cs_plot = ax.fill_between([0, self.q(p)], y1 = [self.intercept, p], y2 = p,  alpha = 0.1)
-
-class Supply(Affine):
-    """
-    Represents a supply curve, extending the Affine class.
-
-    This class represents a supply curve, which extends the Affine class to include specific
-    methods and properties related to supply curves.
-
-    Parameters
-    ----------
-        intercept (float): The intercept of the supply curve.
-        slope (float): The slope of the supply curve.
-        inverse (bool, optional): If True, interprets the parameters as inverse slope
-            and intercept. Defaults to True.
-
-    Attributes
-    ----------
-        intercept (float): The intercept of the supply curve.
-        slope (float): The slope of the supply curve.
-
-    Methods
-    ----------
-        __init__(self, intercept, slope, inverse=True):
-            Initialize a Supply object with intercept and slope.
-        producer_surplus(self, p):
-            Calculate producer surplus at a price, disallowing negative costs/WTS.
-        plot_surplus(self, p, ax=None):
-            Plot producer surplus for a given price.
-
-    Example
-    ----------
-        >>> supply_curve = Supply(10.0, 2.0)
-        >>> supply_curve.plot()
-    """
-    def __init__(self, intercept, slope, inverse = True):
-        """
-        Initialize a Supply object with the given intercept and slope.
-
-        This method creates an instance of the Supply class with the specified intercept and slope.
-        The parameters can be interpreted as inverse slope and intercept if the `inverse` parameter is True.
-
-        Parameters
-        ----------
-            intercept (float): The intercept of the supply curve.
-            slope (float): The slope of the supply curve.
-            inverse (bool, optional): If True, interprets the parameters as inverse slope
-                and intercept. Defaults to True.
-
-        Returns
-        ----------
-            Supply: A Supply object representing the supply curve.
-
-        Example
-        ----------
-            >>> supply_curve = Supply(10.0, 2.0)
-        """
-        super().__init__(intercept, slope, inverse)
-
-        if self.slope < 0:
-            raise ValueError("Downward sloping supply curve.")
-
-
-    def producer_surplus(self, p):
-        """
-        Calculate producer surplus at a price, disallowing negative costs/WTS.
-
-        This method calculates the producer surplus at the specified price `p`,
-        disallowing negative costs/WTS (willingness to supply).
-
-        Parameters
-        ----------
-            p (float): The price at which to calculate producer surplus.
-
-        Returns
-        ----------
-            float: The producer surplus at the specified price.
-
-        Example
-        ----------
-            >>> supply_curve = Supply(10.0, 2.0)
-            >>> supply_curve.producer_surplus(6.0)
-        """
-        if p <= self.p(0):
-            return 0
-
-        q = self.q(p)
-
-
-        if self.q_intercept > 0:
-            rectangle_width = np.min([q,self.q_intercept])
-            rectangle_area = rectangle_width * p
-            triangle_area = np.max([q - self.q_intercept]) * p * 0.5
-            return rectangle_area + triangle_area
-
-        return (p - self.p(0)) * q * 0.5
-
-
-    def plot_surplus(self, p, ax = None):
-        """
-        Calculate producer surplus at a price, disallowing negative costs/WTS.
-
-        This method calculates the producer surplus at the specified price `p`,
-        disallowing negative costs/WTS (willingness to supply).
-
-        Parameters
-        ----------
-            p (float): The price at which to calculate producer surplus.
-
-        Returns
-        ----------
-            float: The producer surplus at the specified price.
-
-        Example
-        ----------
-            >>> supply_curve = Supply(10.0, 2.0)
-            >>> supply_curve.producer_surplus(6.0)
-        """
-        if p < 0:
-            raise ValueError("Negative price.")
-
-        if ax == None:
-            ax = plt.gca()
-        q = self.q(p)
-        # fix later for negative
-
-        if q <= 0:
-            return None
-
-        qq = np.min([q, self.q_intercept])
-
-        if q > self.q_intercept > 0:
-
-            rectangle_plot = ax.fill_between([0, qq, q], y1 = [0,0,p], y2 = p, color = 'C1', alpha = 0.1)
-
-        elif self.q_intercept >= q > 0:
-            rectangle_plot = ax.fill_between([0,q], y1 = 0, y2 = p, color = 'C1', alpha = 0.1)
-
+        # returns q given p
+        return np.sum([np.max([0,c.q(p)]) for c in self.elements])
+
+    def equation(self, inverse=False):
+        if inverse:
+            latex_str = r"p = \begin{cases} "
+
+            for expr, cond in zip(self.inverse_expressions, self.conditions):
+                latex_str += f"{expr} & \\text{{if }} {cond} \\\\"
+            latex_str += r"\end{cases}"
+            return f"${latex_str}$"
         else:
-            ps_plot = ax.fill_between([0,q], y1 = [self.intercept, p], y2 = p, color = 'C1', alpha = 0.1)
+            latex_str = r"q = \begin{cases} "
 
-
-############################################################
-#### Cost Classes
-
-class Cost(PolyBase):
-    """
-    Polynomial cost curve.
-
-    This class represents a polynomial cost curve and extends the PolyBase class. It provides methods
-    for calculating costs, finding the efficient scale, breakeven price, shutdown price, and plotting
-    various cost-related curves.
-
-    Parameters
-    ----------
-        *coef (float or array-like): Coefficients of the polynomial cost curve.
-
-    Attributes
-    ----------
-        coef (array-like): Coefficients of the polynomial cost curve.
-
-    Methods
-    ----------
-        __init__(self, *coef):
-            Initialize a Cost object with coefficients.
-        _repr_latex_(self):
-            Generate a LaTeX representation of the cost curve.
-        cost(self, q):
-            Calculate the cost at a given quantity.
-        variable_cost(self):
-            Return a Cost object representing the variable cost.
-        marginal_cost(self):
-            Return a Cost object representing the marginal cost.
-        average_cost(self):
-            Return an AverageCost object representing the average cost.
-        efficient_scale(self):
-            Find the quantity that minimizes average cost.
-        breakeven_price(self):
-            Find the price such that economic profit is zero (perfect competition).
-        shutdown_price(self):
-            Find the price such that total revenue equals total variable cost (perfect competition).
-        long_run_plot(self, ax=None):
-            Plot the long-run average cost and marginal cost curves.
-        cost_profit_plot(self, p, ax=None, items=['tc', 'tr', 'profit']):
-            Plot cost, revenue, and profit curves at a given price.
-
-    Example
-    ----------
-        >>> cost_curve = Cost(0.5, 0.1, -0.02)
-        >>> cost_curve.cost(10)
-    """
-
-    def __init__(self, *coef):
-        """
-        Initialize a Cost object with the specified coefficients.
-
-        This method creates an instance of the Cost class with the given coefficients.
-
-        Parameters
-        ----------
-            *coef (float or array-like): Coefficients of the polynomial cost curve.
-
-        Returns
-        ----------
-            Cost: A Cost object representing the polynomial cost curve.
-
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-        """
-
-        # if there's an array just use the array
-        if type(coef[0]) not in [float, int]:
-
-            if len(coef) > 1:
-                raise ValueError("Pass a single array or all multiple scalars.")
-
-            coef = coef[0]
-        super().__init__(coef)
-
-        self.coef = coef
+            for expr, cond in zip(self.expressions, self.conditions):
+                latex_str += f"{expr} & \\text{{if }} {cond} \\\\"
+            latex_str += r"\end{cases}"
+            return f"${latex_str}$"         
 
     def _repr_latex_(self):
-        """
-        Generate a LaTeX representation of the cost curve.
+        return self.equation(inverse=False)
 
-        Returns
-        ----------
-            str: LaTeX representation of the cost curve.
+    def __add__(self, other):
+        elements = self.elements + self.elements
+        return Affine(elements=elements)
 
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-            >>> latex_repr = cost_curve._repr_latex_()
-        """
-        # overwrite ABCPolyBase Method to use p/q instead of x\mapsto
-        # get the scaled argument string to the basis functions
-        off, scale = self.mapparms()
-        if off == 0 and scale == 1:
-            term = 'q'
-            needs_parens = False
-        elif scale == 1:
-            term = f"{self._repr_latex_scalar(off)} + q"
-            needs_parens = True
-        elif off == 0:
-            term = f"{self._repr_latex_scalar(scale)}q"
-            needs_parens = True
-        else:
-            term = (
-                f"{self._repr_latex_scalar(off)} + "
-                f"{self._repr_latex_scalar(scale)}q"
-            )
-            needs_parens = True
+    def plot(self, ax=None):
 
-        mute = r"\color{{LightGray}}{{{}}}".format
+        if ax is None:
+            fig, ax = plt.subplots()
 
-        parts = []
-        for i, c in enumerate(self.coef):
-            # prevent duplication of + and - signs
-            if i == 0:
-                coef_str = f"{self._repr_latex_scalar(c)}"
-            elif not isinstance(c, numbers.Real):
-                coef_str = f" + ({self._repr_latex_scalar(c)})"
-            elif not np.signbit(c):
-                coef_str = f" + {self._repr_latex_scalar(c)}"
-            else:
-                coef_str = f" - {self._repr_latex_scalar(-c)}"
+        # use intersections to 
+        for piece in self.pieces:
+            if piece:
+                piece.plot(ax=ax, label=False)
 
-            # produce the string for the term
-            term_str = self._repr_latex_term(i, term, needs_parens)
-            if term_str == '1':
-                part = coef_str
-            else:
-                part = rf"{coef_str}\,{term_str}"
-
-            if c == 0:
-                part = mute(part)
-
-            parts.append(part)
-
-        if parts:
-            body = ''.join(parts)
-        else:
-            # in case somehow there are no coefficients at all
-            body = '0'
-
-        return rf"$q \mapsto {body}$"
-
-
-    def cost(self, q):
-        """
-        Calculate the cost at a given quantity.
-
-        Parameters
-        ----------
-            q (float): The quantity at which to calculate the cost.
-
-        Returns
-        ----------
-            float: The cost at the specified quantity.
-
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-            >>> cost_curve.cost(10)
-        """
-        return self(q)
-
-    def variable_cost(self):
-        """
-        Return a Cost object representing the variable cost.
-
-        Returns
-        ----------
-            Cost: A Cost object representing the variable cost.
-
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-            >>> variable_cost_curve = cost_curve.variable_cost()
-        """
-        new_coef = 0, *self.coef[1:]
-        return Cost(new_coef)
-
-    def marginal_cost(self):
-        """
-        Return a Cost object representing the marginal cost.
-
-        Returns
-        ----------
-            Cost: A Cost object representing the marginal cost.
-
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-            >>> marginal_cost_curve = cost_curve.marginal_cost()
-        """
-        new_coef = [(key+1)*c for key,c in enumerate(self.coef[1:])]
-        return Cost(new_coef)
-
-    def average_cost(self):
-        """
-        Return an AverageCost object representing the average cost.
-
-        Returns
-        ----------
-            AverageCost: An AverageCost object representing the average cost.
-
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-            >>> average_cost_curve = cost_curve.average_cost()
-        """
-        #new_coef = [c for c in self.coef[1:]]
-        return AverageCost(self.coef)
-
-
-    def efficient_scale(self):
-        """
-        Find the quantity that minimizes average cost.
-
-        Returns
-        ----------
-            float or str: The quantity that minimizes average cost or 'in prog' if it's not finite.
-
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-            >>> efficient_quantity = cost_curve.efficient_scale()
-        """
-
-        # Avg Cost = constant/q + linear + quadratic * q
-        # d/dq Avg Cost = - constant/q**2 + quadratic = 0
-        # q**2 = constant / quadratic
-        coef = self.coef
-        try:
-            constant = coef[0]
-            quad = coef[2]
-
-            return np.sqrt(constant/quad)
-
-        except IndexError:
-
-            "increasing returns to scale forever"
-            if constant > 0:
-                return np.inf
-
-            elif len(coef) <= 2: # linear costs
-                raise ValueError('constant returns to scale')
-
-
-    def breakeven_price(self):
-        """
-        Find the price such that economic profit is zero (perfect competition).
-
-        Returns
-        ----------
-            float: The price at which economic profit is zero.
-
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-            >>> breakeven_price = cost_curve.breakeven_price()
-        """
-
-        # find MC = ATC
-        return self.marginal_cost().cost(self.efficient_scale())
-
-    def shutdown_price(self):
-        """
-        Assume perfect competition and find the price at which total revenue equals total variable cost.
-
-        This method calculates the price at which a firm should shut down in the short run to minimize losses,
-        assuming perfect competition. It finds the price at which total revenue (TR) equals total variable cost (TVC).
-
-        Returns
-        ----------
-        float: The price at which total revenue equals total variable cost.
-
-        Example
-        ----------
-        >>> cost_curve = Cost(0.5, 0.1, -0.02)
-        >>> shutdown = cost_curve.shutdown_price()
-        """
-
-        var = self.variable_cost()
-        return var.marginal_cost().cost(var.efficient_scale())
-
-
-
-    def long_run_plot(self, ax = None):
-        """
-        Plot the long-run average cost (LRAC) and marginal cost (MC) curves.
-
-        This method plots the long-run average cost (LRAC) curve and the marginal cost (MC) curve on the same graph.
-        It also marks the efficient scale and the breakeven price.
-
-        Args
-        ----------
-            ax (matplotlib.pyplot.axis, optional): The axis on which to plot. If not provided, the current axis is used.
-
-        Returns
-        ----------
-            None
-
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-            >>> cost_curve.long_run_plot()
-        """
-
-        ac = self.average_cost()
-        mc = self.marginal_cost()
-
-        if ax == None:
-            ax = plt.gca()
-
-        p, q = self.breakeven_price(), self.efficient_scale()
-
-        if q == np.inf:
-
-            return 'in prog'
-
-        max_q = int(2*q)
-        #ac.plot(ax, label = 'LRAC', max_q = max_q)
-        ax_q = np.linspace(0, max_q, 1000)
-        ax_p = ac(ax_q)
-        ax.plot(ax_q, ax_p, label = 'LRAC')
-        mc.plot(ax, label = "MC", max_q = max_q)
-
-        ax.plot([0,q], [p,p], linestyle = 'dashed', color = 'gray')
-        ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
-        ax.plot([q], [p], marker = 'o')
-        ax.set_xlim(0,max_q)
-        ax.set_ylim(0,2*p)
-        ax.legend()
-
-    def cost_profit_plot(self, p, ax = None, items = ['tc', 'tr', 'profit']):
-        """
-        Plot various cost and profit components at a given price.
-
-        This method plots the average total cost (ATC) and marginal cost (MC) curves, and it marks the given price and
-        quantity on the graph. It can also shade areas to represent total cost (TC), total revenue (TR), and profit (π).
-
-        Args
-        ----------
-            p (float): The price at which to evaluate the cost and profit components.
-            ax (matplotlib.pyplot.axis, optional): The axis on which to plot. If not provided, the current axis is used.
-            items (list of str, optional): A list of items to include in the plot. Options are 'tc', 'tr', and 'profit'.
-
-        Returns
-        ----------
-            None
-
-        Example
-        ----------
-            >>> cost_curve = Cost(0.5, 0.1, -0.02)
-            >>> cost_curve.cost_profit_plot(0.4, items=['tc', 'tr', 'profit'])
-        """
-        if ax == None:
-            ax = plt.gca()
-
-        items = [str(x).lower() for x in items]
-
-        # set p = mc
-        mc = self.marginal_cost()
-        q = mc.q(p)
-
-        # plot AC and MC
-        self.average_cost().plot(label = "ATC")
-        mc.plot(label = "MC")
-
-
-        # plot price and quantity
-        ax.plot([0,q], [p,p], linestyle = 'dashed', color = 'gray')
-        ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
-        ax.plot([q], [p], marker = 'o')
-
-
-        atc_of_q = self.average_cost()(q)
-
-        if 'profit' in items:
-            # profit
-            profit = q * (p - atc_of_q)
-            if profit > 0:
-                col = 'green'
-            else:
-                col = 'red'
-            ax.fill_between([0,q], atc_of_q, p, color = col, alpha = 0.3, label = r"$\pi$", hatch = "\\")
-
-        if 'tc' in items:
-            # total cost
-            ax.fill_between([0,q], 0, atc_of_q, facecolor = 'yellow', alpha = 0.1, label = 'TC', hatch = "/")
-
-        if 'tr' in items:
-            ax.fill_between([0,q], 0, p, facecolor = 'blue', alpha = 0.1, label = 'TR', hatch = '+')
-
-
-
-
-class AverageCost:
-    """
-    Class representing the average cost curve.
-
-    The average cost (AC) curve is derived from a given cost function's coefficients. It calculates the cost per unit
-    of output (average cost) for different levels of output (quantity).
-
-    Args
-    ----------
-        coef (array-like): Coefficients of the underlying cost function polynomial.
-
-    Attributes
-    ----------
-        poly_coef (array-like): Coefficients of the underlying cost function polynomial excluding the constant term.
-        coef (array-like): Coefficients of the underlying cost function polynomial, including the constant term.
-
-    Example
-    ----------
-        >>> cost_curve = Cost(0.5, 0.1, -0.02)
-        >>> ac_curve = AverageCost(cost_curve.coef)
-    """
-
-    def __init__(self , coef):
-        """
-        Initialize the AverageCost object.
-
-        Args
-        ----------
-            coef (array-like): Coefficients of the underlying cost function polynomial.
-        """
-
-        self.poly_coef = coef[1:]
-        self.coef = coef
-
-    def __call__(self, q):
-        """
-        Calculate the average cost at a given quantity.
-
-        Args
-        ----------
-            q (float): The quantity (output level) at which to calculate the average cost.
-
-        Returns
-        ----------
-            float: The average cost at the given quantity.
-
-        Example
-        ----------
-            >>> ac_curve = AverageCost([0.5, 0.1, -0.02])
-            >>> avg_cost_at_10_units = ac_curve(10)
-        """
-        return Cost(self.coef)(q) / q
-
-    def cost(self, q):
-        """
-        Calculate the average cost at a given quantity.
-
-        This method is equivalent to calling the object as a function with the quantity as the argument.
-
-        Args
-        ----------
-            q (float): The quantity (output level) at which to calculate the average cost.
-
-        Returns
-        ----------
-            float: The average cost at the given quantity.
-
-        Example
-        ----------
-            >>> ac_curve = AverageCost([0.5, 0.1, -0.02])
-            >>> avg_cost_at_10_units = ac_curve.cost(10)
-        """
-        return self(q)
-
-    def plot(self, ax = None, max_q = 10, label = None):
-        """
-        Plot the average cost curve.
-
-        This method generates a plot of the average cost (AC) curve over a range of output levels (quantity).
-
-        Args
-        ----------
-            ax (matplotlib.pyplot.axis, optional): The axis on which to plot. If not provided, the current axis is used.
-            max_q (float, optional): The maximum quantity to plot up to.
-            label (str, optional): Label for the curve on the plot.
-
-        Returns
-        ----------
-            None
-
-        Example
-        ----------
-            >>> ac_curve = AverageCost([0.5, 0.1, -0.02])
-            >>> ac_curve.plot(max_q=20, label='AC Curve')
-        """
-        if ax == None:
-            ax = plt.gca()
-
-        xs = np.linspace(0.01, max_q, int(10*max_q))
-        ys = self(xs)
-        ax.plot(xs, ys, label = label)
+        # fix for demand and supply and inverse vs q(p)
+        #ax.set_xlim(0, np.max(self.intercept))
