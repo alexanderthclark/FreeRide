@@ -6,9 +6,13 @@
 Welcome to microecon's documentation!
 =====================================
 
+This is a Python package for introductory microeconomics.
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Contents
+
+   curves
 
 
 
@@ -16,5 +20,5 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
+.. * :ref:`modindex`

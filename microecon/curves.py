@@ -52,8 +52,18 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2q + 3q^2
             >>> poly = PolyBase(1, -2, 3)  # Equivalent to the above
         """
-        coef = np.squeeze(np.array(coef, ndmin=1))
-        super().__init__(coef, symbol=symbol)
+        self.is_undefined = coef == ([],)
+        if self.is_undefined == False:
+            coef = np.squeeze(np.array(coef, ndmin=1))
+            super().__init__(coef, symbol=symbol)
+        else:
+            self.coef = []
+            self._symbol = 'q'
+    def __call__(self, x):
+        if self.is_undefined:
+            raise ValueError("Polynomial is undefined.")
+        else:
+            return super().__call__(x)
 
     def p(self, q: float):
         """
@@ -153,6 +163,9 @@ class PolyBase(np.polynomial.Polynomial):
         """
         # overwrite ABCPolyBase Method to use p/q instead of x\mapsto
         # get the scaled argument string to the basis functions
+        if self.is_undefined:
+            return "Undefined"
+
         off, scale = self.mapparms()
         if off == 0 and scale == 1:
             term = 'q'
