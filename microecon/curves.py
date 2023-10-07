@@ -15,7 +15,7 @@ class PolyBase(np.polynomial.Polynomial):
 
     .. math::
 
-       p = \sum_{k=0}^n c_k q^k
+       p = \\sum_{k=0}^n c_k q^k
 
     Parameters
     ----------
@@ -615,7 +615,7 @@ class Affine:
 
         # for display _repr_latex_ behavior
         cond = [f"{cuts[i]} \\leq p \\leq {cuts[i+1]}" for i in range(len(cuts)-1)]
-        cond += [f'p \geq {cuts[-1]}']
+        cond += [f'p \\geq {cuts[-1]}']
         self.conditions = cond
         #self.expressions = [f"{c.q_intercept:g}{1/c.slope:+g}p" if c else '0' for c in pieces]
         self.expressions = [c.expression if c else '0' for c in pieces]
@@ -673,7 +673,7 @@ class Affine:
         return self.equation(inverse=False)
 
     def __add__(self, other):
-        elements = self.elements + self.elements
+        elements = self.elements + other.elements
         return Affine(elements=elements)
 
     def plot(self, ax=None):
