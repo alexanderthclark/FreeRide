@@ -533,30 +533,24 @@ def blind_sum(*curves):
 
 
 def horizontal_sum(*curves):
-    '''
-    Computes the active curves at different price midpoints based on the p-intercepts of input curves.
+    """
+    Compute active curves at different price midpoints based on the p-intercepts of input curves.
 
     Parameters
     ----------
-    *curves : Affine
-        The Affine curve objects for which the active curves are to be found.
+    *curves : sequence of Affine
+        Variable-length argument list of Affine curve objects for which 
+        the active curves are to be found.
 
     Returns
     -------
     tuple
         A tuple containing three elements:
-        - active_curves (list): A list of AffineElement objects representing the active curves at
-          each price midpoint.
-        - cutoffs (list): A list of unique p-intercepts sorted in ascending order.
-        - midpoints (list): A list of midpoints computed based on the cutoffs.
-
-    Notes
-    -----
-    This function first computes the p-intercepts of the input curves, and determines the p-cutoffs.
-    It then computes the midpoints between these cutoffs to identify the price points at which
-    the active curves are to be computed. The active curves are computed using the `blind_sum`
-    function, considering only those curves which have a positive q-value at each price midpoint.
-    '''
+        - active_curves (list): List of AffineElement objects representing
+          the active curves at each price midpoint.
+        - cutoffs (list): List of unique p-intercepts sorted in ascending order.
+        - midpoints (list): List of midpoints computed based on the cutoffs.
+    """
     intercepts = [0] + [c.intercept for c in curves]
     cutoffs = sorted(list(set(intercepts)))
     # get a point in each region
