@@ -7,33 +7,38 @@ from microecon.curves import Affine
 
 def formula(equation: str):
     """
-    Parse a linear equation string to extract the slope and intercept, and return an Affine object.
+    Parse a linear equation string and return an Affine object.
 
-    The function supports linear equations in the following formats:
-    - 'y = mx + b'
-    - 'y = b + mx'
-    - 'x = my + b'
-    - 'x = b + my'
-    with optional whitespaces and optional signs for m and b.
-    The variables 'y' and 'x' can also be represented as 'p', 'P', 'q', or 'Q', respectively.
+    This function supports linear equations in formats like 'y = mx + b', 
+    'y = b + mx', 'x = my + b', and 'x = b + my', with optional whitespaces 
+    and signs for coefficients. The variables 'y' and 'x' can also be 
+    represented as 'p', 'P', 'q', or 'Q', respectively.
 
-    Parameters:
-    equation (str): A string representing a linear equation.
+    Parameters
+    ----------
+    equation : str
+        A string representing a linear equation.
 
-    Returns:
-    Affine: An object representing the equation.
+    Returns
+    -------
+    Affine
+        An object containing the intercept and slope extracted from the equation.
 
-    Raises:
-    ValueError: If the input string is not in a valid equation format.
-    			If there is a fraction instead of decimal coefficients or a zero slope.
+    Raises
+    ------
+    ValueError
+        If the input string is not in a valid equation format or if there is 
+        a fraction instead of decimal coefficients or a zero slope.
 
-    Examples:
+    Examples
+    --------
     >>> formula('y = 10 - 2x')
     Affine(intercept=10.0, slope=-2.0)
     >>> formula('y = 10 - 2*x')
     Affine(intercept=10.0, slope=-2.0)
     >>> formula('P=3+0.5Q')
     Affine(intercept=3.0, slope=0.5)
+
     """
     # Remove whitespaces and equate p with y and q with x
     equation = (equation.lower()

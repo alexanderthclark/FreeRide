@@ -13,6 +13,9 @@ This is a Python package for introductory microeconomics.
    :caption: Contents
 
    curves
+   costs
+   formula
+   plotting
 
 
 
