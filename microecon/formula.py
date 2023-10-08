@@ -1,6 +1,7 @@
 '''
 Formula module using sympy
 '''
+import re
 from microecon.curves import Affine
 
 
