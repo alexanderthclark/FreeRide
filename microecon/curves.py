@@ -52,7 +52,7 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2q + 3q^2
             >>> poly = PolyBase(1, -2, 3)  # Equivalent to the above
         """
-        self.is_undefined = coef == ([],)
+        self.is_undefined = coef == ([],)  # helpful in sum functions
         if self.is_undefined == False:
             coef = np.squeeze(np.array(coef, ndmin=1))
             super().__init__(coef, symbol=symbol)
@@ -103,6 +103,10 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly.q(1.0)
             1.0
         """
+        # Perfectly Inelastic
+        if self.slope == np.inf:
+            return self.q_intercept
+
         coef2 = (self.coef[0]-p, *self.coef[1:])[::-1]
         roots = np.roots(coef2)
 
@@ -163,8 +167,14 @@ class PolyBase(np.polynomial.Polynomial):
         """
         # overwrite ABCPolyBase Method to use p/q instead of x\mapsto
         # get the scaled argument string to the basis functions
-        if self.is_undefined:
+        if hasattr(self, 'is_undefined') and self.is_undefined:
             return "Undefined"
+        elif hasattr(self,'inverse_expression') and self.inverse_expression != 'undefined':
+            latex_str = f'p={self.inverse_expression}'
+            return rf'${latex_str}$'
+        elif hasattr(self, 'expression') and self.expression != 'undefined':
+            latex_str = f'q={self.expression}'
+            return rf"${latex_str}$"
 
         off, scale = self.mapparms()
         if off == 0 and scale == 1:
@@ -281,21 +291,42 @@ class AffineElement(PolyBase):
         --------
             >>> supply_curve = Affine(10.0, -2.0)
         """
-        if not inverse:
-            slope, intercept = 1/slope, -intercept/slope
+        if slope == 0:
+            if inverse:  # perfectly elastic
+                self.intercept = intercept
+                self.q_intercept = np.nan
+                self.slope = 0
 
-        coef = (intercept, slope)
-        super().__init__(coef)
-        self.intercept = intercept
-        self.slope = slope
+                self.inverse_expression = f'{self.intercept:g}'
+                self.expression = 'undefined'
+                self._symbol = 'q'  # rhs is 0*q
 
-        if slope != 0:
-            self.q_intercept = -intercept/slope
+            else:  # perfectly inelastic
+                self.q_intercept = intercept
+                self.slope = np.inf
+                self.intercept = np.nan
+
+                self.inverse_expression = 'undefined'
+                self.expression = f'{self.q_intercept:g}'
+                self._symbol = 'p'  # rhs is 0*p
+            self.coef = (self.intercept, self.slope)
+            super().__init__(self.coef)
         else:
-            self.q_intercept = np.nan
+            if not inverse:
+                slope, intercept = 1/slope, -intercept/slope
 
-        self.inverse_expression = f'{intercept:g}{slope:+g}q'
-        self.expression = f'{self.q_intercept:g}{1/slope:+g}p'
+            coef = (intercept, slope)
+            super().__init__(coef)
+            self.intercept = intercept
+            self.slope = slope
+            self.q_intercept = -intercept/slope
+            self.inverse_expression = f'{intercept:g}{slope:+g}q'
+            self.expression = f'{self.q_intercept:g}{1/slope:+g}p'
+
+    def ddcall__(self,x):
+        if (self.slope == 0) or (self.slope == np.inf):
+            raise 
+
 
     def vertical_shift(self, delta):
         """
@@ -527,9 +558,16 @@ def blind_sum(*curves):
     '''
     if len(curves) == 0:
         return None
-    qintercept = np.sum([-c.intercept/c.slope for c in curves])
-    qslope = np.sum([1/c.slope for c in curves])
-    return AffineElement(qintercept, qslope, inverse = False)
+    elastic_curves = [c for c in curves if c.slope == 0]
+    inelastic_curves = [c for c in curves if c.slope == np.inf]
+    regular_curves = [c for c in curves if c not in elastic_curves + inelastic_curves]
+    
+    if not elastic_curves and not inelastic_curves:
+        qintercept = np.sum([-c.intercept/c.slope for c in curves])
+        qslope = np.sum([1/c.slope for c in curves])
+        return AffineElement(qintercept, qslope, inverse = False)
+    else:
+        raise Exception("Perfectly Elastic and Inelastic curves not supported")
 
 
 def horizontal_sum(*curves):
@@ -538,7 +576,7 @@ def horizontal_sum(*curves):
 
     Parameters
     ----------
-    *curves : sequence of Affine
+    *curves : sequence of AffineElements
         Variable-length argument list of Affine curve objects for which 
         the active curves are to be found.
 
@@ -551,7 +589,11 @@ def horizontal_sum(*curves):
         - cutoffs (list): List of unique p-intercepts sorted in ascending order.
         - midpoints (list): List of midpoints computed based on the cutoffs.
     """
-    intercepts = [0] + [c.intercept for c in curves]
+    elastic_curves = [c for c in curves if c.slope == 0]
+    inelastic_curves = [c for c in curves if c.slope == np.inf]
+    regular_curves = [c for c in curves if c not in elastic_curves + inelastic_curves]
+
+    intercepts = [0] + [c.intercept for c in regular_curves + elastic_curves]
     cutoffs = sorted(list(set(intercepts)))
     # get a point in each region
     midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [cutoffs[-1]+1] 
