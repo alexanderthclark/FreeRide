@@ -438,7 +438,8 @@ class AffineElement(PolyBase):
 
 
     def plot(self, ax = None, textbook_style = True, max_q = 10,
-             color = 'black', linewidth = 2, label = True):
+             color = 'black', linewidth = 2, label = True,
+             xs = None, ys = None):
         """
         Plot the supply or demand curve.
 
@@ -467,19 +468,28 @@ class AffineElement(PolyBase):
         if ax == None:
             ax = plt.gca()
 
-        # core plot
-        q_ = self.q_intercept
-        if np.isnan(q_): # if slope is 0
-            q_ = 10 ** 10
-        if type(self).__name__ == "Supply":
-            x2 = np.max([max_q, q_*2])
-        else:
-            x2 = q_
+        if (xs is None) and (ys is None):
+            # core plot
+            q_ = self.q_intercept
+            if np.isnan(q_): # if slope is 0
+                q_ = 10 ** 10
+            if type(self).__name__ == "Supply":
+                x2 = np.max([max_q, q_*2])
+            else:
+                x2 = q_
 
-        y2 = self(x2)
+            y2 = self(x2)
 
-        xs = np.linspace(0, x2,2)
-        ys = np.linspace(self.intercept, y2, 2)
+            xs = np.linspace(0, x2, 2)
+            ys = np.linspace(self.intercept, y2, 2)
+        elif (xs is not None):
+            if len(xs) != 2:
+                raise ValueError("xs argument must be of length 2.")
+            ys = [self(xs[0]), self(xs[1])]
+        elif (ys is not None):
+            if len(ys) != 2:
+                raise ValueError("ys argument must be of length 2.")
+            xs = [self.q(ys[0]), self.q(ys[1])]
         #ys = np.maximum(self.p(xs), 0)
         ax.plot(xs, ys, color = color, linewidth = linewidth)
 
@@ -653,6 +663,7 @@ class Affine:
         cond = [f"{cuts[i]} \\leq p \\leq {cuts[i+1]}" for i in range(len(cuts)-1)]
         cond += [f'p \\geq {cuts[-1]}']
         self.conditions = cond
+        self.condition_ranges = [ (cuts[i], cuts[i+1]) for i in range(len(cuts)-1)]
         #self.expressions = [f"{c.q_intercept:g}{1/c.slope:+g}p" if c else '0' for c in pieces]
         self.expressions = [c.expression if c else '0' for c in pieces]
         self.inverse_expressions = [c.inverse_expression if c else '0' for c in pieces]
@@ -718,9 +729,17 @@ class Affine:
             fig, ax = plt.subplots()
 
         # use intersections to 
-        for piece in self.pieces:
+        for piece, y_range in zip(self.pieces, self.condition_ranges):
             if piece:
-                piece.plot(ax=ax, label=False)
+                # find correct values 
+                piece.plot(ax=ax, label=False, ys = y_range)
 
         # fix for demand and supply and inverse vs q(p)
-        #ax.set_xlim(0, np.max(self.intercept))
+        ax.set_ylim(0, np.max(self.intercept))
+
+class Demand(Affine):
+
+    def __init__(self, intercept, slope, inverse = True):
+        if slope > 0:
+            raise ValueError("Upward sloping demand curve.")
+        super().__init__(intercept=intercept, slope=slope, inverse=inverse)
