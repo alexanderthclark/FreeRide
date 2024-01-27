@@ -33,7 +33,10 @@ extensions = [
     'sphinx.ext.autodoc',  # Generate docs from docstrings
     'sphinx.ext.napoleon',  # Support for NumPy and Google style docstrings
     'sphinx.ext.mathjax',
+    'myst_parser'
 ]
+
+source_suffix = ['.rst', '.md']
 
 autodoc_default_options = {
     'member-order': 'bysource',

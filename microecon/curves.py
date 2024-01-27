@@ -33,7 +33,7 @@ class PolyBase(np.polynomial.Polynomial):
         >>> poly.p(2.0)  # Calculate the price at q=2.0
         1.0
     """
-    def __init__(self, *coef, symbol='q'):
+    def __init__(self, *coef, symbol='q', domain=None):
         """
         Initialize a PolyBase object with the given coefficients.
         The coefficients determine the polynomial represented by the object.
@@ -55,10 +55,12 @@ class PolyBase(np.polynomial.Polynomial):
         self.is_undefined = coef == ([],)  # helpful in sum functions
         if self.is_undefined == False:
             coef = np.squeeze(np.array(coef, ndmin=1))
-            super().__init__(coef, symbol=symbol)
+            super().__init__(coef, symbol=symbol, domain=None)
         else:
             self.coef = []
             self._symbol = 'q'
+        self._domain = domain
+    
     def __call__(self, x):
         if self.is_undefined:
             raise ValueError("Polynomial is undefined.")
@@ -261,19 +263,19 @@ class AffineElement(PolyBase):
 
     Example
     --------
-        To create an Affine object and use its methods:
+        To create an AffineElement object and use its methods:
 
-        >>> supply_curve = Affine(10.0, -2.0)
-        >>> supply_curve.q(4.0)  # Calculate the quantity at price p=4.0
+        >>> demand_curve = Affine(10.0, -1.0)
+        >>> demand_curve.q(4.0)  # Calculate the quantity at price p=4.0
         6.0
     """
 
 
     def __init__(self, intercept, slope, inverse = True):
         """
-        Initialize an Affine object with the given intercept and slope.
+        Initialize an AffineElement with the given intercept and slope.
 
-        This method creates an instance of the Affine class with the specified intercept and slope.
+        This method creates an instance of the class with the specified intercept and slope.
         The parameters can be interpreted as inverse slope and intercept if the `inverse` parameter is True.
 
         Parameters
@@ -285,11 +287,11 @@ class AffineElement(PolyBase):
 
         Returns
         --------
-            Affine: An Affine object representing the supply or demand curve.
+            AffineElement: An AffineElement object representing the supply or demand curve.
 
         Example
         --------
-            >>> supply_curve = Affine(10.0, -2.0)
+            >>> supply_curve = AffineElement(10.0, 2.0)
         """
         if slope == 0:
             if inverse:  # perfectly elastic
@@ -323,10 +325,13 @@ class AffineElement(PolyBase):
             self.inverse_expression = f'{intercept:g}{slope:+g}q'
             self.expression = f'{self.q_intercept:g}{1/slope:+g}p'
 
-    def ddcall__(self,x):
-        if (self.slope == 0) or (self.slope == np.inf):
-            raise 
-
+    def __call__(self,x):
+        if self.slope == 0:
+            return self.intercept
+        elif self.slope == np.inf:
+            raise Exception(f"Undefined (perfectly inelastic at {self.q_intercept})")
+        else:
+            return self.intercept + self.slope*x
 
     def vertical_shift(self, delta):
         """
@@ -468,19 +473,23 @@ class AffineElement(PolyBase):
             ax = plt.gca()
 
         # core plot
-        q_ = self.q_intercept
-        if np.isnan(q_): # if slope is 0
-            q_ = 10 ** 10
-        if type(self).__name__ == "Supply":
-            x2 = np.max([max_q, q_*2])
+        if self._domain:
+            x1, x2 = self._domain
         else:
-            x2 = q_
+            x1 = 0
+            q_ = self.q_intercept
+            if np.isnan(q_): # if slope is 0
+                q_ = 10 ** 10
+            if type(self).__name__ == "Supply":
+                x2 = np.max([max_q, q_*2])
+            else:
+                x2 = q_
 
+        y1 = self(x1)
         y2 = self(x2)
 
-        xs = np.linspace(0, x2,2)
-        ys = np.linspace(self.intercept, y2, 2)
-        #ys = np.maximum(self.p(xs), 0)
+        xs = np.linspace(x1, x2, 2)
+        ys = np.linspace(y1, y2, 2)
         ax.plot(xs, ys, color = color, linewidth = linewidth)
 
         if textbook_style:
@@ -636,18 +645,29 @@ class Affine:
                 slope = [slope]
             if isinstance(intercept, (int, float)):
                 intercept = [intercept]
-
             if len(slope) != len(intercept):
                 raise ValueError("Slope and intercept lengths do not match.")
 
             zipped = zip(slope, intercept)
             elements = [AffineElement(slope=m, intercept=b, inverse=inverse) for m, b in zipped]
+        self.elements = elements
+
         if intercept is None:
             intercept = [c.intercept for c in elements]
         if slope is None:
             slope = [c.slope for c in elements]
 
         pieces, cuts, mids = horizontal_sum(*elements)
+        self.pieces = pieces
+
+        # store piecewise info
+        sections = [(cuts[i], cuts[i+1]) for i in range(len(cuts)-1)]
+        qsections = [ (self.q(ps[0]), self.q(ps[1]))  for ps in sections]
+        sections.append( (cuts[-1], np.inf) )
+        qsections.append((0,0))
+        self.psections = sections
+        self.qsections = qsections
+        self._set_piece_domains()
 
         # for display _repr_latex_ behavior
         cond = [f"{cuts[i]} \\leq p \\leq {cuts[i+1]}" for i in range(len(cuts)-1)]
@@ -666,11 +686,39 @@ class Affine:
 
         # inverse conditions and expressions
         self.intersections = intersections
-        self.pieces = pieces
         self.intercept = intercept
         self.slope = slope
-        self.elements = elements
 
+    def _set_piece_domains(self):
+        for piece, qs in zip(self.pieces, self.qsections):
+            if piece:
+                piece._domain = qs
+
+    @classmethod
+    def from_two_points(cls, q1, p1, q2, p2):
+        """
+        Creates an Affine object from two points.
+        """
+        A = np.array([[q1, 1], [q2, 1]])
+        b = np.array([p1, p2])
+        slope, intercept = np.linalg.solve(A, b)
+
+        return cls(slope=slope, intercept=intercept)
+    
+    @classmethod
+    def from_points(cls, *qp_points):
+        """
+        Creates an Affine object from two points.
+        """
+
+        A_array = [[qp[0], 1] for qp in qp_points]
+        p_vals = [qp[1] for qp in qp_points]
+
+        A = np.array(A_array)
+        b = np.array(p_vals)
+        slope, intercept = np.linalg.solve(A, b)
+
+        return cls(slope=slope, intercept=intercept)
     def __call__(self, x):
         """
         Computes p given q=x. This is wrong currently.
@@ -719,8 +767,11 @@ class Affine:
 
         # use intersections to 
         for piece in self.pieces:
+            # get two points
             if piece:
                 piece.plot(ax=ax, label=False)
+
+        ax.set_ylim(0, np.max(self.intercept)*1.01)
 
         # fix for demand and supply and inverse vs q(p)
         #ax.set_xlim(0, np.max(self.intercept))
