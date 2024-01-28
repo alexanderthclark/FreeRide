@@ -719,7 +719,7 @@ class Affine:
         return cls(slope=slope, intercept=intercept)
     
     @classmethod
-    def from_points(cls, *qp_points):
+    def from_points(cls, qp_points):
         """
         Creates an Affine object from two points.
 
