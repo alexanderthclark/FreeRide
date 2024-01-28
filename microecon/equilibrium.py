@@ -7,6 +7,8 @@ class Equilibrium:
     def __init__ (self, demand: Demand, supply: Supply):
         """Equilibrium produced by demand and supply. Initialized as market equilibrium."""
         
+        self.demand = demand
+        self.supply = supply
         for dpiece in demand.pieces:
             for spiece in supply.pieces:
                 if dpiece and spiece:
@@ -19,3 +21,11 @@ class Equilibrium:
                         self.q = q
                         self.p = p
                         break
+
+    def plot(self):
+
+        q_int = np.max([piece.q_intercept for piece in self.demand.pieces if piece])
+
+        fig, ax = plt.subplots()
+        self.demand.plot(ax=ax)
+        self.supply.plot(ax=ax, max_q=q_int)
