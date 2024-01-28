@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numbers
 from microecon.plotting import textbook_axes
+from microecon.formula import _formula
 
 
 class PolyBase(np.polynomial.Polynomial):
@@ -604,6 +605,10 @@ def horizontal_sum(*curves):
 
     intercepts = [0] + [c.intercept for c in regular_curves + elastic_curves]
     cutoffs = sorted(list(set(intercepts)))
+
+    # remove negative intercepts
+    cutoffs = [c for c in cutoffs if c>=0]
+
     # get a point in each region
     midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [cutoffs[-1]+1] 
     
@@ -709,6 +714,8 @@ class Affine:
     def from_points(cls, *qp_points):
         """
         Creates an Affine object from two points.
+
+        In the future, this might be extended to allow for three or more points.
         """
 
         A_array = [[qp[0], 1] for qp in qp_points]
@@ -719,6 +726,13 @@ class Affine:
         slope, intercept = np.linalg.solve(A, b)
 
         return cls(slope=slope, intercept=intercept)
+
+    @classmethod
+    def from_formula(cls, equation: str):
+        intercept, slope = _formula(equation)
+        return cls(slope=slope, intercept=intercept)
+
+
     def __call__(self, x):
         """
         Computes p given q=x. This is wrong currently.

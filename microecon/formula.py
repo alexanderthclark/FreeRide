@@ -2,17 +2,14 @@
 Formula module using sympy
 '''
 import re
-from microecon.curves import Affine
 
-
-def formula(equation: str):
+def _formula(equation: str):
     """
     Parse a linear equation string and return an Affine object.
 
-    This function supports linear equations in formats like 'y = mx + b', 
-    'y = b + mx', 'x = my + b', and 'x = b + my', with optional whitespaces 
-    and signs for coefficients. The variables 'y' and 'x' can also be 
-    represented as 'p', 'P', 'q', or 'Q', respectively.
+    Accepts equations in forms like 'y = mx + b', 'y = b + mx', 'x = my + b', 
+    and 'x = b + my'. Variables 'y' and 'x' can be 'p', 'P', 'q', or 'Q'. 
+    Handles optional whitespaces, signs for coefficients, and decimal coefficients.
 
     Parameters
     ----------
@@ -21,24 +18,22 @@ def formula(equation: str):
 
     Returns
     -------
-    Affine
-        An object containing the intercept and slope extracted from the equation.
+    tuple
+        A tuple (intercept, slope) derived from the equation.
 
     Raises
     ------
     ValueError
-        If the input string is not in a valid equation format or if there is 
-        a fraction instead of decimal coefficients or a zero slope.
+        If the equation is not valid, contains fractions, or has a zero slope.
 
     Examples
     --------
-    >>> formula('y = 10 - 2x')
-    Affine(intercept=10.0, slope=-2.0)
-    >>> formula('y = 10 - 2*x')
-    Affine(intercept=10.0, slope=-2.0)
-    >>> formula('P=3+0.5Q')
-    Affine(intercept=3.0, slope=0.5)
-
+    >>> _formula('y = 10 - 2x')
+    (10.0, -2.0)
+    >>> _formula('y = 10 - 2*x')
+    (10.0, -2.0)
+    >>> _formula('P=3+0.5Q')
+    (3.0, 0.5)
     """
     # Remove whitespaces and equate p with y and q with x
     equation = (equation.lower()
@@ -54,13 +49,14 @@ def formula(equation: str):
     if match:
         slope = float(match.group(1) or match.group(4) or '1')  # Default slope is 1 if not specified
         intercept = float(match.group(2) or match.group(3) or '0')  # Default intercept is 0 if not specified
-        return Affine(intercept, slope)
+        #return Affine(intercept, slope)
+        return intercept, slope
 
     # Check if equation is in form of x = my + b or x = b + my
     match = re.match(r"x=(-?\d*\.?\d*)\*?y([+-]\d+\.?\d*)?|x=([+-]?\d+\.?\d*)([+-]\d*\.?\d*)\*?y", equation)
     if match:
         slope = float(match.group(1) or match.group(4) or '1')  # Default slope is 1 if not specified
         intercept = float(match.group(2) or match.group(3) or '0')  # Default intercept is 0 if not specified
-        return Affine(intercept, 1 / slope)  # Inverting the slope for this case
-
+        #return Affine(intercept, 1 / slope)  # Inverting the slope for this case
+        return -intercept/slope, 1/slope
     raise ValueError("Invalid equation")
