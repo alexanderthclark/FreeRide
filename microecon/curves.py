@@ -476,6 +476,8 @@ class AffineElement(PolyBase):
         # core plot
         if self._domain:
             x1, x2 = self._domain
+            if x2 == np.inf:
+                x2 = x1*2
         else:
             x1 = 0
             q_ = self.q_intercept
@@ -741,7 +743,7 @@ class Affine:
 
     def __call__(self, x):
         """
-        Computes p given q=x. This is wrong currently.
+        Computes p given q=x.
 
         Parameters
         ----------
@@ -751,7 +753,15 @@ class Affine:
         -------
         float
         """
-        return np.sum([np.max([0, c(x)]) for c in self.elements])
+
+        for piece in self.pieces:
+            if piece:
+                a, b = piece._domain
+                if (a <= x <= b) or (a >= x >= b):
+                    return piece(x)
+        # might be x out of limits
+        return np.nan
+        #return np.sum([np.max([0, c(x)]) for c in self.elements])
 
     def q(self, p):
         # returns q given p
@@ -782,7 +792,7 @@ class Affine:
 
     def plot(self, ax=None):
         '''
-        This doesn't work for all supply curves.
+        wip
         '''
         if ax is None:
             fig, ax = plt.subplots()
@@ -793,8 +803,24 @@ class Affine:
             if piece:
                 piece.plot(ax=ax, label=False)
 
-        ax.set_ylim(0, np.max(self.intercept)*1.01)
+        # check limits
+        ylim = ax.get_ylim()
+        if ylim[1] <= np.max(self.intercept):
+            ax.set_ylim(0, np.max(self.intercept)*1.01)
 
+        flat_q = sorted([i for tup in self.qsections for i in tup])
+        flat_p = sorted([i for tup in self.psections for i in tup])
+        if np.inf in flat_q:
+            max_q = 1.5*flat_q[-2]
+        else:
+            max_q = flat_q[-1]
+        if np.inf in flat_p:
+            max_p = np.max([self(max_q), 1.5*flat_p[-2]])
+        else:
+            max_p = np.max([self(max_q), 1.5*flat_p[-1]])
+
+        ax.set_ylim(0, max_p)
+        ax.set_xlim(0, max_q)
         # fix for demand and supply and inverse vs q(p)
         #ax.set_xlim(0, np.max(self.intercept))
 
@@ -805,7 +831,6 @@ class Demand(Affine):
         """
         Initializes a Demand curve object.
         """
-
         super().__init__(intercept, slope, elements, inverse)
         self._check_slope()
 
@@ -820,7 +845,6 @@ class Supply(Affine):
         """
         Initializes a Supply curve object.
         """
-
         super().__init__(intercept, slope, elements, inverse)
         self._check_slope()
 
