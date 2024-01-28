@@ -789,3 +789,34 @@ class Affine:
 
         # fix for demand and supply and inverse vs q(p)
         #ax.set_xlim(0, np.max(self.intercept))
+
+
+class Demand(Affine):
+
+    def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
+        """
+        Initializes a Demand curve object.
+        """
+
+        super().__init__(intercept, slope, elements, inverse)
+        self._check_slope()
+
+    def _check_slope(self):
+        for slope in self.slope:
+            if slope > 0:
+                raise Exception("Upward-sloping demand curve.")
+
+class Supply(Affine):
+
+    def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
+        """
+        Initializes a Supply curve object.
+        """
+
+        super().__init__(intercept, slope, elements, inverse)
+        self._check_slope()
+
+    def _check_slope(self):
+        for slope in self.slope:
+            if slope < 0:
+                raise Exception("Downard-sloping supply curve.")
