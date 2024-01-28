@@ -669,7 +669,13 @@ class Affine:
         sections = [(cuts[i], cuts[i+1]) for i in range(len(cuts)-1)]
         qsections = [ (self.q(ps[0]), self.q(ps[1]))  for ps in sections]
         sections.append( (cuts[-1], np.inf) )
-        qsections.append((0,0))
+        if self.q(cuts[-1]+1) <= 0: # demand
+            qsections.append((0,0))
+        elif len(qsections): # supply
+            maxq = np.max(qsections[-1])
+            qsections.append((maxq, np.inf))
+        else: # supply
+            qsections.append((0, np.inf))
         self.psections = sections
         self.qsections = qsections
         self._set_piece_domains()
@@ -775,7 +781,9 @@ class Affine:
         return Affine(elements=elements)
 
     def plot(self, ax=None):
-
+        '''
+        This doesn't work for all supply curves.
+        '''
         if ax is None:
             fig, ax = plt.subplots()
 
