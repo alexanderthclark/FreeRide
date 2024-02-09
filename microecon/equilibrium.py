@@ -22,10 +22,11 @@ class Equilibrium:
                         self.p = p
                         break
 
-    def plot(self):
+    def plot(self, ax=None):
 
         q_int = np.max([piece.q_intercept for piece in self.demand.pieces if piece])
+        if ax is None:
+            fig, ax = plt.subplots()
 
-        fig, ax = plt.subplots()
         self.demand.plot(ax=ax)
         self.supply.plot(ax=ax, max_q=q_int)
