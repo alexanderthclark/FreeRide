@@ -790,18 +790,41 @@ class Affine:
         elements = self.elements + other.elements
         return Affine(elements=elements)
 
-    def plot(self, ax=None, set_lims=True, max_q=None):
+    def plot(self, ax=None, set_lims=True, max_q=None, **kwargs):
         '''
-        wip
+        Plot the Affine object.
 
-        follow this up with an equilibrium plot
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            The axes on which to plot. If None, a new figure and axes will be created.
+        set_lims : bool, optional
+            Whether to automatically set the limits for the axes. Default is True.
+        max_q : float, optional
+            The maximum quantity to consider for setting the x-axis limit. If None, it will be automatically determined.
+        **kwargs : dict
+            Additional keyword arguments to customize the plot. These can include any valid `matplotlib.pyplot` function keyword, such as:
+            
+            title : str
+                The title of the plot.
+            xlabel : str
+                The label for the x-axis.
+            ylabel : str
+                The label for the y-axis.
+            xlim : tuple
+                The limits for the x-axis, e.g., (xmin, xmax).
+            ylim : tuple
+                The limits for the y-axis, e.g., (ymin, ymax).
+
+        Returns
+        -------
+        None
         '''
         if ax is None:
             fig, ax = plt.subplots()
 
-        # use intersections to 
+        # Plot each element
         for piece in self.pieces:
-            # get two points
             if piece:
                 piece.plot(ax=ax, label=False, max_q=max_q)
 
@@ -828,6 +851,13 @@ class Affine:
             # fix for demand and supply and inverse vs q(p)
             #ax.set_xlim(0, np.max(self.intercept))
 
+        # Run additional parameters as pyplot functions
+        # xlim or ylim will overwrite the previous set_lims behavior
+        for key in kwargs:
+            if hasattr(plt, key):
+                plt_function = getattr(plt, key)
+                if callable(plt_function):
+                    plt_function(kwargs[key])
 
 class Demand(Affine):
 
