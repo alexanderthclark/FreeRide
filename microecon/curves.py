@@ -853,11 +853,15 @@ class Affine:
 
         # Run additional parameters as pyplot functions
         # xlim or ylim will overwrite the previous set_lims behavior
-        for key in kwargs:
+        for key, value in kwargs.items():
             if hasattr(plt, key):
                 plt_function = getattr(plt, key)
                 if callable(plt_function):
-                    plt_function(kwargs[key])
+                    # Unpack sequences (e.g. for plt.text)
+                    if isinstance(value, tuple) or isinstance(value, list):
+                        plt_function(*value)
+                    else:
+                        plt_function(value)
 
 class Demand(Affine):
 
