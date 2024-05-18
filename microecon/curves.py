@@ -863,6 +863,8 @@ class Affine:
                     else:
                         plt_function(value)
 
+        return plt.gcf(), ax
+
 class Demand(Affine):
 
     def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
