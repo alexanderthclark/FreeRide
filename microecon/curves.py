@@ -154,6 +154,7 @@ class PolyBase(np.polynomial.Polynomial):
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
+    # Similar to numpy ABCPolyBase
     def _repr_latex_(self):
         """
         Generate LaTeX representation of the polynomial.
@@ -334,7 +335,7 @@ class AffineElement(PolyBase):
         else:
             return self.intercept + self.slope*x
 
-    def vertical_shift(self, delta):
+    def vertical_shift(self, delta, inplace=True):
         """
         Shift the curve vertically by the given amount.
 
@@ -354,11 +355,15 @@ class AffineElement(PolyBase):
             >>> supply_curve = Affine(10.0, -2.0)
             >>> supply_curve.vertical_shift(2.0)
         """
-        self.intercept += delta
-        if self.slope != 0:
-            self.q_intercept = -self.intercept / self.slope
+        new_intercept = self.intercept + delta
+        #if self.slope != 0:
+        #    self.q_intercept = -self.intercept / self.slope
+        if inplace:
+            self.__init__(new_intercept, self.slope)
+        else:
+            return AffineElement(new_intercept, self.slope)
 
-    def horizontal_shift(self, delta):
+    def horizontal_shift(self, delta, inplace=True):
         """
         Shift the curve horizontally by the given amount.
 
@@ -378,10 +383,21 @@ class AffineElement(PolyBase):
             >>> demand_curve = Affine(10.0, -2.0)
             >>> demand_curve.horizontal_shift(1.0)
         """
-        equiv_vert = delta * -self.slope
-        self.intercept += equiv_vert
-        if self.slope != 0:
-            self.q_intercept = -self.intercept / self.slope
+        if self.slope == np.inf:
+            new_q_intercept = self.q_intercept + delta
+            if inplace:
+                self.__init__(new_q_intercept, 0, inverse=False)
+            else:
+                return AffineElement(new_q_intercept, 0, inverse=False)
+        else:
+            equiv_vert = delta * -self.slope
+            new_intercept = self.intercept + equiv_vert
+            #if self.slope != 0:
+            #    self.q_intercept = -self.intercept / self.slope
+            if inplace:
+                self.__init__(new_intercept, self.slope)
+            else:
+                return AffineElement(new_intercept, self.slope)
 
     def price_elasticity(self, p):
         """
@@ -444,7 +460,7 @@ class AffineElement(PolyBase):
 
 
     def plot(self, ax = None, textbook_style = True, max_q = None,
-             color = 'black', linewidth = 2, label = True):
+             label = True, **kwargs):
         """
         Plot the supply or demand curve.
 
@@ -493,7 +509,10 @@ class AffineElement(PolyBase):
 
         xs = np.linspace(x1, x2, 2)
         ys = np.linspace(y1, y2, 2)
-        ax.plot(xs, ys, color = color, linewidth = linewidth)
+        
+        if 'color' not in kwargs:
+            kwargs['color'] = 'black'
+        ax.plot(xs, ys, **kwargs)
 
         if textbook_style:
             textbook_axes(ax)
@@ -707,6 +726,20 @@ class Affine:
             if piece:
                 piece._domain = qs
 
+    def horizontal_shift(self, delta, inplace=True):
+        new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]
+        if inplace:
+            self.__init__(elements=new_elements)
+        else:
+            return Affine(elements=new_elements)
+
+    def vertical_shift(self, delta, inplace=True):
+        new_elements = [e.vertical_shift(delta, inplace=False) for e in self.elements]
+        if inplace:
+            self.__init__(elements=new_elements)
+        else:
+            return Affine(elements=new_elements)
+
     @classmethod
     def from_two_points(cls, q1, p1, q2, p2):
         """
@@ -739,7 +772,6 @@ class Affine:
     def from_formula(cls, equation: str):
         intercept, slope = _formula(equation)
         return cls(slope=slope, intercept=intercept)
-
 
     def __call__(self, x):
         """
@@ -823,10 +855,12 @@ class Affine:
         if ax is None:
             fig, ax = plt.subplots()
 
+        param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls']
+        plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
         # Plot each element
         for piece in self.pieces:
             if piece:
-                piece.plot(ax=ax, label=False, max_q=max_q)
+                piece.plot(ax=ax, label=False, max_q=max_q, **plot_dict)
 
         # check limits
         if set_lims:
@@ -878,6 +912,8 @@ class Demand(Affine):
         for slope in self.slope:
             if slope > 0:
                 raise Exception("Upward-sloping demand curve.")
+        if self.q(0) < 0:
+            raise Exception("Negative demand.")
 
 class Supply(Affine):
 
