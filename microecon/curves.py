@@ -459,8 +459,8 @@ class AffineElement(PolyBase):
         return self.price_elasticity(mean_p)
 
 
-    def plot(self, ax = None, textbook_style = True, max_q = None,
-             label = True, **kwargs):
+    def plot(self, ax=None, textbook_style=True, max_q=None,
+             label=True, **kwargs):
         """
         Plot the supply or demand curve.
 
@@ -483,7 +483,7 @@ class AffineElement(PolyBase):
 
         Example
         --------
-            >>> demand_curve = Affine(10.0, -2.0)
+            >>> demand_curve = AffineElement(10.0, -2.0)
             >>> demand_curve.plot()
         """
         if ax == None:
@@ -520,14 +520,14 @@ class AffineElement(PolyBase):
         if label == True:
 
             # Label Curves
-            if type(self).__name__ == 'Demand':
-                x0 = self.q_intercept * .95
-            else:
-                x0 = ax.get_xlim()[1] * .9
-
-            y_delta = (ax.get_ylim()[1] - ax.get_ylim()[0])/30
-            y0 = self.p(x0) + y_delta
-            ax.text(x0, y0, type(self).__name__[0], va = 'bottom', ha = 'center', size = 14)
+            #if type(self).__name__ == 'Demand':
+            #    x0 = self.q_intercept * .95
+            #else:
+            #if name:
+            #    x0 = ax.get_xlim()[1] * .9
+            #    y_delta = (ax.get_ylim()[1] - ax.get_ylim()[0])/30
+            #    y0 = self.p(x0) + y_delta
+            #    ax.text(x0, y0, name, va = 'bottom', ha = 'center', size = 14)
 
             # Label Axes
             ax.set_ylabel("Price")
@@ -798,6 +798,10 @@ class Affine:
     def q(self, p):
         # returns q given p
         return np.sum([np.max([0,c.q(p)]) for c in self.elements])
+    
+    def p(self, q):
+        # returns p given q
+        return self.__call__(q)
 
     def equation(self, inverse=False):
         if inverse:
@@ -822,7 +826,7 @@ class Affine:
         elements = self.elements + other.elements
         return Affine(elements=elements)
 
-    def plot(self, ax=None, set_lims=True, max_q=None, **kwargs):
+    def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
         '''
         Plot the Affine object.
 
@@ -860,7 +864,7 @@ class Affine:
         # Plot each element
         for piece in self.pieces:
             if piece:
-                piece.plot(ax=ax, label=False, max_q=max_q, **plot_dict)
+                piece.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
 
         # check limits
         if set_lims:
@@ -897,7 +901,22 @@ class Affine:
                     else:
                         plt_function(value)
 
-        return plt.gcf(), ax
+        # Label intercepts and intersections
+        if label:
+            xticks, yticks = [self.q(0)], [self.p(0)]
+            for point in self.intersections:
+                x, y = point[1], point[0]
+                xticks.append(x)
+                yticks.append(y) # P is first element
+
+                sty = {"lw":0.5, "ls": 'dotted', "color": 'gray'}
+                ax.plot([x,x], [0,y], **sty)
+                ax.plot([0,x], [y,y], **sty)
+
+            ax.set_xticks(xticks)
+            ax.set_yticks(yticks)
+
+        return ax
 
 class Demand(Affine):
 

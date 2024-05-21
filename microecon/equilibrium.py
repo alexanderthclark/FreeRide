@@ -30,3 +30,7 @@ class Equilibrium:
 
         self.demand.plot(ax=ax)
         self.supply.plot(ax=ax, max_q=q_int)
+
+    def __repr__(self):
+        s = f"Price: {self.p}\nQuantity: {self.q}"
+        return s
