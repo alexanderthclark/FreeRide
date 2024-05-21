@@ -28,8 +28,26 @@ class Equilibrium:
         if ax is None:
             fig, ax = plt.subplots()
 
+        # Plot eq pt
+        x, y = self.q, self.p
+        sty = {"lw":0.5, "ls": 'dotted', "color": 'gray'}
+        ax.plot([x,x], [0,y], **sty)
+        ax.plot([0,x], [y,y], **sty)
+        ax.plot([x], [y], marker = '.', markersize=20)
+
+        # Plot curves and mark important ticks
         self.demand.plot(ax=ax)
+        xticks0, yticks0 = set(ax.get_xticks()), set(ax.get_yticks())
         self.supply.plot(ax=ax, max_q=q_int)
+        xticks1, yticks1 = set(ax.get_xticks()), set(ax.get_yticks())
+        xticks = xticks0.union(xticks1)
+        xticks.add(x)
+        yticks = yticks0.union(yticks1)
+        yticks.add(y)
+        ax.set_xticks(list(xticks))
+        ax.set_yticks(list(yticks))
+
+        return ax
 
     def __repr__(self):
         s = f"Price: {self.p}\nQuantity: {self.q}"

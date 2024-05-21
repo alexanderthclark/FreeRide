@@ -817,7 +817,21 @@ class Affine:
             for expr, cond in zip(self.expressions, self.conditions):
                 latex_str += f"{expr} & \\text{{if }} {cond} \\\\"
             latex_str += r"\end{cases}"
-            return f"${latex_str}$"         
+            return f"${latex_str}$"
+
+    def price_elasticity(self, p, delta=.000001):
+        q = self.q(p)
+        pt = np.array([p,q])
+        if self.intersections and np.any(pt == self.intersections, axis=1).max():
+            below = self.price_elasticity(p - delta)
+            above = self.price_elasticity(p + delta)
+            s = f"\nElasticity is {below:+.3f} below P={p} and {above:+.3f} above."
+            raise ValueError("Point elasticity is not defined at a kink point."+s)
+        else:
+            # Get q-domains
+            pc = [p for p in self.pieces if p and (q > np.min(p._domain)) and (q < np.max(p._domain))] 
+            assert len(pc) == 1
+            return pc[0].price_elasticity(p)
 
     def _repr_latex_(self):
         return self.equation(inverse=False)
