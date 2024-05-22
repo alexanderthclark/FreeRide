@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import numbers
-from microecon.plotting import textbook_axes
+from microecon.plotting import textbook_axes, AREA_FILLS
 from microecon.formula import _formula
 
 
@@ -493,7 +493,7 @@ class AffineElement(PolyBase):
         if self._domain:
             x1, x2 = self._domain
             if x2 == np.inf:
-                x2 = max_q if max_q else x1*2
+                x2 = max_q if max_q else x1*2 + 1
         else:
             x1 = 0
             q_ = self.q_intercept
@@ -537,6 +537,38 @@ class AffineElement(PolyBase):
         ylims = ax.get_ylim()
         ax.set_ylim(0, ylims[1])
 
+        return ax
+
+    def plot_area(self, p, q=None, ax=None, zorder=-1, color=None):
+        '''
+        Plot surplus region 
+        '''
+        if ax is None:
+            ax = self.plot()
+
+        if q is None:
+            q0 = np.min(self._domain)
+            q1 = np.max(self._domain)
+            q = q0, q1
+        else:
+            q0, q1 = q
+
+        qstar = self.q(p)
+
+        if q0 < qstar <= q1:
+            q = q0, qstar
+        elif q1 < qstar:
+            q = q0, q1
+        elif qstar < q0:
+            return ax
+
+        p01 = self.p(q[0]), self.p(q[1])
+
+        ax.fill_between(q, p01, p,
+                        zorder=zorder,
+                        color=color)
+
+        return ax
 
 def intersection(element1, element2):
     """
@@ -725,6 +757,18 @@ class Affine:
         for piece, qs in zip(self.pieces, self.qsections):
             if piece:
                 piece._domain = qs
+                piece._domain_length = np.max(qs) - np.min(qs)
+
+    def _get_active_piece(self, q):
+
+        for piece in [piece for piece in self.pieces if piece]:
+            q0, q1 = np.min(piece._domain), np.max(piece._domain)
+
+            # this has to be closed on the right and open on the left
+            # there has to be area to the left when calc surplus
+            if q0 < q <= q1:
+                return piece
+        return None
 
     def horizontal_shift(self, delta, inplace=True):
         new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]
@@ -838,7 +882,7 @@ class Affine:
 
     def __add__(self, other):
         elements = self.elements + other.elements
-        return Affine(elements=elements)
+        return type(self)(elements=elements)
 
     def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
         '''
@@ -883,6 +927,7 @@ class Affine:
         # check limits
         if set_lims:
             ylim = ax.get_ylim()
+            xlim = ax.get_xlim()
             if ylim[1] <= np.max(self.intercept):
                 ax.set_ylim(0, np.max(self.intercept)*1.01)
 
@@ -898,8 +943,9 @@ class Affine:
             else:
                 max_p = np.max([self(max_q), 1.5*flat_p[-1]])
 
-            ax.set_ylim(0, max_p)
-            ax.set_xlim(0, max_q)
+            # don't decrease limits relative to starting point
+            ax.set_ylim(0, np.max([max_p, ylim[1]]))
+            ax.set_xlim(0, np.max([max_q, 1, xlim[1]]))
             # fix for demand and supply and inverse vs q(p)
             #ax.set_xlim(0, np.max(self.intercept))
 
@@ -932,6 +978,45 @@ class Affine:
 
         return ax
 
+    def plot_surplus(self, p, ax=None, color=None):
+
+        if (color is None) and isinstance(self, Supply):
+            color = AREA_FILLS[1]
+        elif color is None:
+            color = AREA_FILLS[0]
+
+        if ax is None:
+            ax = self.plot()
+        qstar = self.q(p)
+        for piece in self.pieces:
+            if piece:
+                piece.plot_area(p,
+                             ax=ax,
+                             color=color)
+
+    def surplus(self, p):
+        '''
+        Returns surplus area. The areas are negative for producer surplus.
+        '''
+        q = self.q(p)
+
+        if q > 0:
+
+            # find inframarginal surplus
+            trapezoids = [piece for piece in self.pieces if piece and (np.max(piece._domain) < q)]
+            trap_areas = [piece._domain_length*(np.mean([piece.p(piece._domain[0]),piece.p(piece._domain[1])])-p) for piece in trapezoids]
+
+            # find the last unit demanded and get surplus from that curve
+            last_piece = self._get_active_piece(q)
+            height = last_piece.p(np.min(last_piece._domain)) - p
+            base = q - np.min(last_piece._domain)
+            tri_area = 0.5 * height * base
+
+            return tri_area + np.sum(trap_areas)
+
+        else:
+            return 0
+
 class Demand(Affine):
 
     def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
@@ -948,6 +1033,9 @@ class Demand(Affine):
         if self.q(0) < 0:
             raise Exception("Negative demand.")
 
+    def consumer_surplus(self, p):
+        return self.surplus(p)
+
 class Supply(Affine):
 
     def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
@@ -961,3 +1049,6 @@ class Supply(Affine):
         for slope in self.slope:
             if slope < 0:
                 raise Exception("Downard-sloping supply curve.")
+
+    def producer_surplus(self, p):
+        return -self.surplus(p)
