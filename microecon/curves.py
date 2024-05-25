@@ -539,7 +539,7 @@ class AffineElement(PolyBase):
 
         return ax
 
-    def plot_area(self, p, q=None, ax=None, zorder=-1, color=None):
+    def plot_area(self, p, q=None, ax=None, zorder=-1, color=None, alpha=None):
         '''
         Plot surplus region 
         '''
@@ -566,7 +566,8 @@ class AffineElement(PolyBase):
 
         ax.fill_between(q, p01, p,
                         zorder=zorder,
-                        color=color)
+                        color=color,
+                        alpha=alpha)
 
         return ax
 
@@ -978,7 +979,7 @@ class Affine:
 
         return ax
 
-    def plot_surplus(self, p, ax=None, color=None):
+    def plot_surplus(self, p, ax=None, color=None, max_q=None, alpha=None):
 
         if (color is None) and isinstance(self, Supply):
             color = AREA_FILLS[1]
@@ -986,14 +987,16 @@ class Affine:
             color = AREA_FILLS[0]
 
         if ax is None:
-            ax = self.plot()
+            ax = self.plot(max_q=max_q)
         qstar = self.q(p)
         for piece in self.pieces:
             if piece:
                 piece.plot_area(p,
                              ax=ax,
-                             color=color)
-
+                             color=color,
+                             alpha=alpha)
+        return ax
+                
     def surplus(self, p):
         '''
         Returns surplus area. The areas are negative for producer surplus.
