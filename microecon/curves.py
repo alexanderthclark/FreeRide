@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numbers
 from microecon.plotting import textbook_axes, AREA_FILLS
 from microecon.formula import _formula
+from IPython.display import Latex, display
+
 
 
 class PolyBase(np.polynomial.Polynomial):
@@ -880,6 +882,10 @@ class Affine:
 
     def _repr_latex_(self):
         return self.equation(inverse=False)
+
+    @property
+    def inverse_equation(self):
+        display(Latex(self.equation(inverse=True)))
 
     def __add__(self, other):
         elements = self.elements + other.elements
