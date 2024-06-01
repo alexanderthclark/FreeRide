@@ -84,6 +84,7 @@ class Equilibrium:
         return ax
 
     def plot_surplus(self, ax):
+
         self.demand.plot_surplus(p=self.__p_consumer, ax=ax)
         self.supply.plot_surplus(p=self.__p_producer, ax=ax)
 
