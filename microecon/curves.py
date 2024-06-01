@@ -6,7 +6,6 @@ from microecon.formula import _formula
 from IPython.display import Latex, display
 
 
-
 class PolyBase(np.polynomial.Polynomial):
     """
     A base class for polynomial functions with added methods.
@@ -36,7 +35,7 @@ class PolyBase(np.polynomial.Polynomial):
         >>> poly.p(2.0)  # Calculate the price at q=2.0
         1.0
     """
-    def __init__(self, *coef, symbol='q', domain=None):
+    def __init__(self, *coef, symbols=None, domain=None):
         """
         Initialize a PolyBase object with the given coefficients.
         The coefficients determine the polynomial represented by the object.
@@ -55,13 +54,20 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2q + 3q^2
             >>> poly = PolyBase(1, -2, 3)  # Equivalent to the above
         """
+
+        if symbols is None:
+            x, y = 'q', 'p'
+        else:
+            x, y = symbols
+        self.x, self.y = x, y
+
         self.is_undefined = coef == ([],)  # helpful in sum functions
         if self.is_undefined == False:
             coef = np.squeeze(np.array(coef, ndmin=1))
-            super().__init__(coef, symbol=symbol, domain=None)
+            super().__init__(coef, domain=None)
         else:
             self.coef = []
-            self._symbol = 'q'
+            self._symbol = x
         self._domain = domain
     
     def __call__(self, x):
@@ -176,26 +182,26 @@ class PolyBase(np.polynomial.Polynomial):
         if hasattr(self, 'is_undefined') and self.is_undefined:
             return "Undefined"
         elif hasattr(self,'inverse_expression') and self.inverse_expression != 'undefined':
-            latex_str = f'p={self.inverse_expression}'
+            latex_str = f'{self.y}={self.inverse_expression}'
             return rf'${latex_str}$'
         elif hasattr(self, 'expression') and self.expression != 'undefined':
-            latex_str = f'q={self.expression}'
+            latex_str = f'{self.y}={self.expression}'
             return rf"${latex_str}$"
 
         off, scale = self.mapparms()
         if off == 0 and scale == 1:
-            term = 'q'
+            term = self.x
             needs_parens = False
         elif scale == 1:
-            term = f"{self._repr_latex_scalar(off)} + q"
+            term = f"{self._repr_latex_scalar(off)} + {self.x}"
             needs_parens = True
         elif off == 0:
-            term = f"{self._repr_latex_scalar(scale)}q"
+            term = f"{self._repr_latex_scalar(scale)}{self.x}"
             needs_parens = True
         else:
             term = (
                 f"{self._repr_latex_scalar(off)} + "
-                f"{self._repr_latex_scalar(scale)}q"
+                f"{self._repr_latex_scalar(scale)}{self.x}"
             )
             needs_parens = True
 
@@ -231,7 +237,7 @@ class PolyBase(np.polynomial.Polynomial):
             # in case somehow there are no coefficients at all
             body = '0'
 
-        return rf"$p = {body}$"
+        return rf"${self.y} = {body}$"
 
 
 class AffineElement(PolyBase):
@@ -275,7 +281,7 @@ class AffineElement(PolyBase):
     """
 
 
-    def __init__(self, intercept, slope, inverse = True):
+    def __init__(self, intercept, slope, inverse=True, symbols=None):
         """
         Initialize an AffineElement with the given intercept and slope.
 
@@ -297,6 +303,13 @@ class AffineElement(PolyBase):
         --------
             >>> supply_curve = AffineElement(10.0, 2.0)
         """
+
+        if symbols is None:
+            x, y = 'q', 'p'
+        else:
+            x, y = symbols
+        self.symbols = symbols
+
         if slope == 0:
             if inverse:  # perfectly elastic
                 self.intercept = intercept
@@ -305,7 +318,7 @@ class AffineElement(PolyBase):
 
                 self.inverse_expression = f'{self.intercept:g}'
                 self.expression = 'undefined'
-                self._symbol = 'q'  # rhs is 0*q
+                self._symbol = x  # rhs is 0*q
 
             else:  # perfectly inelastic
                 self.q_intercept = intercept
@@ -314,20 +327,20 @@ class AffineElement(PolyBase):
 
                 self.inverse_expression = 'undefined'
                 self.expression = f'{self.q_intercept:g}'
-                self._symbol = 'p'  # rhs is 0*p
+                self._symbol = y  # rhs is 0*p
             self.coef = (self.intercept, self.slope)
-            super().__init__(self.coef)
+            super().__init__(self.coef, symbols=symbols)
         else:
             if not inverse:
                 slope, intercept = 1/slope, -intercept/slope
 
             coef = (intercept, slope)
-            super().__init__(coef)
+            super().__init__(coef, symbols=symbols)
             self.intercept = intercept
             self.slope = slope
             self.q_intercept = -intercept/slope
-            self.inverse_expression = f'{intercept:g}{slope:+g}q'
-            self.expression = f'{self.q_intercept:g}{1/slope:+g}p'
+            self.inverse_expression = f'{intercept:g}{slope:+g}{x}'
+            self.expression = f'{self.q_intercept:g}{1/slope:+g}{y}'
 
     def __call__(self,x):
         if self.slope == 0:
@@ -363,7 +376,7 @@ class AffineElement(PolyBase):
         if inplace:
             self.__init__(new_intercept, self.slope)
         else:
-            return AffineElement(new_intercept, self.slope)
+            return AffineElement(new_intercept, self.slope, symbols=self.symbols)
 
     def horizontal_shift(self, delta, inplace=True):
         """
@@ -390,7 +403,7 @@ class AffineElement(PolyBase):
             if inplace:
                 self.__init__(new_q_intercept, 0, inverse=False)
             else:
-                return AffineElement(new_q_intercept, 0, inverse=False)
+                return AffineElement(new_q_intercept, 0, inverse=False, symbols=self.symbols)
         else:
             equiv_vert = delta * -self.slope
             new_intercept = self.intercept + equiv_vert
@@ -399,7 +412,7 @@ class AffineElement(PolyBase):
             if inplace:
                 self.__init__(new_intercept, self.slope)
             else:
-                return AffineElement(new_intercept, self.slope)
+                return AffineElement(new_intercept, self.slope, symbols=self.symbols)
 
     def price_elasticity(self, p):
         """
@@ -464,9 +477,7 @@ class AffineElement(PolyBase):
     def plot(self, ax=None, textbook_style=True, max_q=None,
              label=True, **kwargs):
         """
-        Plot the supply or demand curve.
-
-        This method plots the supply or demand curve on the specified matplotlib axis.
+        Plot the affine curve.
 
         Parameters
         --------
@@ -674,9 +685,104 @@ def horizontal_sum(*curves):
     return active_curves, cutoffs, midpoints
 
 
-class Affine:
+def ppf_sum(*curves, comparative_advantage=True):
 
-    def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
+    slope_and_curves = sorted([(s.slope, s) for s in curves], reverse=comparative_advantage)
+    curves = [t[1] for t in slope_and_curves]
+    x_intercepts = [c.q_intercept for c in curves]
+    y_intercepts = [c.intercept for c in curves]
+    y_int = sum([s.intercept for s in curves])
+    x_int = sum([s.q_intercept for s in curves])
+
+    for key, ppf in enumerate(curves):
+
+        previous_x = sum(x_intercepts[0:key])
+        below_y = sum(y_intercepts[key+1:])
+
+        new = ppf.vertical_shift(below_y, inplace=False)
+        new.horizontal_shift(previous_x)
+        curves[key] = new
+
+        new._domain = previous_x + ppf.q_intercept, previous_x
+
+    return curves
+
+
+class BaseAffine:
+
+    def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
+
+        if elements is None:
+            if isinstance(slope, (int, float)):
+                slope = [slope]
+            if isinstance(intercept, (int, float)):
+                intercept = [intercept]
+            if len(slope) != len(intercept):
+                raise ValueError("Slope and intercept lengths do not match.")
+
+            zipped = zip(slope, intercept)
+            elements = [AffineElement(slope=m, intercept=b, inverse=inverse) for m, b in zipped]
+        self.elements = elements
+
+        if intercept is None:
+            intercept = [c.intercept for c in elements]
+        if slope is None:
+            slope = [c.slope for c in elements]
+
+        self.intercept = intercept
+        self.slope = slope
+
+    @classmethod
+    def from_two_points(cls, x1, y1, x2, y2):
+        """
+        Creates an Affine object from two points.
+        """
+        A = np.array([[x1, 1], [x2, 1]])
+        b = np.array([y1, y2])
+        slope, intercept = np.linalg.solve(A, b)
+
+        return cls(slope=slope, intercept=intercept)
+    
+    @classmethod
+    def from_points(cls, xy_points):
+        """
+        Creates an Affine object from two points.
+
+        In the future, this might be extended to allow for three or more points.
+        """
+
+        A_array = [[qp[0], 1] for qp in xy_points]
+        p_vals = [qp[1] for qp in xy_points]
+
+        A = np.array(A_array)
+        b = np.array(p_vals)
+        slope, intercept = np.linalg.solve(A, b)
+
+        return cls(slope=slope, intercept=intercept)
+
+    @classmethod
+    def from_formula(cls, equation: str):
+        intercept, slope = _formula(equation)
+        return cls(slope=slope, intercept=intercept)
+
+    def horizontal_shift(self, delta, inplace=True):
+        new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]
+        if inplace:
+            self.__init__(elements=new_elements)
+        else:
+            return Affine(elements=new_elements)
+
+    def vertical_shift(self, delta, inplace=True):
+        new_elements = [e.vertical_shift(delta, inplace=False) for e in self.elements]
+        if inplace:
+            self.__init__(elements=new_elements)
+        else:
+            return Affine(elements=new_elements)
+
+
+class Affine(BaseAffine):
+
+    def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
         """
         Initializes an Affine object with given slopes and intercepts or elements.
         The slopes correspond to elements, which are differentiated from pieces.
@@ -701,24 +807,9 @@ class Affine:
             If the lengths of `slope` and `intercept` do not match.
         """
 
-        if elements is None:
-            if isinstance(slope, (int, float)):
-                slope = [slope]
-            if isinstance(intercept, (int, float)):
-                intercept = [intercept]
-            if len(slope) != len(intercept):
-                raise ValueError("Slope and intercept lengths do not match.")
+        super().__init__(intercept, slope, elements, inverse)
 
-            zipped = zip(slope, intercept)
-            elements = [AffineElement(slope=m, intercept=b, inverse=inverse) for m, b in zipped]
-        self.elements = elements
-
-        if intercept is None:
-            intercept = [c.intercept for c in elements]
-        if slope is None:
-            slope = [c.slope for c in elements]
-
-        pieces, cuts, mids = horizontal_sum(*elements)
+        pieces, cuts, mids = horizontal_sum(*self.elements)
         self.pieces = pieces
 
         # store piecewise info
@@ -753,8 +844,8 @@ class Affine:
 
         # inverse conditions and expressions
         self.intersections = intersections
-        self.intercept = intercept
-        self.slope = slope
+        #self.intercept = intercept
+        #self.slope = slope
 
     def _set_piece_domains(self):
         for piece, qs in zip(self.pieces, self.qsections):
@@ -772,53 +863,6 @@ class Affine:
             if q0 < q <= q1:
                 return piece
         return None
-
-    def horizontal_shift(self, delta, inplace=True):
-        new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]
-        if inplace:
-            self.__init__(elements=new_elements)
-        else:
-            return Affine(elements=new_elements)
-
-    def vertical_shift(self, delta, inplace=True):
-        new_elements = [e.vertical_shift(delta, inplace=False) for e in self.elements]
-        if inplace:
-            self.__init__(elements=new_elements)
-        else:
-            return Affine(elements=new_elements)
-
-    @classmethod
-    def from_two_points(cls, q1, p1, q2, p2):
-        """
-        Creates an Affine object from two points.
-        """
-        A = np.array([[q1, 1], [q2, 1]])
-        b = np.array([p1, p2])
-        slope, intercept = np.linalg.solve(A, b)
-
-        return cls(slope=slope, intercept=intercept)
-    
-    @classmethod
-    def from_points(cls, qp_points):
-        """
-        Creates an Affine object from two points.
-
-        In the future, this might be extended to allow for three or more points.
-        """
-
-        A_array = [[qp[0], 1] for qp in qp_points]
-        p_vals = [qp[1] for qp in qp_points]
-
-        A = np.array(A_array)
-        b = np.array(p_vals)
-        slope, intercept = np.linalg.solve(A, b)
-
-        return cls(slope=slope, intercept=intercept)
-
-    @classmethod
-    def from_formula(cls, equation: str):
-        intercept, slope = _formula(equation)
-        return cls(slope=slope, intercept=intercept)
 
     def __call__(self, x):
         """
@@ -1047,7 +1091,7 @@ class Demand(Affine):
 
 class Supply(Affine):
 
-    def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
+    def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
         """
         Initializes a Supply curve object.
         """
@@ -1061,3 +1105,67 @@ class Supply(Affine):
 
     def producer_surplus(self, p):
         return -self.surplus(p)
+
+
+class Constraint(BaseAffine):
+
+    def __init__(self, p1, p2, endowment=1, name1=None, name2=None, elements=None, inverse=True):
+        '''
+        Incomplete.
+        '''
+
+        if elements is None:
+            slope = -p1/p2
+            intercept = endowment/p2
+            super().__init__(intercept, slope, elements, inverse)
+        else:
+            super().__init__(None, None, elements, inverse)
+
+
+class PPF(BaseAffine):
+    '''
+    Production possibilities frontier.
+    '''
+
+    def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
+        '''
+        Create a linear PPF.
+        '''
+        super().__init__(intercept, slope, elements, inverse)
+        self.pieces = ppf_sum(*self.elements)
+
+
+    def __add__(self, other):
+        elements = self.elements + other.elements
+        return type(self)(elements=elements)
+
+    def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
+        '''
+        Plot the ppf.
+        '''
+
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls']
+        plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
+        # Plot each element
+        for piece in self.pieces:
+            if piece:
+                piece.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
+
+        if label:
+            ax.set_xlabel("Good 1")
+            ax.set_ylabel("Good 2")
+
+        # Run additional parameters as pyplot functions
+        # xlim or ylim will overwrite the previous set_lims behavior
+        for key, value in kwargs.items():
+            if hasattr(plt, key):
+                plt_function = getattr(plt, key)
+                if callable(plt_function):
+                    # Unpack sequences (e.g. for plt.text)
+                    if isinstance(value, tuple) or isinstance(value, list):
+                        plt_function(*value)
+                    else:
+                        plt_function(value)
