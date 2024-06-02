@@ -4,6 +4,8 @@ import numbers
 from microecon.plotting import textbook_axes, AREA_FILLS
 from microecon.formula import _formula
 from IPython.display import Latex, display
+from bokeh.plotting import figure, show
+from bokeh.models import HoverTool, ColumnDataSource
 
 
 class PolyBase(np.polynomial.Polynomial):
@@ -1139,33 +1141,58 @@ class PPF(BaseAffine):
         elements = self.elements + other.elements
         return type(self)(elements=elements)
 
-    def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
+    def plot(self, ax=None, set_lims=True, max_q=None, label=True, backend='mpl', **kwargs):
         '''
         Plot the ppf.
         '''
 
-        if ax is None:
-            fig, ax = plt.subplots()
+        if backend == 'bokeh':
+            p = figure(width=400, height=400, tools="")
+            lines_data = {'xs': [], 'ys': [], 'label': []}
 
-        param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls']
-        plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
-        # Plot each element
-        for piece in self.pieces:
-            if piece:
-                piece.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
+            for key, piece in enumerate(self.pieces):
+                x0, x1 = piece._domain
+                xx = np.linspace(x0, x1)
+                yy = [piece(u) for u in xx]
+                lines_data['xs'].append(xx)
+                lines_data['ys'].append(yy)
+                lines_data['label'].append(f'Piece {key}')
+            source = ColumnDataSource(data=lines_data)
 
-        if label:
-            ax.set_xlabel("Good 1")
-            ax.set_ylabel("Good 2")
+            p.multi_line(xs='xs', ys='ys', source=source, line_width=2)
+            # Add HoverTool
+            hover = HoverTool(
+                tooltips=[('', "@label")],
+                renderers=[p.renderers[-1]])
+            p.add_tools(hover)
 
-        # Run additional parameters as pyplot functions
-        # xlim or ylim will overwrite the previous set_lims behavior
-        for key, value in kwargs.items():
-            if hasattr(plt, key):
-                plt_function = getattr(plt, key)
-                if callable(plt_function):
-                    # Unpack sequences (e.g. for plt.text)
-                    if isinstance(value, tuple) or isinstance(value, list):
-                        plt_function(*value)
-                    else:
-                        plt_function(value)
+            return p
+
+        elif backend == 'mpl':
+            if ax is None:
+                fig, ax = plt.subplots()
+
+            param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls', 'marker', 'markersize']
+            plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
+            # Plot each element
+            for piece in self.pieces:
+                if piece:
+                    piece.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
+
+            if label:
+                ax.set_xlabel("Good 1")
+                ax.set_ylabel("Good 2")
+
+            # Run additional parameters as pyplot functions
+            # xlim or ylim will overwrite the previous set_lims behavior
+            for key, value in kwargs.items():
+                if hasattr(plt, key):
+                    plt_function = getattr(plt, key)
+                    if callable(plt_function):
+                        # Unpack sequences (e.g. for plt.text)
+                        if isinstance(value, tuple) or isinstance(value, list):
+                            plt_function(*value)
+                        else:
+                            plt_function(value)
+
+            return ax

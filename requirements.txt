@@ -2,3 +2,4 @@ matplotlib
 numpy
 papermill
 IPython
+bokeh
