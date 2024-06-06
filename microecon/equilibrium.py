@@ -141,9 +141,13 @@ class Equilibrium:
         #broken
         return self.supply.producer_surplus(self.__p_producer)
 
+    @property
+    def govt_revenue(self):
+        return self.__tax * self.q
+
     @property    
     def total_surplus(self):
-        return self.producer_surplus + self.consumer_surplus
+        return self.producer_surplus + self.consumer_surplus + self.govt_revenue
 
     def __repr__(self):
         s = f"Price: {self.p}\nQuantity: {self.q}"
