@@ -19,7 +19,7 @@ setuptools.setup(
 	description='A package for undergraduate microeconomics.',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/alexanderthclark/Intro-Microeconomics',
+    url='https://github.com/alexanderthclark/FreeRide',
     author='Alexander Clark',
     install_requires=install_requires,
     author_email='',
