@@ -8,7 +8,7 @@ import numpy as np
 
 C0 = np.array(mcolors.to_rgb('C0'))
 ALPHA = 0.5
-AREA_FILLS = [ALPHA * np.array(mcolors.to_rgb(f'C{i}')) + (1-ALPHA) * np.ones(3) for i in range(0,8)]
+AREA_FILLS = [np.add(np.multiply(ALPHA, np.array(mcolors.to_rgb(f'C{i}'))), np.multiply(1-ALPHA, np.ones(3))).tolist() for i in range(0, 8)]
 
 def textbook_axes(ax=None):
     """

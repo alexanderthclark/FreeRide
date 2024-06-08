@@ -1,10 +1,8 @@
 curves
 ==========
 
-.. automodule:: microecon.curves
+.. automodule:: freeride.curves
     :members:
     :undoc-members:
     :show-inheritance:
 
-
-more more more

@@ -16,13 +16,13 @@ sys.path.insert(0, os.path.abspath('..'))
 
 
 def get_version():
-    with open("../microecon/__init__.py", "r") as f:
+    with open("../freeride/__init__.py", "r") as f:
         for line in f:
             if line.startswith("__version__"):
                 return eval(line.split("=")[-1].strip())
 
 
-project = 'Microecon'
+project = 'FreeRide'
 copyright = '2023, Alexander Clark'
 author = 'Alexander Clark'
 release = get_version()
@@ -48,7 +48,7 @@ autodoc_default_options = {
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-autodoc_mock_imports = ['IPython', 'pandas', 'numpy', 'matplotlib']
+autodoc_mock_imports = ['IPython', 'pandas', 'numpy', 'matplotlib', 'papermill', 'bokeh']
 
 # -- Options for HTML output -------------------------------------------------
 
