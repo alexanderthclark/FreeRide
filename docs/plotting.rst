@@ -1,7 +1,7 @@
 plotting
 ==========
 
-.. automodule:: microecon.plotting
+.. automodule:: freeride.plotting
     :members:
     :undoc-members:
     :show-inheritance:
