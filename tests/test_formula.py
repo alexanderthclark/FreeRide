@@ -1,5 +1,5 @@
 import unittest
-from microecon.formula import _formula
+from freeride.formula import _formula
 
 class TestFormula(unittest.TestCase):
 

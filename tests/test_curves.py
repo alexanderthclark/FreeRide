@@ -1,5 +1,5 @@
 import unittest
-from microecon.curves import Affine
+from freeride.curves import Affine
 
 class TestAffine(unittest.TestCase):
 

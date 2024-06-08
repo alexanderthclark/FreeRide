@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import numbers
-from microecon.plotting import textbook_axes
-from microecon.curves import *
+from freeride.plotting import textbook_axes
+from freeride.curves import *
 
 
 ############################################################

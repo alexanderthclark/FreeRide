@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from microecon.curves import Demand, Supply, intersection
-from microecon.plotting import AREA_FILLS
+from freeride.curves import Demand, Supply, intersection
+from freeride.plotting import AREA_FILLS
 
 class Equilibrium:
     

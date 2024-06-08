@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import numbers
-from microecon.plotting import textbook_axes, AREA_FILLS
-from microecon.formula import _formula
+from freeride.plotting import textbook_axes, AREA_FILLS
+from freeride.formula import _formula
 from IPython.display import Latex, display
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource
@@ -713,7 +713,25 @@ def ppf_sum(*curves, comparative_advantage=True):
 class BaseAffine:
 
     def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
+        """
+        Initialize the BaseAffine object.
 
+        Parameters
+        ----------
+        intercept : float or list of floats, optional
+            The intercept(s) of the affine transformation. Default is None.
+        slope : float or list of floats, optional
+            The slope(s) of the affine transformation. Default is None.
+        elements : list of AffineElement, optional
+            List of AffineElement objects. If provided, it will override `intercept` and `slope`. Default is None.
+        inverse : bool, optional
+            Indicates if the transformation should be inverted. Default is True.
+
+        Raises
+        ------
+        ValueError
+            If the lengths of `slope` and `intercept` do not match.
+        """
         if elements is None:
             if isinstance(slope, (int, float)):
                 slope = [slope]
@@ -783,6 +801,9 @@ class BaseAffine:
 
 
 class Affine(BaseAffine):
+    """
+    A class to represent a piecewise affine function.
+    """
 
     def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
         """
@@ -1131,7 +1152,23 @@ class PPF(BaseAffine):
 
     def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
         '''
-        Create a linear PPF.
+        Initializes a PPF object with given slope and intercept or elements.
+
+        Parameters
+        ----------
+        intercept : float or list of float, optional
+            The y-intercept(s) of the elements.
+        slope : float or list of float, optional
+            The slope(s) of the elements.
+        elements : list of AffineElement, optional
+            A list of AffineElements whose horizontal sum defines the PPF.
+        inverse : bool, optional
+            When inverse is True, it is assumed that equations are in the form P(Q).
+
+        Raises
+        ------
+        ValueError
+            If the lengths of `slope` and `intercept` do not match.
         '''
         super().__init__(intercept, slope, elements, inverse)
         self.pieces = ppf_sum(*self.elements)
