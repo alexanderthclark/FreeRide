@@ -181,3 +181,4 @@ build/.DS_Store
 .DS_Store
 notebooks/.ipynb_checkpoints/demo-20240606-checkpoint.ipynb
 .ipynb_checkpoints/example-checkpoint.ipynb
+/.ipynb_checkpoints
