@@ -1,2 +1,5 @@
 sphinx
 myst-parser
+sphinx-book-theme
+sphinx-autodoc
+sphinx-napoleon
