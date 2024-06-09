@@ -1,8 +1,10 @@
+'''
+Cost related objects.
+'''
+import numbers
 import numpy as np
 import matplotlib.pyplot as plt
-import numbers
-from freeride.plotting import textbook_axes
-from freeride.curves import *
+from freeride.curves import PolyBase
 
 
 ############################################################
@@ -12,9 +14,9 @@ class Cost(PolyBase):
     """
     Polynomial cost curve.
 
-    This class represents a polynomial cost curve and extends the PolyBase class. It provides methods
-    for calculating costs, finding the efficient scale, breakeven price, shutdown price, and plotting
-    various cost-related curves.
+    This class represents a polynomial cost curve and extends the PolyBase class.
+    It provides methods for calculating costs, finding the efficient scale,
+    breakeven price, shutdown price, and plotting various cost-related curves.
 
     Parameters
     ----------
@@ -246,7 +248,7 @@ class Cost(PolyBase):
 
         except IndexError:
 
-            "increasing returns to scale forever"
+            # increasing returns to scale forever
             if constant > 0:
                 return np.inf
 
@@ -362,7 +364,7 @@ class Cost(PolyBase):
             >>> cost_curve = Cost(0.5, 0.1, -0.02)
             >>> cost_curve.cost_profit_plot(0.4, items=['tc', 'tr', 'profit'])
         """
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         items = [str(x).lower() for x in items]
@@ -498,7 +500,7 @@ class AverageCost:
             >>> ac_curve = AverageCost([0.5, 0.1, -0.02])
             >>> ac_curve.plot(max_q=20, label='AC Curve')
         """
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         xs = np.linspace(0.01, max_q, int(10*max_q))
