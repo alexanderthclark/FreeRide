@@ -271,7 +271,7 @@ class QuadraticElement(np.polynomial.Polynomial):
         if inplace:
             self.__init__(*coef, symbol=self.symbol)
         else:
-            return cls(*coef, symbol=self.symbol)
+            return self.__class__(*coef, symbol=self.symbol)
 
     def horizontal_shift(self, delta, inplace=True):
         """
@@ -290,7 +290,7 @@ class QuadraticElement(np.polynomial.Polynomial):
         if inplace:
             self.__init__(*coef, symbol=self.symbol)
         else:
-            return cls(*coef, symbol=self.symbol)
+            return self.__class__(*coef, symbol=self.symbol)
 
     def plot(self, ax=None, textbook_style=True, max_q=100,
              label=True, **kwargs):
