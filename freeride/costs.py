@@ -103,19 +103,19 @@ class Cost(PolyBase):
         off, scale = self.mapparms()
         if off == 0 and scale == 1:
             term = 'q'
-            needs_parens = False
+            parens = False
         elif scale == 1:
             term = f"{self._repr_latex_scalar(off)} + q"
-            needs_parens = True
+            parens = True
         elif off == 0:
             term = f"{self._repr_latex_scalar(scale)}q"
-            needs_parens = True
+            parens = True
         else:
             term = (
                 f"{self._repr_latex_scalar(off)} + "
                 f"{self._repr_latex_scalar(scale)}q"
             )
-            needs_parens = True
+            parens = True
 
         mute = r"\color{{LightGray}}{{{}}}".format
 
@@ -132,7 +132,7 @@ class Cost(PolyBase):
                 coef_str = f" - {self._repr_latex_scalar(-c)}"
 
             # produce the string for the term
-            term_str = self._repr_latex_term(i, term, needs_parens)
+            term_str = self._repr_latex_term(i, term, parens)
             if term_str == '1':
                 part = coef_str
             else:

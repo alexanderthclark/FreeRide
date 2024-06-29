@@ -71,7 +71,7 @@ class PolyBase(np.polynomial.Polynomial):
             self.coef = []
             self._symbol = x
         self._domain = domain
-    
+
     def __call__(self, x):
         if self.is_undefined:
             raise ValueError("Polynomial is undefined.")
@@ -242,6 +242,118 @@ class PolyBase(np.polynomial.Polynomial):
         return rf"${self.y} = {body}$"
 
 
+class QuadraticElement(np.polynomial.Polynomial):
+    """
+    Extends the PolyBase class and represents a quadratic function used in revenue and cost curves.
+    """
+
+
+    def __init__(self, intercept, linear_coef, quadratic_coef, symbol=None, domain=None):
+        """
+        Initialize QuadraticElement class.
+        """
+
+        if symbol is None:
+            symbol = 'q'
+        self.intercept = intercept
+        self.linear_coef = linear_coef
+        self.quadratic_coef = quadratic_coef
+        self.coef = (intercept, linear_coef, quadratic_coef)
+        super().__init__(self.coef, symbol=symbol)
+        self._domain = domain
+
+    def vertical_shift(self, delta, inplace=True):
+        """
+        Shift the curve vertically by the given amount.
+        """
+        new_intercept = self.intercept + delta
+        coef = (new_intercept, self.linear_coef, self.quadratic_coef)
+        if inplace:
+            self.__init__(*coef, symbol=self.symbol)
+        else:
+            return self.__class__(*coef, symbol=self.symbol)
+
+    def horizontal_shift(self, delta, inplace=True):
+        """
+        Shift the curve horizontally by the given amount.
+
+        This method shifts the supply or demand curve horizontally by the specified amount `delta`.
+        Positive values of `delta` shift the curve to the right.
+
+        """
+        # a + b(x-delta) + c(x-delta)^2
+        a, b, c = self.coef
+        new_intercept = a - b*delta + c*delta**2
+        new_linear_coef = b - 2*c*delta
+        new_quadratic_coef = c
+        coef = new_intercept, new_linear_coef, new_quadratic_coef
+        if inplace:
+            self.__init__(*coef, symbol=self.symbol)
+        else:
+            return self.__class__(*coef, symbol=self.symbol)
+
+    def plot(self, ax=None, textbook_style=True, max_q=100,
+             label=True, **kwargs):
+        """
+        """
+        if ax is None:
+            ax = plt.gca()
+
+        # core plot
+        if self._domain:
+            x1, x2 = self._domain
+        else:
+            x1, x2 = 0, max_q
+
+        xs = np.linspace(x1, x2, 1000)
+        ys = self(xs)
+
+        if 'color' not in kwargs:
+            kwargs['color'] = 'black'
+        ax.plot(xs, ys, **kwargs)
+
+        if textbook_style:
+            textbook_axes(ax)
+
+        if label == True:
+            #ax.set_ylabel("Price")
+            ax.set_xlabel("Quantity")
+
+        return ax
+
+    def plot_area_below(self, q0, q1, ax=None, zorder=-1, color=None, alpha=None):
+        '''
+        Plot surplus region
+        '''
+        if ax is None:
+            ax = self.plot()
+
+        xs = np.linspace(q0, q1, 100)
+        ys = self(xs)
+        ax.fill_between(xs, 0, ys,
+                        zorder=zorder,
+                        color=color,
+                        alpha=alpha)
+
+        return ax
+
+    def plot_area_above(self, q0, q1, y, ax=None, zorder=-1, color=None, alpha=None):
+        '''
+        Plot surplus region
+        '''
+        if ax is None:
+            ax = self.plot()
+
+        xs = np.linspace(q0, q1, 100)
+        ys = self(xs)
+        ax.fill_between(xs, ys, y,
+                        zorder=zorder,
+                        color=color,
+                        alpha=alpha)
+
+        return ax
+
+
 class AffineElement(PolyBase):
     """
     This class extends the PolyBase class and represents an affine function commonly
@@ -345,9 +457,7 @@ class AffineElement(PolyBase):
             self.expression = f'{self.q_intercept:g}{1/slope:+g}{y}'
 
     def __call__(self,x):
-        if self.slope == 0:
-            return self.intercept
-        elif self.slope == np.inf:
+        if self.slope == np.inf:
             raise Exception(f"Undefined (perfectly inelastic at {self.q_intercept})")
         else:
             return self.intercept + self.slope*x
@@ -524,7 +634,7 @@ class AffineElement(PolyBase):
 
         xs = np.linspace(x1, x2, 2)
         ys = np.linspace(y1, y2, 2)
-        
+
         if 'color' not in kwargs:
             kwargs['color'] = 'black'
         ax.plot(xs, ys, **kwargs)
@@ -556,7 +666,7 @@ class AffineElement(PolyBase):
 
     def plot_area(self, p, q=None, ax=None, zorder=-1, color=None, alpha=None):
         '''
-        Plot surplus region 
+        Plot surplus region
         '''
         if ax is None:
             ax = self.plot()
@@ -640,7 +750,7 @@ def blind_sum(*curves):
     elastic_curves = [c for c in curves if c.slope == 0]
     inelastic_curves = [c for c in curves if c.slope == np.inf]
     regular_curves = [c for c in curves if c not in elastic_curves + inelastic_curves]
-    
+
     if not elastic_curves and not inelastic_curves:
         qintercept = np.sum([-c.intercept/c.slope for c in curves])
         qslope = np.sum([1/c.slope for c in curves])
@@ -656,7 +766,7 @@ def horizontal_sum(*curves):
     Parameters
     ----------
     *curves : sequence of AffineElements
-        Variable-length argument list of Affine curve objects for which 
+        Variable-length argument list of Affine curve objects for which
         the active curves are to be found.
 
     Returns
@@ -679,8 +789,8 @@ def horizontal_sum(*curves):
     cutoffs = [c for c in cutoffs if c>=0]
 
     # get a point in each region
-    midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [cutoffs[-1]+1] 
-    
+    midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [cutoffs[-1]+1]
+
     # get curves with positive quantity for each region
     active_curves = [blind_sum(*[c for c in curves if c.q(price)>0]) for price in midpoints]
 
@@ -762,7 +872,7 @@ class BaseAffine:
         slope, intercept = np.linalg.solve(A, b)
 
         return cls(slope=slope, intercept=intercept)
-    
+
     @classmethod
     def from_points(cls, xy_points):
         """
@@ -912,7 +1022,7 @@ class Affine(BaseAffine):
     def q(self, p):
         # returns q given p
         return np.sum([np.max([0,c.q(p)]) for c in self.elements])
-    
+
     def p(self, q):
         # returns p given q
         return self.__call__(q)
@@ -943,7 +1053,7 @@ class Affine(BaseAffine):
             raise ValueError("Point elasticity is not defined at a kink point."+s)
         else:
             # Get q-domains
-            pc = [p for p in self.pieces if p and (q > np.min(p._domain)) and (q < np.max(p._domain))] 
+            pc = [p for p in self.pieces if p and (q > np.min(p._domain)) and (q < np.max(p._domain))]
             assert len(pc) == 1
             return pc[0].price_elasticity(p)
 
@@ -972,7 +1082,7 @@ class Affine(BaseAffine):
             The maximum quantity to consider for setting the x-axis limit. If None, it will be automatically determined.
         **kwargs : dict
             Additional keyword arguments to customize the plot. These can include any valid `matplotlib.pyplot` function keyword, such as:
-            
+
             title : str
                 The title of the plot.
             xlabel : str
@@ -1071,7 +1181,7 @@ class Affine(BaseAffine):
                              color=color,
                              alpha=alpha)
         return ax
-                
+
     def surplus(self, p):
         '''
         Returns surplus area. The areas are negative for producer surplus.
