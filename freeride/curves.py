@@ -71,7 +71,7 @@ class PolyBase(np.polynomial.Polynomial):
             self.coef = []
             self._symbol = x
         self._domain = domain
-    
+
     def __call__(self, x):
         if self.is_undefined:
             raise ValueError("Polynomial is undefined.")
@@ -283,7 +283,7 @@ class QuadraticElement(np.polynomial.Polynomial):
         """
         # a + b(x-delta) + c(x-delta)^2
         a, b, c = self.coef
-        new_intercept = a - b*delta + c*delta**2 
+        new_intercept = a - b*delta + c*delta**2
         new_linear_coef = b - 2*c*delta
         new_quadratic_coef = c
         coef = new_intercept, new_linear_coef, new_quadratic_coef
@@ -307,7 +307,7 @@ class QuadraticElement(np.polynomial.Polynomial):
 
         xs = np.linspace(x1, x2, 1000)
         ys = self(xs)
-        
+
         if 'color' not in kwargs:
             kwargs['color'] = 'black'
         ax.plot(xs, ys, **kwargs)
@@ -323,7 +323,7 @@ class QuadraticElement(np.polynomial.Polynomial):
 
     def plot_area_below(self, q0, q1, ax=None, zorder=-1, color=None, alpha=None):
         '''
-        Plot surplus region 
+        Plot surplus region
         '''
         if ax is None:
             ax = self.plot()
@@ -339,7 +339,7 @@ class QuadraticElement(np.polynomial.Polynomial):
 
     def plot_area_above(self, q0, q1, y, ax=None, zorder=-1, color=None, alpha=None):
         '''
-        Plot surplus region 
+        Plot surplus region
         '''
         if ax is None:
             ax = self.plot()
@@ -634,7 +634,7 @@ class AffineElement(PolyBase):
 
         xs = np.linspace(x1, x2, 2)
         ys = np.linspace(y1, y2, 2)
-        
+
         if 'color' not in kwargs:
             kwargs['color'] = 'black'
         ax.plot(xs, ys, **kwargs)
@@ -666,7 +666,7 @@ class AffineElement(PolyBase):
 
     def plot_area(self, p, q=None, ax=None, zorder=-1, color=None, alpha=None):
         '''
-        Plot surplus region 
+        Plot surplus region
         '''
         if ax is None:
             ax = self.plot()
@@ -750,7 +750,7 @@ def blind_sum(*curves):
     elastic_curves = [c for c in curves if c.slope == 0]
     inelastic_curves = [c for c in curves if c.slope == np.inf]
     regular_curves = [c for c in curves if c not in elastic_curves + inelastic_curves]
-    
+
     if not elastic_curves and not inelastic_curves:
         qintercept = np.sum([-c.intercept/c.slope for c in curves])
         qslope = np.sum([1/c.slope for c in curves])
@@ -766,7 +766,7 @@ def horizontal_sum(*curves):
     Parameters
     ----------
     *curves : sequence of AffineElements
-        Variable-length argument list of Affine curve objects for which 
+        Variable-length argument list of Affine curve objects for which
         the active curves are to be found.
 
     Returns
@@ -789,8 +789,8 @@ def horizontal_sum(*curves):
     cutoffs = [c for c in cutoffs if c>=0]
 
     # get a point in each region
-    midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [cutoffs[-1]+1] 
-    
+    midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [cutoffs[-1]+1]
+
     # get curves with positive quantity for each region
     active_curves = [blind_sum(*[c for c in curves if c.q(price)>0]) for price in midpoints]
 
@@ -872,7 +872,7 @@ class BaseAffine:
         slope, intercept = np.linalg.solve(A, b)
 
         return cls(slope=slope, intercept=intercept)
-    
+
     @classmethod
     def from_points(cls, xy_points):
         """
@@ -1022,7 +1022,7 @@ class Affine(BaseAffine):
     def q(self, p):
         # returns q given p
         return np.sum([np.max([0,c.q(p)]) for c in self.elements])
-    
+
     def p(self, q):
         # returns p given q
         return self.__call__(q)
@@ -1053,7 +1053,7 @@ class Affine(BaseAffine):
             raise ValueError("Point elasticity is not defined at a kink point."+s)
         else:
             # Get q-domains
-            pc = [p for p in self.pieces if p and (q > np.min(p._domain)) and (q < np.max(p._domain))] 
+            pc = [p for p in self.pieces if p and (q > np.min(p._domain)) and (q < np.max(p._domain))]
             assert len(pc) == 1
             return pc[0].price_elasticity(p)
 
@@ -1082,7 +1082,7 @@ class Affine(BaseAffine):
             The maximum quantity to consider for setting the x-axis limit. If None, it will be automatically determined.
         **kwargs : dict
             Additional keyword arguments to customize the plot. These can include any valid `matplotlib.pyplot` function keyword, such as:
-            
+
             title : str
                 The title of the plot.
             xlabel : str
@@ -1181,7 +1181,7 @@ class Affine(BaseAffine):
                              color=color,
                              alpha=alpha)
         return ax
-                
+
     def surplus(self, p):
         '''
         Returns surplus area. The areas are negative for producer surplus.
