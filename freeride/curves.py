@@ -1030,7 +1030,9 @@ class Affine(BaseAffine):
                 plt_function = getattr(plt, key)
                 if callable(plt_function):
                     # Unpack sequences (e.g. for plt.text)
-                    if isinstance(value, tuple) or isinstance(value, list):
+                    if value in ['xticks', 'yticks']:
+                        plt_function(value)
+                    elif isinstance(value, tuple) or isinstance(value, list):
                         plt_function(*value)
                     else:
                         plt_function(value)
