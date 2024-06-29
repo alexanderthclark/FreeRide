@@ -242,6 +242,118 @@ class PolyBase(np.polynomial.Polynomial):
         return rf"${self.y} = {body}$"
 
 
+class QuadraticElement(np.polynomial.Polynomial):
+    """
+    Extends the PolyBase class and represents a quadratic function used in revenue and cost curves.
+    """
+
+
+    def __init__(self, intercept, linear_coef, quadratic_coef, symbol=None, domain=None):
+        """
+        Initialize QuadraticElement class.
+        """
+
+        if symbol is None:
+            symbol = 'q'
+        self.intercept = intercept
+        self.linear_coef = linear_coef
+        self.quadratic_coef = quadratic_coef
+        self.coef = (intercept, linear_coef, quadratic_coef)
+        super().__init__(self.coef, symbol=symbol)
+        self._domain = domain
+
+    def vertical_shift(self, delta, inplace=True):
+        """
+        Shift the curve vertically by the given amount.
+        """
+        new_intercept = self.intercept + delta
+        coef = (new_intercept, self.linear_coef, self.quadratic_coef)
+        if inplace:
+            self.__init__(*coef, symbol=self.symbol)
+        else:
+            return cls(*coef, symbol=self.symbol)
+
+    def horizontal_shift(self, delta, inplace=True):
+        """
+        Shift the curve horizontally by the given amount.
+
+        This method shifts the supply or demand curve horizontally by the specified amount `delta`.
+        Positive values of `delta` shift the curve to the right.
+
+        """
+        # a + b(x-delta) + c(x-delta)^2
+        a, b, c = self.coef
+        new_intercept = a - b*delta + c*delta**2 
+        new_linear_coef = b - 2*c*delta
+        new_quadratic_coef = c
+        coef = new_intercept, new_linear_coef, new_quadratic_coef
+        if inplace:
+            self.__init__(*coef, symbol=self.symbol)
+        else:
+            return cls(*coef, symbol=self.symbol)
+
+    def plot(self, ax=None, textbook_style=True, max_q=100,
+             label=True, **kwargs):
+        """
+        """
+        if ax is None:
+            ax = plt.gca()
+
+        # core plot
+        if self._domain:
+            x1, x2 = self._domain
+        else:
+            x1, x2 = 0, max_q
+
+        xs = np.linspace(x1, x2, 1000)
+        ys = self(xs)
+        
+        if 'color' not in kwargs:
+            kwargs['color'] = 'black'
+        ax.plot(xs, ys, **kwargs)
+
+        if textbook_style:
+            textbook_axes(ax)
+
+        if label == True:
+            #ax.set_ylabel("Price")
+            ax.set_xlabel("Quantity")
+
+        return ax
+
+    def plot_area_below(self, q0, q1, ax=None, zorder=-1, color=None, alpha=None):
+        '''
+        Plot surplus region 
+        '''
+        if ax is None:
+            ax = self.plot()
+
+        xs = np.linspace(q0, q1, 100)
+        ys = self(xs)
+        ax.fill_between(xs, 0, ys,
+                        zorder=zorder,
+                        color=color,
+                        alpha=alpha)
+
+        return ax
+
+    def plot_area_above(self, q0, q1, y, ax=None, zorder=-1, color=None, alpha=None):
+        '''
+        Plot surplus region 
+        '''
+        if ax is None:
+            ax = self.plot()
+
+        xs = np.linspace(q0, q1, 100)
+        ys = self(xs)
+        ax.fill_between(xs, ys, y,
+                        zorder=zorder,
+                        color=color,
+                        alpha=alpha)
+
+        return ax
+
+
 class AffineElement(PolyBase):
     """
     This class extends the PolyBase class and represents an affine function commonly
@@ -345,9 +457,7 @@ class AffineElement(PolyBase):
             self.expression = f'{self.q_intercept:g}{1/slope:+g}{y}'
 
     def __call__(self,x):
-        if self.slope == 0:
-            return self.intercept
-        elif self.slope == np.inf:
+        if self.slope == np.inf:
             raise Exception(f"Undefined (perfectly inelastic at {self.q_intercept})")
         else:
             return self.intercept + self.slope*x
