@@ -247,7 +247,6 @@ class QuadraticElement(np.polynomial.Polynomial):
     Extends the PolyBase class and represents a quadratic function used in revenue and cost curves.
     """
 
-
     def __init__(self, intercept, linear_coef, quadratic_coef, symbol=None, domain=None):
         """
         Initialize QuadraticElement class.
@@ -350,6 +349,89 @@ class QuadraticElement(np.polynomial.Polynomial):
                         zorder=zorder,
                         color=color,
                         alpha=alpha)
+
+        return ax
+
+
+class BaseQuadratic:
+
+    def __init__(self, intercept=None, linear_coef=None, quadratic_coef=None, elements=None, inverse=True):
+        """
+        """
+        if elements is None:
+            if isinstance(linear_coef, (int, float)):
+                linear_coef = [linear_coef]
+            if isinstance(intercept, (int, float)):
+                intercept = [intercept]
+            if isinstance(quadratic_coef, (int, float)):
+                quadratic_coef = [quadratic_coef]
+            if (len(quadratic_coef) != len(intercept)) or (len(linear_coef) != len(intercept)):
+                raise ValueError("Coefficient lengths do not match.")
+
+            zipped = zip(intercept, linear_coef, quadratic_coef)
+            elements = [QuadraticElement(*coef) for coef in zipped]
+        self.elements = elements
+
+        if intercept is None:
+            intercept = [c.intercept for c in elements]
+        if linear_coef is None:
+            linear_coef = [c.linear_coef for c in elements]
+        if quadratic_coef is None:
+            quadratic_coef = [c.quadratic_coef for c in elements]
+
+        self.intercept = intercept
+        self.linear_coef = linear_coef
+        self.quadratic_coef = quadratic_coef
+
+    @classmethod
+    def from_points(cls, xy_points, fit=False):
+        """
+        Creates a Quadratic object from points.
+
+        Overdetermined systems are fit with least squares if `fit=True`. 
+        """
+        x = [i[0] for i in xy_points]
+        y = [i[1] for i in xy_points]
+        if fit:
+            coef = np.polyfit(x, y, 2)
+        else:
+            A_array = [[qp[0]**2, qp[0], 1] for qp in xy_points]
+            p_vals = [qp[1] for qp in xy_points]
+
+            A = np.array(A_array)
+            b = np.array(p_vals)
+            coef = np.linalg.solve(A, b)
+            
+        quad, lin, constant = tuple(coef)
+        return cls(constant, lin, quad)
+
+    def horizontal_shift(self, delta, inplace=True):
+        new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]
+        if inplace:
+            self.__init__(elements=new_elements)
+        else:
+            return self.__class__(elements=new_elements)
+
+    def vertical_shift(self, delta, inplace=True):
+        new_elements = [e.vertical_shift(delta, inplace=False) for e in self.elements]
+        if inplace:
+            self.__init__(elements=new_elements)
+        else:
+            return self.__class__(elements=new_elements)
+
+
+    def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
+        '''
+        '''
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls']
+        plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
+        # Plot each element
+        for elmt in self.elements:
+            if elmt:
+                elmt.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
 
         return ax
 
