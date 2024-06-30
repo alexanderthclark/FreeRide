@@ -419,7 +419,6 @@ class BaseQuadratic:
         else:
             return self.__class__(elements=new_elements)
 
-
     def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
         '''
         '''
@@ -434,6 +433,21 @@ class BaseQuadratic:
                 elmt.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
 
         return ax
+
+    def active_element(self, q):
+        for piece in self.elements:
+            domain = piece._domain
+            if domain and (np.min(domain) <= q <= np.max(domain)):
+                return piece
+        return None
+
+    def __call__(self, q):
+        element = self.active_element(q)
+        if element:
+            return element(q)
+        else:
+            # q is out of range
+            return 0
 
 
 class AffineElement(PolyBase):
@@ -1287,6 +1301,7 @@ class Affine(BaseAffine):
         else:
             return 0
 
+
 class Demand(Affine):
 
     def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
@@ -1305,6 +1320,18 @@ class Demand(Affine):
 
     def consumer_surplus(self, p):
         return self.surplus(p)
+
+    def total_revenue(self):
+        
+        elements = list()
+        pieces = [p for p in self.pieces if p]
+        for piece in pieces:
+            coef = 0, piece.intercept, piece.slope
+            revenue_element = QuadraticElement(*coef)
+            revenue_element._domain = sorted(piece._domain)
+            elements.append(revenue_element)
+            
+        return BaseQuadratic(elements=elements)
 
 class Supply(Affine):
 
