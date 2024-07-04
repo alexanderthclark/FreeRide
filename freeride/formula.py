@@ -42,21 +42,28 @@ def _formula(equation: str):
                        .replace(" ", ""))
 
     if '/' in equation:
-    	raise ValueError("Unexpected character '/'. Use decimals and not fractions.")
+        raise ValueError("Unexpected character '/'. Use decimals and not fractions.")
     
     # Check if equation is in form of y = mx + b or y = b + mx
-    match = re.match(r"y=(-?\d*\.?\d*)\*?x([+-]\d+\.?\d*)?|y=([+-]?\d+\.?\d*)([+-]\d*\.?\d*)\*?x", equation)
+    match = re.match(r"y=([-+]?\d*\.?\d*)\*?x([-+]\d*\.?\d*)?|y=([-+]?\d*\.?\d*)([-+]\d*\.?\d*)\*?x?", equation)
     if match:
-        slope = float(match.group(1) or match.group(4) or '1')  # Default slope is 1 if not specified
-        intercept = float(match.group(2) or match.group(3) or '0')  # Default intercept is 0 if not specified
-        #return Affine(intercept, slope)
+        if match.group(1) is not None and match.group(1) != '':
+            slope = float(match.group(1) if match.group(1) != '-' else -1)
+            intercept = float(match.group(2) if match.group(2) not in (None, '', '+', '-') else '0')
+        else:
+            slope = float(match.group(4) if match.group(4) not in (None, '', '+', '-') else '1')
+            intercept = float(match.group(3) if match.group(3) not in (None, '', '+', '-') else '0')
         return intercept, slope
 
     # Check if equation is in form of x = my + b or x = b + my
-    match = re.match(r"x=(-?\d*\.?\d*)\*?y([+-]\d+\.?\d*)?|x=([+-]?\d+\.?\d*)([+-]\d*\.?\d*)\*?y", equation)
+    match = re.match(r"x=([-+]?\d*\.?\d*)\*?y([-+]\d*\.?\d*)?|x=([-+]?\d*\.?\d*)([-+]\d*\.?\d*)\*?y?", equation)
     if match:
-        slope = float(match.group(1) or match.group(4) or '1')  # Default slope is 1 if not specified
-        intercept = float(match.group(2) or match.group(3) or '0')  # Default intercept is 0 if not specified
-        #return Affine(intercept, 1 / slope)  # Inverting the slope for this case
-        return -intercept/slope, 1/slope
+        if match.group(1) is not None and match.group(1) != '':
+            slope = float(match.group(1) if match.group(1) != '-' else -1)
+            intercept = float(match.group(2) if match.group(2) not in (None, '', '+', '-') else '0')
+        else:
+            slope = float(match.group(4) if match.group(4) not in (None, '', '+', '-') else '1')
+            intercept = float(match.group(3) if match.group(3) not in (None, '', '+', '-') else '0')
+        return -intercept / slope, 1 / slope
+    
     raise ValueError("Invalid equation")
