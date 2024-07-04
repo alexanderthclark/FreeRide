@@ -64,7 +64,7 @@ class PolyBase(np.polynomial.Polynomial):
             super().__init__(coef, domain=None)
         else:
             self.coef = []
-            self._symbol = x
+            self._symbol = self.x
 
         # user-defined domain for building piecewise functions
         self._domain = domain
