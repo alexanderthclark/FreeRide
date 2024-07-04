@@ -8,7 +8,7 @@ class TestFormula(unittest.TestCase):
         s2 = 'P = 10 - 2Q'
         s3 = 'p = 2 + 4*q'
         s4 = 'y = 1*x'
-        s5 = 'x = 2x'
+        s5 = 'x = 2y'
         s6 = 'y=x'
 
         self.affine1 = _formula(s1)
