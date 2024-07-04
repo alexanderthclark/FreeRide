@@ -56,12 +56,7 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2q + 3q^2
             >>> poly = PolyBase(1, -2, 3)  # Equivalent to the above
         """
-
-        if symbols is None:
-            x, y = 'q', 'p'
-        else:
-            x, y = symbols
-        self.x, self.y = x, y
+        self.set_symbols(symbols)
 
         self.is_undefined = coef == ([],)  # helpful in sum functions
         if self.is_undefined == False:
@@ -70,13 +65,35 @@ class PolyBase(np.polynomial.Polynomial):
         else:
             self.coef = []
             self._symbol = x
+
+        # user-defined domain for building piecewise functions
         self._domain = domain
+
+    def in_domain(self, x):
+        if self._domain:
+            d = sorted(self._domain)
+            return (d[0] <= x <= d[1])
+        else:
+            return True
 
     def __call__(self, x):
         if self.is_undefined:
             raise ValueError("Polynomial is undefined.")
-        else:
+        elif self.in_domain(x):
             return super().__call__(x)
+        else:
+            raise ValueError(f"{self.x}={x} is outside of the function domain, {self._domain}.")
+
+    def set_symbols(self, symbols):
+        if isinstance(symbols, str):
+            self.x = symbols
+            self.y = None
+        else:
+            if symbols is None:
+                x, y = 'q', 'p'
+            else:
+                x, y = symbols
+            self.x, self.y = x, y
 
     def p(self, q: float):
         """
@@ -238,8 +255,11 @@ class PolyBase(np.polynomial.Polynomial):
         else:
             # in case somehow there are no coefficients at all
             body = '0'
+        if self.y:
+            return rf"${self.y} = {body}$"
+        else:
+            return rf"${self.x} \mapsto {body}$"
 
-        return rf"${self.y} = {body}$"
 
 
 class QuadraticElement(np.polynomial.Polynomial):
