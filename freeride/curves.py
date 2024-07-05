@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numbers
 from freeride.plotting import textbook_axes, AREA_FILLS
-from freeride.formula import _formula
+from freeride.formula import _formula, _quadratic_formula
 from IPython.display import Latex, display
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource
@@ -56,12 +56,7 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2q + 3q^2
             >>> poly = PolyBase(1, -2, 3)  # Equivalent to the above
         """
-
-        if symbols is None:
-            x, y = 'q', 'p'
-        else:
-            x, y = symbols
-        self.x, self.y = x, y
+        self.set_symbols(symbols)
 
         self.is_undefined = coef == ([],)  # helpful in sum functions
         if self.is_undefined == False:
@@ -69,14 +64,36 @@ class PolyBase(np.polynomial.Polynomial):
             super().__init__(coef, domain=None)
         else:
             self.coef = []
-            self._symbol = x
+            self._symbol = self.x
+
+        # user-defined domain for building piecewise functions
         self._domain = domain
+
+    def in_domain(self, x):
+        if self._domain:
+            d = sorted(self._domain)
+            return (d[0] <= x <= d[1])
+        else:
+            return True
 
     def __call__(self, x):
         if self.is_undefined:
             raise ValueError("Polynomial is undefined.")
-        else:
+        elif self.in_domain(x):
             return super().__call__(x)
+        else:
+            raise ValueError(f"{self.x}={x} is outside of the function domain, {self._domain}.")
+
+    def set_symbols(self, symbols):
+        if isinstance(symbols, str):
+            self.x = symbols
+            self.y = None
+        else:
+            if symbols is None:
+                x, y = 'q', 'p'
+            else:
+                x, y = symbols
+            self.x, self.y = x, y
 
     def p(self, q: float):
         """
@@ -238,8 +255,10 @@ class PolyBase(np.polynomial.Polynomial):
         else:
             # in case somehow there are no coefficients at all
             body = '0'
-
-        return rf"${self.y} = {body}$"
+        if self.y:
+            return rf"${self.y} = {body}$"
+        else:
+            return rf"${self.x} \mapsto {body}$"
 
 
 class QuadraticElement(np.polynomial.Polynomial):
@@ -349,13 +368,17 @@ class QuadraticElement(np.polynomial.Polynomial):
                         zorder=zorder,
                         color=color,
                         alpha=alpha)
-
         return ax
+
+    @classmethod
+    def from_formula(cls, equation: str):
+        a, b, c = _quadratic_formula(equation)
+        return cls(c, b, a, domain = (-np.inf, np.inf))
 
 
 class BaseQuadratic:
 
-    def __init__(self, intercept=None, linear_coef=None, quadratic_coef=None, elements=None, inverse=True):
+    def __init__(self, intercept=None, linear_coef=None, quadratic_coef=None, elements=None):
         """
         """
         if elements is None:
@@ -404,6 +427,11 @@ class BaseQuadratic:
             
         quad, lin, constant = tuple(coef)
         return cls(constant, lin, quad)
+
+    @classmethod
+    def from_formula(cls, equation: str):
+        element = QuadraticElement.from_formula(equation)
+        return cls(elements = [element])
 
     def horizontal_shift(self, delta, inplace=True):
         new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]
@@ -1332,6 +1360,7 @@ class Demand(Affine):
             elements.append(revenue_element)
             
         return BaseQuadratic(elements=elements)
+
 
 class Supply(Affine):
 
