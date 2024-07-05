@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numbers
 from freeride.plotting import textbook_axes, AREA_FILLS
-from freeride.formula import _formula
+from freeride.formula import _formula, _quadratic_formula
 from IPython.display import Latex, display
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource
@@ -369,13 +369,16 @@ class QuadraticElement(np.polynomial.Polynomial):
                         zorder=zorder,
                         color=color,
                         alpha=alpha)
-
         return ax
 
+    @classmethod
+    def from_formula(cls, equation: str):
+        a, b, c = _quadratic_formula(equation)
+        return cls(c, b, a, domain = (-np.inf, np.inf))
 
 class BaseQuadratic:
 
-    def __init__(self, intercept=None, linear_coef=None, quadratic_coef=None, elements=None, inverse=True):
+    def __init__(self, intercept=None, linear_coef=None, quadratic_coef=None, elements=None):
         """
         """
         if elements is None:
@@ -424,6 +427,11 @@ class BaseQuadratic:
             
         quad, lin, constant = tuple(coef)
         return cls(constant, lin, quad)
+
+    @classmethod
+    def from_formula(cls, equation: str):
+        element = QuadraticElement.from_formula(equation)
+        return cls(elements = [element])
 
     def horizontal_shift(self, delta, inplace=True):
         new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]

@@ -67,3 +67,73 @@ def _formula(equation: str):
         return -intercept / slope, 1 / slope
     
     raise ValueError("Invalid equation")
+
+
+def _quadratic_formula(equation: str):
+    """
+    Parse a quadratic equation string and return the coefficients a, b, and c.
+    Accepts equations in the form 'y = ax^2 + bx + c' or 'ax^2 + bx + c = y'.
+    Variables 'y' and 'x' can be 'p', 'P', 'q', or 'Q'.
+    Handles optional whitespaces, signs for coefficients, and decimal coefficients.
+
+    Parameters
+    ----------
+    equation : str
+        A string representing a quadratic equation.
+
+    Returns
+    -------
+    tuple
+        A tuple (a, b, c) representing the coefficients of the quadratic equation.
+
+    Raises
+    ------
+    ValueError
+        If the equation is not a valid quadratic equation or contains fractions.
+
+    Examples
+    --------
+    >>> parse_quadratic('y = 2x^2 + 3x - 1')
+    (2.0, 3.0, -1.0)
+    >>> parse_quadratic('P = -0.5Q^2 + 2Q + 4')
+    (-0.5, 2.0, 4.0)
+    >>> parse_quadratic('y = -x^2 + 1')
+    (-1.0, 0.0, 1.0)
+    """
+    # Remove whitespaces and equate p with y and q with x
+    equation = (equation.lower()
+                .replace("p", "y")
+                .replace("q", "x")
+                .replace(" ", "")
+                .replace("^2", "²")
+                .replace("**2", "²"))  # Replace ^2 with ² for easier parsing
+    
+    if '/' in equation:
+        raise ValueError("Unexpected character '/'. Use decimals and not fractions.")
+    
+    # Ensure the equation is in the form ax²+bx+c=y
+    if 'y=' in equation:
+        equation = equation.replace('y=', '') + '=y'
+    
+    # Split the equation into left and right sides
+    left_side, right_side = equation.split('=')
+    
+    if right_side != 'y':
+        raise ValueError("Equation must be in the form 'y = ...' or '... = y'")
+    
+    # Use regex to find terms
+    terms = re.findall(r'([+-]?(?:\d*\.)?\d*x²|[+-]?(?:\d*\.)?\d*x|[+-]?(?:\d*\.)?\d+)', left_side)
+    
+    a, b, c = 0, 0, 0
+    
+    for term in terms:
+        if 'x²' in term:
+            coef = term.replace('x²', '')
+            a = float(coef) if coef and coef not in ('+', '-') else (1 if coef in ('', '+') else -1)
+        elif 'x' in term:
+            coef = term.replace('x', '')
+            b = float(coef) if coef and coef not in ('+', '-') else (1 if coef in ('', '+') else -1)
+        elif term:
+            c += float(term)
+    
+    return a, b, c
