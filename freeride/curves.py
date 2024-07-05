@@ -261,7 +261,6 @@ class PolyBase(np.polynomial.Polynomial):
             return rf"${self.x} \mapsto {body}$"
 
 
-
 class QuadraticElement(np.polynomial.Polynomial):
     """
     Extends the PolyBase class and represents a quadratic function used in revenue and cost curves.
@@ -375,6 +374,7 @@ class QuadraticElement(np.polynomial.Polynomial):
     def from_formula(cls, equation: str):
         a, b, c = _quadratic_formula(equation)
         return cls(c, b, a, domain = (-np.inf, np.inf))
+
 
 class BaseQuadratic:
 
@@ -1360,6 +1360,7 @@ class Demand(Affine):
             elements.append(revenue_element)
             
         return BaseQuadratic(elements=elements)
+
 
 class Supply(Affine):
 
