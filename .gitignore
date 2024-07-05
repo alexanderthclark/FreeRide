@@ -182,3 +182,7 @@ build/.DS_Store
 notebooks/.ipynb_checkpoints/demo-20240606-checkpoint.ipynb
 .ipynb_checkpoints/example-checkpoint.ipynb
 /.ipynb_checkpoints
+freeride/__pycache__/equilibrium.cpython-311.pyc
+freeride/__pycache__/base.cpython-311.pyc
+freeride/__pycache__/equilibrium.cpython-311.pyc
+freeride/__pycache__/base.cpython-311.pyc
