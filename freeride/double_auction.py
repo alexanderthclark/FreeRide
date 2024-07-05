@@ -48,14 +48,13 @@ class DoubleAuction:
         # Get valuations in desc order
         self.valuations = sorted([a.valuation for a in self.agents], reverse=True)
         
+        zipped = zip(self.demand, self.supply)
+        n_trades = len([(d,s) for (d,s) in zipped if d[1] > s[1]])
+
         highest_valuations = self.valuations[0:total_q]
         lowest_valuations = self.valuations[total_q:]
         
         price_range = lowest_valuations[0], highest_valuations[-1]
-        
-        # how many suppliers should keep the good
-        n_no_trade = [s for s in self.supply if s[0].valuation > price_range[1]]
-        n_trades = len(self.supply) - len(n_no_trade)
         
         return price_range, n_trades
         
