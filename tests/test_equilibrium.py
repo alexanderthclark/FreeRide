@@ -15,4 +15,3 @@ class TestEquilibrium(unittest.TestCase):
 
     def test_equilibrium_quantity(self):
         self.assertTrue(self.equilibrium.q == 8.0)
-        self.assertTrue(False) # revert later
