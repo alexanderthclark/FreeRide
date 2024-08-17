@@ -119,7 +119,6 @@ class Equilibrium:
                     marginal = relevant and (minq < q_star < q < maxq)
 
                     if marginal:
-                        print('case a')
                         base = q - q_star
                         ht1 = piece.p(q) - p_star
                         area = 0.5 * base * np.abs(ht1)
@@ -181,8 +180,8 @@ class Equilibrium:
 
     def plot_surplus(self, ax):
 
-        self.demand.plot_surplus(p=self.__p_consumer, ax=ax)
-        self.supply.plot_surplus(p=self.__p_producer, ax=ax)
+        self.demand.plot_surplus(p=self.__p_consumer, ax=ax, q=(0, self.q))
+        self.supply.plot_surplus(p=self.__p_producer, ax=ax, q=(0, self.q))
 
         # add deadweight loss and govt revenue
         if self.__tax > 0:

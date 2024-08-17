@@ -582,7 +582,7 @@ class Affine(BaseAffine):
 
         return ax
 
-    def plot_surplus(self, p, ax=None, color=None, max_q=None, alpha=None):
+    def plot_surplus(self, p, q=None, ax=None, color=None, max_q=None, alpha=None):
 
         if (color is None) and isinstance(self, Supply):
             color = AREA_FILLS[1]
@@ -591,10 +591,10 @@ class Affine(BaseAffine):
 
         if ax is None:
             ax = self.plot(max_q=max_q)
-        qstar = self.q(p)
         for piece in self.pieces:
             if piece:
                 piece.plot_area(p,
+                             q=q,
                              ax=ax,
                              color=color,
                              alpha=alpha)
