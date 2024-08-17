@@ -582,7 +582,7 @@ class Affine(BaseAffine):
 
         return ax
 
-    def plot_surplus(self, p, ax=None, color=None, max_q=None, alpha=None):
+    def plot_surplus(self, p, q=None, ax=None, color=None, max_q=None, alpha=None):
 
         if (color is None) and isinstance(self, Supply):
             color = AREA_FILLS[1]
@@ -591,20 +591,21 @@ class Affine(BaseAffine):
 
         if ax is None:
             ax = self.plot(max_q=max_q)
-        qstar = self.q(p)
         for piece in self.pieces:
             if piece:
                 piece.plot_area(p,
+                             q=q,
                              ax=ax,
                              color=color,
                              alpha=alpha)
         return ax
 
-    def surplus(self, p):
+    def surplus(self, p, q=None):
         '''
         Returns surplus area. The areas are negative for producer surplus.
         '''
-        q = self.q(p)
+        if q is None:
+            q = self.q(p)
 
         if q > 0:
 
@@ -612,13 +613,16 @@ class Affine(BaseAffine):
             trapezoids = [piece for piece in self.pieces if piece and (np.max(piece._domain) < q)]
             trap_areas = [piece._domain_length*(np.mean([piece.p(piece._domain[0]),piece.p(piece._domain[1])])-p) for piece in trapezoids]
 
+
             # find the last unit demanded and get surplus from that curve
             last_piece = self._get_active_piece(q)
-            height = last_piece.p(np.min(last_piece._domain)) - p
-            base = q - np.min(last_piece._domain)
-            tri_area = 0.5 * height * base
+            q0 = np.min(last_piece._domain)
+            base = q - q0
+            ht1 = last_piece.p(q0) - p
+            ht2 = last_piece.p(q) - p
+            area = base * 0.5 * (ht1 + ht2)
 
-            return tri_area + np.sum(trap_areas)
+            return area + np.sum(trap_areas)
 
         else:
             return 0
@@ -640,8 +644,8 @@ class Demand(Affine):
         if self.q(0) < 0:
             raise Exception("Negative demand.")
 
-    def consumer_surplus(self, p):
-        return self.surplus(p)
+    def consumer_surplus(self, p, q = None):
+        return self.surplus(p, q)
 
     def total_revenue(self):
         
@@ -670,8 +674,8 @@ class Supply(Affine):
             if slope < 0:
                 raise Exception("Downard-sloping supply curve.")
 
-    def producer_surplus(self, p):
-        return -self.surplus(p)
+    def producer_surplus(self, p, q = None):
+        return -self.surplus(p, q)
 
 
 class Constraint(BaseAffine):

@@ -578,7 +578,7 @@ class AffineElement(PolyBase):
 
         return ax
 
-    def plot_area(self, p, q=None, ax=None, zorder=-1, color=None, alpha=None):
+    def plot_area(self, p, q=None, ax=None, zorder=-1, color=None, alpha=None, force=False):
         '''
         Plot surplus region
         '''
@@ -592,14 +592,15 @@ class AffineElement(PolyBase):
         else:
             q0, q1 = q
 
-        qstar = self.q(p)
+        if not force:
+            qstar = self.q(p)
 
-        if q0 < qstar <= q1:
-            q = q0, qstar
-        elif q1 < qstar:
-            q = q0, q1
-        elif qstar < q0:
-            return ax
+            if q0 < qstar <= q1:
+                q = q0, qstar
+            elif q1 < qstar:
+                q = q0, q1
+            elif qstar < q0: # plot nothing if no surplus in region
+                return ax
 
         p01 = self.p(q[0]), self.p(q[1])
 
