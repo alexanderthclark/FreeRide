@@ -3,11 +3,6 @@ import matplotlib.pyplot as plt
 from freeride.curves import Demand, Supply, intersection
 from freeride.plotting import AREA_FILLS
 
-class Market:
-
-    def __init__(self, demand: Demand, supply: Supply):
-        pass
-
 class Equilibrium:
     
     def __init__ (self, demand: Demand, supply: Supply, tax=0, ceiling=None, floor=None):
@@ -184,10 +179,10 @@ class Equilibrium:
         self.supply.plot_surplus(p=self.__p_producer, ax=ax, q=(0, self.q))
 
         # add deadweight loss and govt revenue
-        if self.__tax > 0:
-            e_star = Equilibrium(demand=self.demand, supply=self.supply)
-            q_star, p_star = e_star.q, e_star.p
-            q = self.q
+        e_star = Equilibrium(demand=self.demand, supply=self.supply)
+        q_star, p_star = e_star.q, e_star.p
+        q = self.q
+        if q != q_star:    
             red = (1, 0.5, 0.5)
             for piece in self.demand.pieces + self.supply.pieces:
                 if piece:
@@ -205,16 +200,21 @@ class Equilibrium:
                     elif partial:
                         piece.plot_area(p=p_star, q=[q, maxq], color=red, ax=ax)
 
-            # Govt revenue
+            # Plot horizontal line for controls
+
+            if self.floor:
+                ax.axhline(self.floor, color='black')
+            elif self.ceiling:
+                ax.axhline(self.ceiling, color='black') 
+
+        # Govt revenue
+        if self.__tax:
             ax.fill_between([0, self.q], self.__p_consumer, 
                 self.__p_producer,
                 color = .93*np.ones(3))
         
         # Subsidy (messy plot)
         if self.__tax < 0:
-            e_star = Equilibrium(demand=self.demand, supply=self.supply)
-            q_star, p_star = e_star.q, e_star.p
-            q = self.q
             red = (1, 0.5, 0.5)
             for piece in self.demand.pieces + self.supply.pieces:
                 if piece:
@@ -285,7 +285,11 @@ class Equilibrium:
     @property
     def p_producer(self):
         return self.__p_producer
-    
+
+    @property
+    def dwl(self):
+        return self._compute_dwl()
+
     @classmethod
     def _recompute(cls, self, tax):
 
@@ -298,3 +302,11 @@ class Equilibrium:
         e.__p_producer = e.p
         return e
 
+class Market(Equilibrium):
+
+    def __init__ (self, demand: Demand, supply: Supply, tax=0, ceiling=None, floor=None):
+        super().__init__(demand=demand,
+                         supply=supply,
+                         tax=tax,
+                         ceiling=None,
+                         floor=None)
