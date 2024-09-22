@@ -280,6 +280,9 @@ class BaseAffine:
         self.intercept = intercept
         self.slope = slope
 
+    def __bool__(self):
+        return bool(np.any([bool(el) for el in self.elements]))
+
     @classmethod
     def from_two_points(cls, x1, y1, x2, y2):
         """
