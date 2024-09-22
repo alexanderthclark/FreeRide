@@ -80,6 +80,9 @@ class PolyBase(np.polynomial.Polynomial):
         else:
             raise ValueError(f"{self.x}={x} is outside of the function domain, {self._domain}.")
 
+    def __bool__(self):
+        return not self.is_undefined
+
     def set_symbols(self, symbols):
         self.symbols = symbols
         if isinstance(symbols, str):
