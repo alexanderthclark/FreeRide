@@ -486,6 +486,14 @@ class Affine(BaseAffine):
         elements = self.elements + other.elements
         return type(self)(elements=elements)
 
+    def __mul__(self, scalar):
+        elements = [e*scalar for e in self.elements]
+        return type(self)(elements=elements)
+    
+    def __rmul__(self, scalar):
+        elements = [e*scalar for e in self.elements]
+        return type(self)(elements=elements)
+
     def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
         '''
         Plot the Affine object.

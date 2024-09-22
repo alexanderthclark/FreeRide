@@ -55,15 +55,13 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly = PolyBase(1, -2, 3)  # Equivalent to the above
         """
         self.set_symbols(symbols)
-
         self.is_undefined = coef == ([],)  # helpful in sum functions
         if self.is_undefined == False:
             coef = np.squeeze(np.array(coef, ndmin=1))
-            super().__init__(coef, domain=None)
+            super().__init__(coef, domain=None, symbol=self._symbol)
         else:
             self.coef = []
             self._symbol = self.x
-
         # user-defined domain for building piecewise functions
         self._domain = domain
 
@@ -85,14 +83,17 @@ class PolyBase(np.polynomial.Polynomial):
     def set_symbols(self, symbols):
         self.symbols = symbols
         if isinstance(symbols, str):
-            self.x = symbols
-            self.y = None
+            x = symbols
+            y = None
+        elif symbols is None:
+            x, y = 'q', 'p'
+        elif len(symbols)==2:
+            x, y = symbols
         else:
-            if symbols is None:
-                x, y = 'q', 'p'
-            else:
-                x, y = symbols
-            self.x, self.y = x, y
+            raise Exception("symbols not properly set")
+        self.x, self.y = x, y
+        self.symbols = self.x, self.y
+        self._symbol = self.x
 
     def p(self, q: float):
         """
@@ -331,8 +332,9 @@ class AffineElement(PolyBase):
         --------
             >>> supply_curve = AffineElement(10.0, 2.0)
         """
-
         if symbols is None:
+            x, y = 'q', 'p'
+        elif isinstance(symbols, str):
             x, y = 'q', 'p'
         else:
             x, y = symbols
@@ -370,11 +372,17 @@ class AffineElement(PolyBase):
             self.inverse_expression = f'{intercept:g}{slope:+g}{x}'
             self.expression = f'{self.q_intercept:g}{1/slope:+g}{y}'
 
-    def __call__(self,x):
+    def __call__(self, x):
         if self.slope == np.inf:
             raise Exception(f"Undefined (perfectly inelastic at {self.q_intercept})")
         else:
             return self.intercept + self.slope*x
+
+    def __mul__(self, scalar):
+        return type(self)(intercept=self.intercept, slope=self.slope*(1/scalar), inverse=True, symbols=self.symbols)
+    
+    def __rmul__(self, scalar):
+        return self.__mul__(scalar)
 
     def vertical_shift(self, delta, inplace=True):
         """
