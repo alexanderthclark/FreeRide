@@ -60,3 +60,42 @@ class DoubleAuction:
         
     def __repr__(self):
         return f"Price range: {self.price_range}\nQuantity: {self.q}"
+
+    def demand_schedule(self):
+        '''
+        Returns list of (price, quantity) sorted from highest to lowest valuation.
+        '''
+        valuations = [d[1] for d in self.demand]
+        unique_valuations = sorted(set([d[1] for d in self.demand]), reverse=True)
+        schedule = [(p, len(valuations)-key) for key, p in enumerate(valuations)]
+        
+        schedule = [(p, len([v for v in valuations if v >= p])) for p in unique_valuations]
+        return schedule
+    
+    def supply_schedule(self):
+        '''
+        Returns list of (price, quantity) sorted from low to highest valuation.
+        '''
+        valuations = [s[1] for s in self.supply]
+        unique_valuations = sorted(set([s[1] for s in self.supply]), reverse=False)
+        schedule = [(p, len(valuations)-key) for key, p in enumerate(valuations)]
+        
+        # count active supply
+        schedule = [(p, len([v for v in valuations if v <= p])) for p in unique_valuations]
+        return schedule
+
+    def plot(self, ax=None):
+        demand = self.demand_schedule()
+        demand_q = [0] + [d[1] for d in demand] 
+        demand_p = [np.inf] + [d[0] for d in demand]
+        
+        supply = self.supply_schedule()
+        supply_p = [0] + [s[0] for s in supply]
+        supply_q = [0] + [s[1] for s in supply]
+        
+        if ax is None:
+            fig, ax = plt.subplots()
+            ax.step(demand_q, demand_p, marker='.', color='C0')
+            ax.step(supply_q, supply_p, marker='x', color='C1')
+            
+        return ax
