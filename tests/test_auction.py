@@ -23,7 +23,7 @@ class TestDoubleAuction(unittest.TestCase):
 
         self.assertTrue(q == 1)
         self.assertTrue(price0 == 5)
-        self.assertFalse(price1 == 8)
+        self.assertTrue(price1 == 8)
         
     def tearDown(self):
         pass
