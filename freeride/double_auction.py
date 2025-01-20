@@ -60,3 +60,7 @@ class DoubleAuction:
         
     def __repr__(self):
         return f"Price range: {self.price_range}\nQuantity: {self.q}"
+
+    def calculate_surplus(self):
+        pass
+
