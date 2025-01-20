@@ -3,6 +3,7 @@ Unit demand and unit supply for double auctions
 '''
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 class UnitAgent:
     
