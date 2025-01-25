@@ -509,6 +509,102 @@ class Affine(BaseAffine):
             Whether to automatically set the limits for the axes. Default is True.
         max_q : float, optional
             The maximum quantity to consider for setting the x-axis limit. If None, it will be automatically determined.
+        label : bool, optional
+            Whether to add curve/axis labels. Default True.
+        **kwargs : dict
+            Additional keyword arguments for controlling line color, style, etc.
+
+        Returns
+        -------
+        ax : matplotlib.axes.Axes
+        '''
+
+        def safe_eval(x):
+            # Evaluate self(x) or return np.nan if out of domain or invalid
+            try:
+                val = self.__call__(x)
+                if np.isfinite(val):
+                    return val
+                else:
+                    return np.nan
+            except:
+                return np.nan
+
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        # Plot each piece in self.pieces
+        param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls']
+        plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
+        for piece in self.pieces:
+            if piece:
+                piece.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
+
+        if set_lims:
+            # Gather current limits
+            ylim = ax.get_ylim()
+            xlim = ax.get_xlim()
+
+            # Build a list of the piecewise domain endpoints
+            flat_q = sorted([qv for seg in self.qsections for qv in seg if np.isfinite(qv)])
+            flat_p = sorted([pv for seg in self.psections for pv in seg if np.isfinite(pv)])
+
+            # If we have no finite domain boundaries, we won't override user-limits
+            if flat_q:
+                # If user didn't specify max_q, pick it from the largest domain endpoint
+                if max_q is None:
+                    possible_max_q = flat_q[-1]
+                    # If it's infinite, skip. If there's only ∞, fallback to 10 or something
+                    if np.isinf(possible_max_q):
+                        possible_max_q = 10.0
+                    max_q = possible_max_q
+            else:
+                # fallback if we have no piecewise domain info
+                if max_q is None:
+                    max_q = 10.0
+
+            # Evaluate the curve at max_q
+            val_at_max_q = safe_eval(max_q)
+
+            # If that fails, fallback to 0
+            if np.isnan(val_at_max_q):
+                val_at_max_q = 0
+
+            # Decide new upper bound for price
+            max_p = max(val_at_max_q, ylim[1], 0)
+            
+            # Only update axes if that doesn't cause error
+            ax.set_ylim(0, max_p)
+            ax.set_xlim(0, max_q)
+
+        # Apply any leftover kwargs that might be e.g. title, xlim, ylim
+        for key, value in kwargs.items():
+            if hasattr(plt, key):
+                plt_function = getattr(plt, key)
+                if callable(plt_function):
+                    if isinstance(value, (tuple, list)):
+                        plt_function(*value)
+                    else:
+                        plt_function(value)
+
+        # Simple labeling
+        if label:
+            ax.set_xlabel("Quantity")
+            ax.set_ylabel("Price")
+
+        return ax
+    def plot_old(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
+        '''
+        Plot the Affine object.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            The axes on which to plot. If None, a new figure and axes will be created.
+        set_lims : bool, optional
+            Whether to automatically set the limits for the axes. Default is True.
+        max_q : float, optional
+            The maximum quantity to consider for setting the x-axis limit. If None, it will be automatically determined.
         **kwargs : dict
             Additional keyword arguments to customize the plot. These can include any valid `matplotlib.pyplot` function keyword, such as:
 
