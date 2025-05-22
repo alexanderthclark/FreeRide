@@ -779,7 +779,7 @@ class Supply(Affine):
     def _check_slope(self):
         for slope in self.slope:
             if slope < 0:
-                raise Exception("Downard-sloping supply curve.")
+                raise Exception("Downward-sloping supply curve.")
 
     def producer_surplus(self, p, q = None):
         return -self.surplus(p, q)
