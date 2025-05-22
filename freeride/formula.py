@@ -93,11 +93,11 @@ def _quadratic_formula(equation: str):
 
     Examples
     --------
-    >>> parse_quadratic('y = 2x^2 + 3x - 1')
+    >>> _quadratic_formula('y = 2x^2 + 3x - 1')
     (2.0, 3.0, -1.0)
-    >>> parse_quadratic('P = -0.5Q^2 + 2Q + 4')
+    >>> _quadratic_formula('P = -0.5Q^2 + 2Q + 4')
     (-0.5, 2.0, 4.0)
-    >>> parse_quadratic('y = -x^2 + 1')
+    >>> _quadratic_formula('y = -x^2 + 1')
     (-1.0, 0.0, 1.0)
     """
     # Remove whitespaces and equate p with y and q with x
