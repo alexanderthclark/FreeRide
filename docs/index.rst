@@ -16,7 +16,7 @@ This is a Python package for introductory microeconomics.
    costs
    formula
    plotting
-   foo
+   tutorials/quickstart
 
 
 
