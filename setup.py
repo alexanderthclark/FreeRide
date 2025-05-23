@@ -20,5 +20,6 @@ setuptools.setup(
     install_requires=['matplotlib', 'numpy', 'papermill', 'IPython', 'bokeh'],
     author_email='',
     packages=setuptools.find_packages(),
+    python_requires='>=3.8',
     zip_safe=False,
 )
