@@ -20,9 +20,9 @@ class TestDemand(unittest.TestCase):
     def setUp(self):
 
         self.d1 = Demand(12,-2)
-        self.d2 = Demand.from_formula('p = 12 - q')
+        self.d2 = Demand.from_formula('p = 12 - 1*q')
 
-    def shifts(self):
+    def test_shifts(self):
 
         new_d = self.d1.vertical_shift(1, inplace=False)
         self.assertTrue(new_d.p(0) == 13)
