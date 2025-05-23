@@ -1,16 +1,21 @@
-'''
-Plotting module.
-'''
+"""Plotting utilities."""
+
+from typing import Optional
+
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 import matplotlib.colors as mcolors
 import numpy as np
 
-C0 = np.array(mcolors.to_rgb('C0'))
 ALPHA = 0.5
-AREA_FILLS = [np.add(np.multiply(ALPHA, np.array(mcolors.to_rgb(f'C{i}'))), np.multiply(1-ALPHA, np.ones(3))).tolist() for i in range(0, 8)]
+AREA_FILLS = [
+    np.add(
+        np.multiply(ALPHA, np.array(mcolors.to_rgb(f"C{i}"))),
+        np.multiply(1 - ALPHA, np.ones(3)),
+    ).tolist()
+    for i in range(0, 8)
+]
 
-def textbook_axes(ax=None):
+def textbook_axes(ax: Optional[plt.Axes] = None) -> plt.Axes:
     """
     Creates textbook-style axes.
 
@@ -25,7 +30,7 @@ def textbook_axes(ax=None):
 
     Returns
     ----------
-        None
+        The modified axes object.
 
     Example
     --------
@@ -38,7 +43,9 @@ def textbook_axes(ax=None):
     if ax is None:
         ax = plt.gca()
 
-    ax.spines['left'].set_position('zero')
-    ax.spines['bottom'].set_position('zero')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+    ax.spines["left"].set_position("zero")
+    ax.spines["bottom"].set_position("zero")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    return ax
