@@ -1,9 +1,11 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import numbers
-from freeride.plotting import textbook_axes, AREA_FILLS
-from freeride.formula import _formula, _quadratic_formula
+
+import matplotlib.pyplot as plt
+import numpy as np
 from IPython.display import Latex, display
+
+from freeride.formula import _formula, _quadratic_formula
+from freeride.plotting import AREA_FILLS, textbook_axes
 
 
 class PolyBase(np.polynomial.Polynomial):
@@ -35,6 +37,7 @@ class PolyBase(np.polynomial.Polynomial):
         >>> poly.p(2.0)  # Calculate the price at q=2.0
         1.0
     """
+
     def __init__(self, *coef, symbols=None, domain=None):
         """
         Initialize a PolyBase object with the given coefficients.
@@ -68,7 +71,7 @@ class PolyBase(np.polynomial.Polynomial):
     def in_domain(self, x):
         if self._domain:
             d = sorted(self._domain)
-            return (d[0] <= x <= d[1])
+            return d[0] <= x <= d[1]
         else:
             return True
 
@@ -78,7 +81,9 @@ class PolyBase(np.polynomial.Polynomial):
         elif self.in_domain(x):
             return super().__call__(x)
         else:
-            raise ValueError(f"{self.x}={x} is outside of the function domain, {self._domain}.")
+            raise ValueError(
+                f"{self.x}={x} is outside of the function domain, {self._domain}."
+            )
 
     def __bool__(self):
         return not self.is_undefined
@@ -89,8 +94,8 @@ class PolyBase(np.polynomial.Polynomial):
             x = symbols
             y = None
         elif symbols is None:
-            x, y = 'q', 'p'
-        elif len(symbols)==2:
+            x, y = "q", "p"
+        elif len(symbols) == 2:
             x, y = symbols
         else:
             raise Exception("symbols not properly set")
@@ -140,7 +145,7 @@ class PolyBase(np.polynomial.Polynomial):
         if self.slope == np.inf:
             return self.q_intercept
 
-        coef2 = (self.coef[0]-p, *self.coef[1:])[::-1]
+        coef2 = (self.coef[0] - p, *self.coef[1:])[::-1]
         roots = np.roots(coef2)
 
         if roots.shape == (1,):
@@ -148,7 +153,9 @@ class PolyBase(np.polynomial.Polynomial):
         else:
             return roots
 
-    def plot(self, ax=None, label=None, max_q=100, min_plotted_q=0, textbook_style=True):
+    def plot(
+        self, ax=None, label=None, max_q=100, min_plotted_q=0, textbook_style=True
+    ):
         """
         Plot the polynomial.
 
@@ -172,11 +179,11 @@ class PolyBase(np.polynomial.Polynomial):
         if ax is None:
             ax = plt.gca()
 
-        x_vals = np.linspace(0, max_q, max_q*5 + 1)
+        x_vals = np.linspace(0, max_q, max_q * 5 + 1)
         x_vals = x_vals[x_vals >= min_plotted_q]
         y_vals = self(x_vals)
 
-        ax.plot(x_vals, y_vals, label = label)
+        ax.plot(x_vals, y_vals, label=label)
 
         if textbook_style:
             textbook_axes(ax)
@@ -198,13 +205,16 @@ class PolyBase(np.polynomial.Polynomial):
         """
         # overwrite ABCPolyBase Method to use p/q instead of x\mapsto
         # get the scaled argument string to the basis functions
-        if hasattr(self, 'is_undefined') and self.is_undefined:
+        if hasattr(self, "is_undefined") and self.is_undefined:
             return "Undefined"
-        elif hasattr(self,'inverse_expression') and self.inverse_expression != 'undefined':
-            latex_str = f'{self.y}={self.inverse_expression}'
-            return rf'${latex_str}$'
-        elif hasattr(self, 'expression') and self.expression != 'undefined':
-            latex_str = f'{self.y}={self.expression}'
+        elif (
+            hasattr(self, "inverse_expression")
+            and self.inverse_expression != "undefined"
+        ):
+            latex_str = f"{self.y}={self.inverse_expression}"
+            return rf"${latex_str}$"
+        elif hasattr(self, "expression") and self.expression != "undefined":
+            latex_str = f"{self.y}={self.expression}"
             return rf"${latex_str}$"
 
         off, scale = self.mapparms()
@@ -240,7 +250,7 @@ class PolyBase(np.polynomial.Polynomial):
 
             # produce the string for the term
             term_str = self._repr_latex_term(i, term, needs_parens)
-            if term_str == '1':
+            if term_str == "1":
                 part = coef_str
             else:
                 part = rf"{coef_str}\,{term_str}"
@@ -251,10 +261,10 @@ class PolyBase(np.polynomial.Polynomial):
             parts.append(part)
 
         if parts:
-            body = ''.join(parts)
+            body = "".join(parts)
         else:
             # in case somehow there are no coefficients at all
-            body = '0'
+            body = "0"
         if self.y:
             return rf"${self.y} = {body}$"
         else:
@@ -312,7 +322,6 @@ class AffineElement(PolyBase):
         6.0
     """
 
-
     def __init__(self, intercept, slope, inverse=True, symbols=None):
         """
         Initialize an AffineElement with the given intercept and slope.
@@ -336,9 +345,9 @@ class AffineElement(PolyBase):
             >>> supply_curve = AffineElement(10.0, 2.0)
         """
         if symbols is None:
-            x, y = 'q', 'p'
+            x, y = "q", "p"
         elif isinstance(symbols, str):
-            x, y = 'q', 'p'
+            x, y = "q", "p"
         else:
             x, y = symbols
         self.symbols = symbols
@@ -349,8 +358,8 @@ class AffineElement(PolyBase):
                 self.q_intercept = np.nan
                 self.slope = 0
 
-                self.inverse_expression = f'{self.intercept:g}'
-                self.expression = 'undefined'
+                self.inverse_expression = f"{self.intercept:g}"
+                self.expression = "undefined"
                 self._symbol = x  # rhs is 0*q
 
             else:  # perfectly inelastic
@@ -358,32 +367,37 @@ class AffineElement(PolyBase):
                 self.slope = np.inf
                 self.intercept = np.nan
 
-                self.inverse_expression = 'undefined'
-                self.expression = f'{self.q_intercept:g}'
+                self.inverse_expression = "undefined"
+                self.expression = f"{self.q_intercept:g}"
                 self._symbol = y  # rhs is 0*p
             self.coef = (self.intercept, self.slope)
             super().__init__(self.coef, symbols=symbols)
         else:
             if not inverse:
-                slope, intercept = 1/slope, -intercept/slope
+                slope, intercept = 1 / slope, -intercept / slope
 
             coef = (intercept, slope)
             super().__init__(coef, symbols=symbols)
             self.intercept = intercept
             self.slope = slope
-            self.q_intercept = -intercept/slope
-            self.inverse_expression = f'{intercept:g}{slope:+g}{x}'
-            self.expression = f'{self.q_intercept:g}{1/slope:+g}{y}'
+            self.q_intercept = -intercept / slope
+            self.inverse_expression = f"{intercept:g}{slope:+g}{x}"
+            self.expression = f"{self.q_intercept:g}{1/slope:+g}{y}"
 
     def __call__(self, x):
         if self.slope == np.inf:
             raise Exception(f"Undefined (perfectly inelastic at {self.q_intercept})")
         else:
-            return self.intercept + self.slope*x
+            return self.intercept + self.slope * x
 
     def __mul__(self, scalar):
-        return type(self)(intercept=self.intercept, slope=self.slope*(1/scalar), inverse=True, symbols=self.symbols)
-    
+        return type(self)(
+            intercept=self.intercept,
+            slope=self.slope * (1 / scalar),
+            inverse=True,
+            symbols=self.symbols,
+        )
+
     def __rmul__(self, scalar):
         return self.__mul__(scalar)
 
@@ -408,7 +422,7 @@ class AffineElement(PolyBase):
             >>> supply_curve.vertical_shift(2.0)
         """
         new_intercept = self.intercept + delta
-        #if self.slope != 0:
+        # if self.slope != 0:
         #    self.q_intercept = -self.intercept / self.slope
         if inplace:
             self.__init__(new_intercept, self.slope)
@@ -440,11 +454,13 @@ class AffineElement(PolyBase):
             if inplace:
                 self.__init__(new_q_intercept, 0, inverse=False)
             else:
-                return self.__class__(new_q_intercept, 0, inverse=False, symbols=self.symbols)
+                return self.__class__(
+                    new_q_intercept, 0, inverse=False, symbols=self.symbols
+                )
         else:
             equiv_vert = delta * -self.slope
             new_intercept = self.intercept + equiv_vert
-            #if self.slope != 0:
+            # if self.slope != 0:
             #    self.q_intercept = -self.intercept / self.slope
             if inplace:
                 self.__init__(new_intercept, self.slope)
@@ -472,12 +488,12 @@ class AffineElement(PolyBase):
         """
 
         if p < 0:
-            raise ValueError('Negative price.')
+            raise ValueError("Negative price.")
         if p > self.intercept:
             raise ValueError("Price above choke price.")
 
         q = self.q(p)
-        e = (1/self.slope) * (p/q)
+        e = (1 / self.slope) * (p / q)
         return e
 
     def midpoint_elasticity(self, p1, p2):
@@ -503,16 +519,14 @@ class AffineElement(PolyBase):
         """
 
         if (p1 < 0) or (p2 < 0):
-            raise ValueError('Negative price.')
+            raise ValueError("Negative price.")
         if (p1 > self.intercept) or (p2 > self.intercept):
             raise ValueError("Price above choke price.")
 
-        mean_p = 0.5*p1 + 0.5*p2
+        mean_p = 0.5 * p1 + 0.5 * p2
         return self.price_elasticity(mean_p)
 
-
-    def plot(self, ax=None, textbook_style=True, max_q=None,
-             label=True, **kwargs):
+    def plot(self, ax=None, textbook_style=True, max_q=None, label=True, **kwargs):
         """
         Plot the affine curve.
 
@@ -543,14 +557,14 @@ class AffineElement(PolyBase):
         if self._domain:
             x1, x2 = self._domain
             if x2 == np.inf:
-                x2 = max_q if max_q else x1*2 + 1
+                x2 = max_q if max_q else x1 * 2 + 1
         else:
             x1 = 0
             q_ = self.q_intercept
-            if np.isnan(q_): # if slope is 0
-                q_ = 10 ** 10
+            if np.isnan(q_):  # if slope is 0
+                q_ = 10**10
             if type(self).__name__ == "Supply":
-                x2 = np.max([10, q_*2])
+                x2 = np.max([10, q_ * 2])
             else:
                 x2 = q_
 
@@ -560,8 +574,8 @@ class AffineElement(PolyBase):
         xs = np.linspace(x1, x2, 2)
         ys = np.linspace(y1, y2, 2)
 
-        if 'color' not in kwargs:
-            kwargs['color'] = 'black'
+        if "color" not in kwargs:
+            kwargs["color"] = "black"
         ax.plot(xs, ys, **kwargs)
 
         if textbook_style:
@@ -570,10 +584,10 @@ class AffineElement(PolyBase):
         if label == True:
 
             # Label Curves
-            #if type(self).__name__ == 'Demand':
+            # if type(self).__name__ == 'Demand':
             #    x0 = self.q_intercept * .95
-            #else:
-            #if name:
+            # else:
+            # if name:
             #    x0 = ax.get_xlim()[1] * .9
             #    y_delta = (ax.get_ylim()[1] - ax.get_ylim()[0])/30
             #    y0 = self.p(x0) + y_delta
@@ -589,10 +603,12 @@ class AffineElement(PolyBase):
 
         return ax
 
-    def plot_area(self, p, q=None, ax=None, zorder=-1, color=None, alpha=None, force=False):
-        '''
+    def plot_area(
+        self, p, q=None, ax=None, zorder=-1, color=None, alpha=None, force=False
+    ):
+        """
         Plot surplus region
-        '''
+        """
         if ax is None:
             ax = self.plot()
 
@@ -610,15 +626,12 @@ class AffineElement(PolyBase):
                 q = q0, qstar
             elif q1 < qstar:
                 q = q0, q1
-            elif qstar < q0: # plot nothing if no surplus in region
+            elif qstar < q0:  # plot nothing if no surplus in region
                 return ax
 
         p01 = self.p(q[0]), self.p(q[1])
 
-        ax.fill_between(q, p01, p,
-                        zorder=zorder,
-                        color=color,
-                        alpha=alpha)
+        ax.fill_between(q, p01, p, zorder=zorder, color=color, alpha=alpha)
 
         return ax
 
@@ -628,13 +641,15 @@ class QuadraticElement(PolyBase):
     Extends the PolyBase class and represents a quadratic function used in revenue and cost curves.
     """
 
-    def __init__(self, intercept, linear_coef, quadratic_coef, symbols=None, domain=None):
+    def __init__(
+        self, intercept, linear_coef, quadratic_coef, symbols=None, domain=None
+    ):
         """
         Initialize QuadraticElement class.
         """
 
         if symbols is None:
-            symbols = 'q'
+            symbols = "q"
         self.intercept = intercept
         self.linear_coef = linear_coef
         self.quadratic_coef = quadratic_coef
@@ -652,8 +667,8 @@ class QuadraticElement(PolyBase):
         """
         # a + b(x-delta) + c(x-delta)^2
         a, b, c = self.coef
-        new_intercept = a - b*delta + c*delta**2
-        new_linear_coef = b - 2*c*delta
+        new_intercept = a - b * delta + c * delta**2
+        new_linear_coef = b - 2 * c * delta
         new_quadratic_coef = c
         coef = new_intercept, new_linear_coef, new_quadratic_coef
         if inplace:
@@ -661,10 +676,8 @@ class QuadraticElement(PolyBase):
         else:
             return self.__class__(*coef, symbols=self.symbols)
 
-    def plot(self, ax=None, textbook_style=True, max_q=100,
-             label=True, **kwargs):
-        """
-        """
+    def plot(self, ax=None, textbook_style=True, max_q=100, label=True, **kwargs):
+        """ """
         if ax is None:
             ax = plt.gca()
 
@@ -677,51 +690,45 @@ class QuadraticElement(PolyBase):
         xs = np.linspace(x1, x2, 1000)
         ys = self(xs)
 
-        if 'color' not in kwargs:
-            kwargs['color'] = 'black'
+        if "color" not in kwargs:
+            kwargs["color"] = "black"
         ax.plot(xs, ys, **kwargs)
 
         if textbook_style:
             textbook_axes(ax)
 
         if label == True:
-            #ax.set_ylabel("Price")
+            # ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
 
         return ax
 
     def plot_area_below(self, q0, q1, ax=None, zorder=-1, color=None, alpha=None):
-        '''
+        """
         Plot surplus region
-        '''
+        """
         if ax is None:
             ax = self.plot()
 
         xs = np.linspace(q0, q1, 100)
         ys = self(xs)
-        ax.fill_between(xs, 0, ys,
-                        zorder=zorder,
-                        color=color,
-                        alpha=alpha)
+        ax.fill_between(xs, 0, ys, zorder=zorder, color=color, alpha=alpha)
 
         return ax
 
     def plot_area_above(self, q0, q1, y, ax=None, zorder=-1, color=None, alpha=None):
-        '''
+        """
         Plot surplus region
-        '''
+        """
         if ax is None:
             ax = self.plot()
 
         xs = np.linspace(q0, q1, 100)
         ys = self(xs)
-        ax.fill_between(xs, ys, y,
-                        zorder=zorder,
-                        color=color,
-                        alpha=alpha)
+        ax.fill_between(xs, ys, y, zorder=zorder, color=color, alpha=alpha)
         return ax
 
     @classmethod
     def from_formula(cls, equation: str):
         a, b, c = _quadratic_formula(equation)
-        return cls(c, b, a, domain = (-np.inf, np.inf))
+        return cls(c, b, a, domain=(-np.inf, np.inf))
