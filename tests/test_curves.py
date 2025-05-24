@@ -129,6 +129,10 @@ class TestCurveEdgeCases(unittest.TestCase):
         with self.assertRaises(Exception):
             horizontal_sum(inelastic)
 
+    def test_upward_sloping_ppf_raises(self):
+        with self.assertRaises(Exception):
+            PPF(10, 1)
+
 
 class TestPPF(unittest.TestCase):
 

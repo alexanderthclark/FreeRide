@@ -876,7 +876,14 @@ class PPF(BaseAffine):
             If the lengths of `slope` and `intercept` do not match.
         '''
         super().__init__(intercept, slope, elements, inverse)
+        self._check_slope()
         self.pieces = ppf_sum(*self.elements)
+
+
+    def _check_slope(self):
+        for slope in self.slope:
+            if slope >= 0:
+                raise Exception("Upward-sloping PPF.")
 
 
     def __add__(self, other):
