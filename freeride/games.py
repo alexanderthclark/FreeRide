@@ -243,7 +243,10 @@ class Game:
 
                 p1, p2 = self.payoffs1[i, j], self.payoffs2[i, j]
                 s1, s2 = str(p1), str(p2)
-                bbox = None
+
+                cell_bbox = None
+                bbox1 = None
+                bbox2 = None
                 if show_solution:
                     if usetex:
                         if a_is_br:
@@ -251,36 +254,62 @@ class Game:
                         if b_is_br:
                             s2 = r"\underline{" + s2 + r"}"
                         if a_is_br and b_is_br:
-                            bbox = dict(
+                            cell_bbox = dict(
                                 facecolor="lightyellow",
                                 edgecolor="black",
                                 alpha=0.85,
                             )
                     else:
                         if a_is_br and b_is_br:
-                            bbox = dict(
+                            cell_bbox = dict(
                                 facecolor="lightyellow",
                                 edgecolor="black",
                                 alpha=0.85,
                             )
-                        elif a_is_br:
-                            bbox = dict(facecolor="lightblue", edgecolor="none", alpha=0.5)
-                        elif b_is_br:
-                            bbox = dict(facecolor="lightgreen", edgecolor="none", alpha=0.5)
+                        if a_is_br:
+                            bbox1 = dict(facecolor="lightblue", edgecolor="none", alpha=0.5)
+                        if b_is_br:
+                            bbox2 = dict(facecolor="lightgreen", edgecolor="none", alpha=0.5)
 
-                text = f"{s1}, {s2}"
+                if cell_bbox is not None and not usetex:
+                    patch = plt.Rectangle(
+                        location,
+                        width=-1,
+                        height=-1,
+                        **cell_bbox,
+                    )
+                    ax.add_artist(patch)
+
                 if usetex:
                     text = f"${s1}$, ${s2}$"
-
-                ax.text(
-                    j - 0.5,
-                    -i - 0.5,
-                    text,
-                    va="center",
-                    ha="center",
-                    size=12,
-                    bbox=bbox,
-                )
+                    ax.text(
+                        j - 0.5,
+                        -i - 0.5,
+                        text,
+                        va="center",
+                        ha="center",
+                        size=12,
+                        bbox=cell_bbox,
+                    )
+                else:
+                    ax.text(
+                        j - 0.55,
+                        -i - 0.5,
+                        f"{s1},",
+                        va="center",
+                        ha="right",
+                        size=12,
+                        bbox=bbox1,
+                    )
+                    ax.text(
+                        j - 0.45,
+                        -i - 0.5,
+                        s2,
+                        va="center",
+                        ha="left",
+                        size=12,
+                        bbox=bbox2,
+                    )
 
         ax.set_aspect("equal")
         ax.set_ylim(-2.05, 0.05)
