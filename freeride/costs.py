@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 import numbers
 
 from freeride.base import PolyBase
-from freeride.plotting import textbook_axes
 
 
 ############################################################
-#### Cost Classes
+# Cost Classes
+
 
 class Cost(PolyBase):
     """
@@ -105,7 +105,7 @@ class Cost(PolyBase):
         # get the scaled argument string to the basis functions
         off, scale = self.mapparms()
         if off == 0 and scale == 1:
-            term = 'q'
+            term = "q"
             parens = False
         elif scale == 1:
             term = f"{self._repr_latex_scalar(off)} + q"
@@ -136,7 +136,7 @@ class Cost(PolyBase):
 
             # produce the string for the term
             term_str = self._repr_latex_term(i, term, parens)
-            if term_str == '1':
+            if term_str == "1":
                 part = coef_str
             else:
                 part = rf"{coef_str}\,{term_str}"
@@ -147,13 +147,12 @@ class Cost(PolyBase):
             parts.append(part)
 
         if parts:
-            body = ''.join(parts)
+            body = "".join(parts)
         else:
             # in case somehow there are no coefficients at all
-            body = '0'
+            body = "0"
 
         return rf"$q \mapsto {body}$"
-
 
     def cost(self, q):
         """
@@ -203,7 +202,7 @@ class Cost(PolyBase):
             >>> cost_curve = Cost(0.5, 0.1, -0.02)
             >>> marginal_cost_curve = cost_curve.marginal_cost()
         """
-        new_coef = [(key+1)*c for key,c in enumerate(self.coef[1:])]
+        new_coef = [(key + 1) * c for key, c in enumerate(self.coef[1:])]
         return Cost(new_coef)
 
     def average_cost(self):
@@ -219,9 +218,8 @@ class Cost(PolyBase):
             >>> cost_curve = Cost(0.5, 0.1, -0.02)
             >>> average_cost_curve = cost_curve.average_cost()
         """
-        #new_coef = [c for c in self.coef[1:]]
+        # new_coef = [c for c in self.coef[1:]]
         return AverageCost(self.coef)
-
 
     def efficient_scale(self):
         """
@@ -245,7 +243,7 @@ class Cost(PolyBase):
             constant = coef[0]
             quad = coef[2]
 
-            return np.sqrt(constant/quad)
+            return np.sqrt(constant / quad)
 
         except IndexError:
 
@@ -253,9 +251,8 @@ class Cost(PolyBase):
             if constant > 0:
                 return np.inf
 
-            elif len(coef) <= 2: # linear costs
-                raise ValueError('constant returns to scale')
-
+            elif len(coef) <= 2:  # linear costs
+                raise ValueError("constant returns to scale")
 
     def breakeven_price(self):
         """
@@ -294,9 +291,7 @@ class Cost(PolyBase):
         var = self.variable_cost()
         return var.marginal_cost().cost(var.efficient_scale())
 
-
-
-    def long_run_plot(self, ax = None):
+    def long_run_plot(self, ax=None):
         """
         Plot the long-run average cost (LRAC) and marginal cost (MC) curves.
 
@@ -327,23 +322,23 @@ class Cost(PolyBase):
 
         if q == np.inf:
 
-            return 'in prog'
+            return "in prog"
 
-        max_q = int(2*q)
-        #ac.plot(ax, label = 'LRAC', max_q = max_q)
+        max_q = int(2 * q)
+        # ac.plot(ax, label = 'LRAC', max_q = max_q)
         ax_q = np.linspace(0, max_q, 1000)
         ax_p = ac(ax_q)
-        ax.plot(ax_q, ax_p, label = 'LRAC')
-        mc.plot(ax, label = "MC", max_q = max_q)
+        ax.plot(ax_q, ax_p, label="LRAC")
+        mc.plot(ax, label="MC", max_q=max_q)
 
-        ax.plot([0,q], [p,p], linestyle = 'dashed', color = 'gray')
-        ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
-        ax.plot([q], [p], marker = 'o')
-        ax.set_xlim(0,max_q)
-        ax.set_ylim(0,2*p)
+        ax.plot([0, q], [p, p], linestyle="dashed", color="gray")
+        ax.plot([q, q], [0, p], linestyle="dashed", color="gray")
+        ax.plot([q], [p], marker="o")
+        ax.set_xlim(0, max_q)
+        ax.set_ylim(0, 2 * p)
         ax.legend()
 
-    def cost_profit_plot(self, p, ax = None, items = ['tc', 'tr', 'profit']):
+    def cost_profit_plot(self, p, ax=None, items=["tc", "tr", "profit"]):
         """
         Plot various cost and profit components at a given price.
 
@@ -375,35 +370,43 @@ class Cost(PolyBase):
         q = mc.q(p)
 
         # plot AC and MC
-        self.average_cost().plot(label = "ATC")
-        mc.plot(label = "MC")
-
+        self.average_cost().plot(label="ATC")
+        mc.plot(label="MC")
 
         # plot price and quantity
-        ax.plot([0,q], [p,p], linestyle = 'dashed', color = 'gray')
-        ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
-        ax.plot([q], [p], marker = 'o')
-
+        ax.plot([0, q], [p, p], linestyle="dashed", color="gray")
+        ax.plot([q, q], [0, p], linestyle="dashed", color="gray")
+        ax.plot([q], [p], marker="o")
 
         atc_of_q = self.average_cost()(q)
 
-        if 'profit' in items:
+        if "profit" in items:
             # profit
             profit = q * (p - atc_of_q)
             if profit > 0:
-                col = 'green'
+                col = "green"
             else:
-                col = 'red'
-            ax.fill_between([0,q], atc_of_q, p, color = col, alpha = 0.3, label = r"$\pi$", hatch = "\\")
+                col = "red"
+            ax.fill_between(
+                [0, q], atc_of_q, p, color=col, alpha=0.3, label=r"$\pi$", hatch="\\"
+            )
 
-        if 'tc' in items:
+        if "tc" in items:
             # total cost
-            ax.fill_between([0,q], 0, atc_of_q, facecolor = 'yellow', alpha = 0.1, label = 'TC', hatch = "/")
+            ax.fill_between(
+                [0, q],
+                0,
+                atc_of_q,
+                facecolor="yellow",
+                alpha=0.1,
+                label="TC",
+                hatch="/",
+            )
 
-        if 'tr' in items:
-            ax.fill_between([0,q], 0, p, facecolor = 'blue', alpha = 0.1, label = 'TR', hatch = '+')
-
-
+        if "tr" in items:
+            ax.fill_between(
+                [0, q], 0, p, facecolor="blue", alpha=0.1, label="TR", hatch="+"
+            )
 
 
 class AverageCost:
@@ -428,7 +431,7 @@ class AverageCost:
         >>> ac_curve = AverageCost(cost_curve.coef)
     """
 
-    def __init__(self , coef):
+    def __init__(self, coef):
         """
         Initialize the AverageCost object.
 
@@ -480,7 +483,7 @@ class AverageCost:
         """
         return self(q)
 
-    def plot(self, ax = None, max_q = 10, label = None):
+    def plot(self, ax=None, max_q=10, label=None):
         """
         Plot the average cost curve.
 
@@ -504,6 +507,6 @@ class AverageCost:
         if ax is None:
             ax = plt.gca()
 
-        xs = np.linspace(0.01, max_q, int(10*max_q))
+        xs = np.linspace(0.01, max_q, int(10 * max_q))
         ys = self(xs)
-        ax.plot(xs, ys, label = label)
+        ax.plot(xs, ys, label=label)

@@ -82,13 +82,9 @@ class DoubleAuction:
         """List of ``(price, quantity)`` sorted from high to low valuation."""
         valuations = [d[1] for d in self.demand]
         unique_valuations = sorted({d[1] for d in self.demand}, reverse=True)
+        schedule = [(p, len(valuations) - idx) for idx, p in enumerate(valuations)]
         schedule = [
-            (p, len(valuations) - idx)
-            for idx, p in enumerate(valuations)
-        ]
-        schedule = [
-            (p, len([v for v in valuations if v >= p]))
-            for p in unique_valuations
+            (p, len([v for v in valuations if v >= p])) for p in unique_valuations
         ]
         return schedule
 
@@ -96,13 +92,9 @@ class DoubleAuction:
         """List of ``(price, quantity)`` sorted from low to high valuation."""
         valuations = [s[1] for s in self.supply]
         unique_valuations = sorted({s[1] for s in self.supply})
+        schedule = [(p, len(valuations) - idx) for idx, p in enumerate(valuations)]
         schedule = [
-            (p, len(valuations) - idx)
-            for idx, p in enumerate(valuations)
-        ]
-        schedule = [
-            (p, len([v for v in valuations if v <= p]))
-            for p in unique_valuations
+            (p, len([v for v in valuations if v <= p])) for p in unique_valuations
         ]
         return schedule
 
@@ -117,7 +109,7 @@ class DoubleAuction:
 
         if ax is None:
             fig, ax = plt.subplots()
-            ax.step(demand_q, demand_p, marker='.', color='C0')
-            ax.step(supply_q, supply_p, marker='x', color='C1')
+            ax.step(demand_q, demand_p, marker=".", color="C0")
+            ax.step(supply_q, supply_p, marker="x", color="C1")
 
         return ax

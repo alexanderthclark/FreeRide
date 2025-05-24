@@ -44,14 +44,14 @@ class Equilibrium:
     """
 
     def __init__(
-            self,
-            demand: Demand,
-            supply: Supply,
-            tax=0,
-            ceiling=None,
-            floor=None,
-            world_price=None,
-            tariff=0
+        self,
+        demand: Demand,
+        supply: Supply,
+        tax=0,
+        ceiling=None,
+        floor=None,
+        world_price=None,
+        tariff=0,
     ):
         self.demand = demand
         self.supply = supply
@@ -86,14 +86,10 @@ class Equilibrium:
         if self.__world_price is not None:
             interventions.append("world_price")
         if len(interventions) > 1:
-            raise Exception(
-                f"Multiple interventions not supported: {interventions}"
-            )
+            raise Exception(f"Multiple interventions not supported: {interventions}")
 
         if self.__tariff != 0 and self.__world_price is None:
-            raise Exception(
-                "A nonzero tariff requires a 'world_price' to be set."
-            )
+            raise Exception("A nonzero tariff requires a 'world_price' to be set.")
 
     def _compute(self):
         """
@@ -124,10 +120,13 @@ class Equilibrium:
                 return
 
         if self.__tax != 0:
-            shifted = Demand(elements=[
-                d.vertical_shift(-self.__tax, inplace=False)
-                for d in self.demand.elements if d
-            ])
+            shifted = Demand(
+                elements=[
+                    d.vertical_shift(-self.__tax, inplace=False)
+                    for d in self.demand.elements
+                    if d
+                ]
+            )
             p_star, q_star = self._find_intersection(shifted, self.supply)
             self.q = q_star
             self.p = p_star
@@ -184,7 +183,7 @@ class Equilibrium:
         p_min = self.supply.p(0)
         # A range is better but for simplicity we return the average
         # price that will clear the market at zero
-        p = 0.5*(p_max+p_min)
+        p = 0.5 * (p_max + p_min)
         return p, 0
 
     def _valid_in_domain(self, dpiece, spiece, q_val):
@@ -233,11 +232,7 @@ class Equilibrium:
 
     @property
     def total_surplus(self):
-        return (
-            self.consumer_surplus
-            + self.producer_surplus
-            + self.govt_revenue
-        )
+        return self.consumer_surplus + self.producer_surplus + self.govt_revenue
 
     # ================== Plot ==================#
     def plot(self, ax=None, surplus=False):
@@ -247,28 +242,25 @@ class Equilibrium:
         # eq lines
         x = self.q
         y = self.__p_consumer
-        style = dict(lw=0.5, ls='dotted', color='gray')
+        style = dict(lw=0.5, ls="dotted", color="gray")
 
         ax.plot([x, x], [0, y], **style)
         ax.plot([0, x], [y, y], **style)
-        ax.plot([x], [y], marker='.', markersize=14, color='black')
+        ax.plot([x], [y], marker=".", markersize=14, color="black")
 
         # If it's a tax => p is (p_consumer, p_producer)
         if isinstance(self.p, tuple):
             y_p = self.__p_producer
             ax.plot([x, x], [0, y_p], **style)
             ax.plot([0, x], [y_p, y_p], **style)
-            ax.plot([x], [y_p], marker='.', markersize=14, color='black')
+            ax.plot([x], [y_p], marker=".", markersize=14, color="black")
 
         # If world_price => dashdot line
         if self.__world_price is not None:
-            ax.axhline(self.__world_price, color='black', linestyle='dashdot')
+            ax.axhline(self.__world_price, color="black", linestyle="dashdot")
 
         # Plot demand, supply
-        q_int = max(
-            [dp.q_intercept for dp in self.demand.pieces if dp],
-            default=10
-        )
+        q_int = max([dp.q_intercept for dp in self.demand.pieces if dp], default=10)
         self.demand.plot(ax=ax, max_q=q_int)
         self.supply.plot(ax=ax, max_q=q_int)
 
@@ -293,15 +285,11 @@ class Equilibrium:
         alpha = 0.5 if (self.subsidy > 0) else 1
 
         # 1) Consumer surplus
-        self.demand.plot_surplus(
-            p=self.__p_consumer, ax=ax, q=(0, self.q), alpha=alpha
-        )
+        self.demand.plot_surplus(p=self.__p_consumer, ax=ax, q=(0, self.q), alpha=alpha)
         # 2) Producer surplus
         if self.exports > 0:
             q = self.supply.q(self.__p_producer)
-            self.supply.plot_surplus(
-                p=self.__p_producer, ax=ax, q=(0, q), alpha=alpha
-            )
+            self.supply.plot_surplus(p=self.__p_producer, ax=ax, q=(0, q), alpha=alpha)
         else:
             self.supply.plot_surplus(
                 p=self.__p_producer, ax=ax, q=(0, self.q), alpha=alpha
@@ -324,7 +312,7 @@ class Equilibrium:
         if self.govt_revenue <= 0:
             return None
 
-        color_rev = '.93'
+        color_rev = ".93"
         if self.__world_price is not None and self.__tariff != 0:
             # small open economy with a tariff
             if self._importer:
@@ -338,7 +326,7 @@ class Equilibrium:
                         [q0, q1],
                         self.__world_price,
                         self.__world_price + self.__tariff,
-                        color=color_rev
+                        color=color_rev,
                     )
             else:
                 # exporter => domestic price = p_world - t
@@ -350,7 +338,7 @@ class Equilibrium:
                         [q0, q1],
                         self.__world_price - self.__tariff,
                         self.__world_price,
-                        color=color_rev
+                        color=color_rev,
                     )
         else:
             # a tax => fill from p_producer..p_consumer, over [0..q]
@@ -389,16 +377,11 @@ class Equilibrium:
                     # Q is reduced
                     if (q_new > maxq) or (q_star < minq):
                         continue
-                    dropped = (q_new <= minq)
+                    dropped = q_new <= minq
                     if dropped:
                         piece.plot_area(p=p_star, color=red, ax=ax)
                     else:
-                        piece.plot_area(
-                            p=p_star,
-                            q=[q_new, maxq],
-                            color=red,
-                            ax=ax
-                        )
+                        piece.plot_area(p=p_star, q=[q_new, maxq], color=red, ax=ax)
                 else:
                     # Q is increased
                     if (q_star > maxq) or (q_new < minq):
@@ -407,7 +390,7 @@ class Equilibrium:
                         p=p_star,
                         q=[max(q_star, minq), min(q_new, maxq)],
                         color=red,
-                        ax=ax
+                        ax=ax,
                     )
 
     def _plot_tariff_dwl(self, ax):
@@ -423,7 +406,7 @@ class Equilibrium:
             ceiling=None,
             floor=None,
             world_price=self.__world_price,
-            tariff=0
+            tariff=0,
         )
         # If no difference in Q => no wedge
         if abs(ft.q - self.q) < 1e-9:
@@ -468,11 +451,13 @@ class Equilibrium:
 
     @tax.setter
     def tax(self, val):
-        if val != 0 and any([
-            self.__ceiling is not None,
-            self.__floor is not None,
-            self.__world_price is not None
-        ]):
+        if val != 0 and any(
+            [
+                self.__ceiling is not None,
+                self.__floor is not None,
+                self.__world_price is not None,
+            ]
+        ):
             raise Exception("Multiple interventions not supported.")
         self.__tax = val
         self._verify_single_intervention()
@@ -484,11 +469,13 @@ class Equilibrium:
 
     @subsidy.setter
     def subsidy(self, val):
-        if val != 0 and any([
-            self.__ceiling is not None,
-            self.__floor is not None,
-            self.__world_price is not None
-        ]):
+        if val != 0 and any(
+            [
+                self.__ceiling is not None,
+                self.__floor is not None,
+                self.__world_price is not None,
+            ]
+        ):
             raise Exception("Multiple interventions not supported.")
         self.__tax = -val
         self._verify_single_intervention()
@@ -500,11 +487,9 @@ class Equilibrium:
 
     @ceiling.setter
     def ceiling(self, val):
-        if val is not None and any([
-            self.__tax != 0,
-            self.__floor is not None,
-            self.__world_price is not None
-        ]):
+        if val is not None and any(
+            [self.__tax != 0, self.__floor is not None, self.__world_price is not None]
+        ):
             raise Exception("Multiple interventions not supported.")
         self.__ceiling = val
         self._verify_single_intervention()
@@ -516,11 +501,13 @@ class Equilibrium:
 
     @floor.setter
     def floor(self, val):
-        if val is not None and any([
-            self.__tax != 0,
-            self.__ceiling is not None,
-            self.__world_price is not None
-        ]):
+        if val is not None and any(
+            [
+                self.__tax != 0,
+                self.__ceiling is not None,
+                self.__world_price is not None,
+            ]
+        ):
             raise Exception("Multiple interventions not supported.")
         self.__floor = val
         self._verify_single_intervention()
@@ -532,11 +519,9 @@ class Equilibrium:
 
     @world_price.setter
     def world_price(self, val):
-        if val is not None and any([
-            self.__tax != 0,
-            self.__ceiling is not None,
-            self.__floor is not None
-        ]):
+        if val is not None and any(
+            [self.__tax != 0, self.__ceiling is not None, self.__floor is not None]
+        ):
             raise Exception("Multiple interventions not supported.")
         self.__world_price = val
         self._verify_single_intervention()
@@ -558,9 +543,7 @@ class Equilibrium:
         if val != 0 and self.__world_price is None:
             raise Exception("A nonzero tariff requires a 'world_price'.")
         if val < 0:
-            raise Exception(
-                "Import subsidies (negative tariffs) are not supported."
-            )
+            raise Exception("Import subsidies (negative tariffs) are not supported.")
         self.__tariff = val
         self._verify_single_intervention()
         self._compute()
@@ -590,9 +573,8 @@ class Equilibrium:
     @property
     def dwl(self):
         free_market_surplus = Equilibrium(
-                                self.demand,
-                                self.supply,
-                                world_price=self.world_price).total_surplus
+            self.demand, self.supply, world_price=self.world_price
+        ).total_surplus
         realized_surplus = self.total_surplus
         return free_market_surplus - realized_surplus
 
@@ -614,15 +596,16 @@ class Market(Equilibrium):
     m2.ceiling = 3
     m2.plot(surplus=True)
     """
+
     def __init__(
-            self,
-            demand: Demand,
-            supply: Supply,
-            tax=0,
-            ceiling=None,
-            floor=None,
-            world_price=None,
-            tariff=0
+        self,
+        demand: Demand,
+        supply: Supply,
+        tax=0,
+        ceiling=None,
+        floor=None,
+        world_price=None,
+        tariff=0,
     ):
         super().__init__(
             demand=demand,
@@ -631,5 +614,5 @@ class Market(Equilibrium):
             ceiling=ceiling,
             floor=floor,
             world_price=world_price,
-            tariff=tariff
+            tariff=tariff,
         )

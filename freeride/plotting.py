@@ -15,6 +15,7 @@ AREA_FILLS = [
     for i in range(0, 8)
 ]
 
+
 def textbook_axes(ax: Optional[plt.Axes] = None) -> plt.Axes:
     """
     Creates textbook-style axes.

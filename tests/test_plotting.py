@@ -2,16 +2,12 @@
 
 import unittest
 
-import matplotlib
-
-# Use a non-interactive backend so tests can run without a display.
-matplotlib.use("Agg")
-
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
-
 from freeride.plotting import ALPHA, AREA_FILLS, textbook_axes
+
+plt.switch_backend("Agg")
 
 
 class TestPlotting(unittest.TestCase):
@@ -49,4 +45,3 @@ class TestPlotting(unittest.TestCase):
         result = textbook_axes()
 
         self.assertIs(result, ax)
-
