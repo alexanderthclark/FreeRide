@@ -6,9 +6,11 @@ from .games import (
     Game,
     NormalFormGame,
 )
+from .monopoly import Monopoly
 
 __all__ = [
     "FreeRideError",
     "FormulaParseError",
     "Game",
+    "Monopoly",
 ]
