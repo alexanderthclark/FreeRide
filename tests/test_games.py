@@ -118,6 +118,26 @@ class TestGame(unittest.TestCase):
         texts = [t.get_text() for t in ax.texts]
         self.assertTrue(any("\\underline" in t for t in texts))
 
+    def test_individual_highlighting(self):
+        """Only the payoff of the player with a best response is highlighted."""
+
+        p1 = [[3, 0], [5, 1]]
+        p2 = [[3, 5], [0, 1]]
+        game = Game(p1, p2)
+        ax = game.table(usetex=False)
+
+        highlighted_5 = False
+        zero_highlighted = False
+        for t in ax.texts:
+            patch = t.get_bbox_patch()
+            if t.get_text().startswith("5") and patch is not None:
+                highlighted_5 = True
+            if t.get_text() == "0.0" and patch is not None:
+                zero_highlighted = True
+
+        self.assertTrue(highlighted_5)
+        self.assertFalse(zero_highlighted)
+
     def test_class_helpers(self):
         """Class helper methods should build the expected games."""
 
