@@ -17,6 +17,7 @@ This is a Python package for introductory microeconomics.
    formula
    exceptions
    plotting
+   games
    tutorials/quickstart
 
 
