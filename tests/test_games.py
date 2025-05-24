@@ -98,6 +98,15 @@ class TestGame(unittest.TestCase):
         ax = game.plot_payoff_hull()
         self.assertIsInstance(ax, plt.Axes)
 
+    def test_payoff_hull_with_br_regions(self):
+        """``plot_payoff_hull`` should handle ``best_response_regions``."""
+
+        p1 = [[3, 0], [5, 1]]
+        p2 = [[3, 5], [0, 1]]
+        game = Game(p1, p2)
+        ax = game.plot_payoff_hull(best_response_regions=True)
+        self.assertIsInstance(ax, plt.Axes)
+
     def test_no_raw_underline_without_tex(self):
         r"""Ensure ``\underline`` is not used when ``usetex=False``."""
 

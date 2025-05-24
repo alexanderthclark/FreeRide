@@ -52,3 +52,24 @@ In this version, Boris prefers the boxing match while Anna prefers the opera.
 .. image:: battle_of_the_sexes.svg
    :align: center
    :alt: Battle of the Sexes payoff table
+
+Prisoner's Dilemma Payoff Hull
+------------------------------
+
+The ``plot_payoff_hull`` method can also illustrate regions where each
+player has a best response.  The plot below uses the built-in
+``prisoners_dilemma`` constructor and enables the
+``best_response_regions`` option.
+
+.. code-block:: python
+
+    from freeride.games import Game
+
+    ax = Game.prisoners_dilemma().plot_payoff_hull(
+        best_response_regions=True
+    )
+    ax.figure.savefig("pd_payoff_hull_br.svg", transparent=True)
+
+.. image:: pd_payoff_hull_br.svg
+   :align: center
+   :alt: Prisoner's Dilemma payoff hull with best responses

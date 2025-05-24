@@ -413,8 +413,22 @@ class Game:
         self,
         ax: Optional[plt.Axes] = None,
         annotate: bool = False,
+        best_response_regions: bool = False,
     ) -> plt.Axes:
-        """Plot the convex hull of payoff pairs for the game."""
+        """Plot the convex hull of payoff pairs for the game.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axis on which to draw. If ``None`` uses :func:`matplotlib.pyplot.gca`.
+        annotate : bool, default ``False``
+            Annotate the pure strategy payoff points with action labels.
+        best_response_regions : bool, default ``False``
+            When ``True`` fill the areas of the hull corresponding to best
+            responses for each player. Regions where player A has a best
+            response are shaded light blue, while regions for player B are
+            shaded light green.
+        """
 
         if ax is None:
             ax = plt.gca()
@@ -426,6 +440,30 @@ class Game:
             closed = np.vstack([hull, hull[0]])
             ax.fill(closed[:, 0], closed[:, 1], color="lightgray", alpha=0.5)
             ax.plot(closed[:, 0], closed[:, 1], color="black", lw=1)
+
+        if best_response_regions:
+            br1, br2 = self.best_responses()
+
+            br1_pts = []
+            br2_pts = []
+            rows, cols = self.shape
+            for i in range(rows):
+                for j in range(cols):
+                    if i in br1[j]:
+                        br1_pts.append([self.payoffs1[i, j], self.payoffs2[i, j]])
+                    if j in br2[i]:
+                        br2_pts.append([self.payoffs1[i, j], self.payoffs2[i, j]])
+
+            if br1_pts:
+                br1_hull = _convex_hull(np.asarray(br1_pts))
+                if br1_hull.size > 0:
+                    br1_closed = np.vstack([br1_hull, br1_hull[0]])
+                    ax.fill(br1_closed[:, 0], br1_closed[:, 1], color="lightblue", alpha=0.3)
+            if br2_pts:
+                br2_hull = _convex_hull(np.asarray(br2_pts))
+                if br2_hull.size > 0:
+                    br2_closed = np.vstack([br2_hull, br2_hull[0]])
+                    ax.fill(br2_closed[:, 0], br2_closed[:, 1], color="lightgreen", alpha=0.3)
 
         ax.scatter(pts[:, 0], pts[:, 1], color="C0")
 
