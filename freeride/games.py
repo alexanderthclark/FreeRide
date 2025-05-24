@@ -303,3 +303,51 @@ class Game:
 
 # Backwards compatibility
 NormalFormGame = Game
+
+
+def prisoners_dilemma() -> Game:
+    """Return the classic Prisoner's Dilemma game."""
+
+    p1 = [[3, 0], [5, 1]]
+    p2 = [[3, 5], [0, 1]]
+    return Game(p1, p2)
+
+
+def matching_pennies() -> Game:
+    """Return the Matching Pennies game."""
+
+    p1 = [[1, -1], [-1, 1]]
+    p2 = [[-1, 1], [1, -1]]
+    return Game(p1, p2)
+
+
+def stag_hunt() -> Game:
+    """Return the Stag Hunt coordination game."""
+
+    p1 = [[2, 0], [1, 1]]
+    p2 = [[2, 1], [0, 1]]
+    return Game(p1, p2)
+
+
+def battle_of_the_sexes() -> Game:
+    """Return the Battle of the Sexes coordination game."""
+
+    p1 = [[2, 0], [0, 1]]
+    p2 = [[1, 0], [0, 2]]
+    return Game(p1, p2)
+
+
+def pure_coordination() -> Game:
+    """Return a pure coordination game with two equilibria."""
+
+    p1 = [[1, 0], [0, 1]]
+    p2 = [[1, 0], [0, 1]]
+    return Game(p1, p2)
+
+
+def chicken() -> Game:
+    """Return the classic Chicken (or Hawk-Dove) game."""
+
+    p1 = [[3, 1], [4, 0]]
+    p2 = [[3, 4], [1, 0]]
+    return Game(p1, p2)

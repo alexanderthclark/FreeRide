@@ -19,6 +19,7 @@ This is a Python package for introductory microeconomics.
    plotting
    games
    tutorials/quickstart
+   tutorials/classic_games
 
 
 
