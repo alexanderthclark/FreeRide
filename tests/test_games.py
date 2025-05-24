@@ -94,10 +94,15 @@ class TestGame(unittest.TestCase):
         g = Game.prisoners_dilemma()
         self.assertEqual(g.payoffs1.tolist(), [[3, 0], [5, 1]])
         self.assertEqual(g.payoffs2.tolist(), [[3, 5], [0, 1]])
+        self.assertEqual(
+            g.action_names,
+            (("Cooperate", "Defect"), ("Cooperate", "Defect")),
+        )
 
         mp = Game.matching_pennies()
         self.assertEqual(mp.payoffs1.tolist(), [[1, -1], [-1, 1]])
         self.assertEqual(mp.payoffs2.tolist(), [[-1, 1], [1, -1]])
+        self.assertEqual(mp.action_names, (("Heads", "Tails"), ("Heads", "Tails")))
 
         bos = Game.battle_of_the_sexes()
         self.assertEqual(bos.payoffs1.tolist(), [[2, 0], [0, 1]])
@@ -106,6 +111,24 @@ class TestGame(unittest.TestCase):
         self.assertEqual(
             bos.action_names,
             (("Opera", "Boxing Match"), ("Opera", "Boxing Match")),
+        )
+
+        sh = Game.stag_hunt()
+        self.assertEqual(sh.payoffs1.tolist(), [[2, 0], [1, 1]])
+        self.assertEqual(sh.payoffs2.tolist(), [[2, 1], [0, 1]])
+        self.assertEqual(sh.action_names, (("Stag", "Hare"), ("Stag", "Hare")))
+
+        pc = Game.pure_coordination()
+        self.assertEqual(pc.payoffs1.tolist(), [[1, 0], [0, 1]])
+        self.assertEqual(pc.payoffs2.tolist(), [[1, 0], [0, 1]])
+        self.assertEqual(pc.action_names, (("Left", "Right"), ("Left", "Right")))
+
+        ch = Game.chicken()
+        self.assertEqual(ch.payoffs1.tolist(), [[3, 1], [4, 0]])
+        self.assertEqual(ch.payoffs2.tolist(), [[3, 4], [1, 0]])
+        self.assertEqual(
+            ch.action_names,
+            (("Straight", "Swerve"), ("Straight", "Swerve")),
         )
 
 

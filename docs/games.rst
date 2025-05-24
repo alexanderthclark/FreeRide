@@ -6,6 +6,12 @@ Games
     :undoc-members:
     :show-inheritance:
 
+The :class:`Game` constructor randomly assigns the row player the name
+``Anna`` or ``Alice`` and the column player ``Boris`` or ``Bob`` when no
+names are supplied. The built-in constructors such as
+``prisoners_dilemma`` and ``matching_pennies`` also label the available
+actions so that tables and other output are more informative out of the box.
+
 Highlighting Options
 --------------------
 
