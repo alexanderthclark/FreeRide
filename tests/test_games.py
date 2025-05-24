@@ -108,6 +108,14 @@ class TestGame(unittest.TestCase):
             (("Opera", "Boxing Match"), ("Opera", "Boxing Match")),
         )
 
+        bos_alt = Game.bach_or_stravinsky()
+        self.assertEqual(bos_alt.payoffs1.tolist(), [[2, 0], [0, 1]])
+        self.assertEqual(bos_alt.payoffs2.tolist(), [[1, 0], [0, 2]])
+        self.assertEqual(
+            bos_alt.action_names,
+            (("Bach", "Stravinsky"), ("Bach", "Stravinsky")),
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
