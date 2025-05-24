@@ -1,22 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import numbers
-from freeride.plotting import textbook_axes, AREA_FILLS
-from freeride.formula import _formula, _quadratic_formula
-from freeride.base import PolyBase, QuadraticElement, AffineElement
+from freeride.plotting import AREA_FILLS
+from freeride.formula import _formula
+from freeride.base import QuadraticElement, AffineElement
 from IPython.display import Latex, display
-from bokeh.plotting import figure, show
+from bokeh.plotting import figure
 from bokeh.models import HoverTool, ColumnDataSource
 
 
 class BaseQuadratic:
-    '''
+    """
     General piecewise quadratic objects.
-    '''
+    """
 
-    def __init__(self, intercept=None, linear_coef=None, quadratic_coef=None, elements=None):
-        """
-        """
+    def __init__(
+        self, intercept=None, linear_coef=None, quadratic_coef=None, elements=None
+    ):
+        """ """
         if elements is None:
             if isinstance(linear_coef, (int, float)):
                 linear_coef = [linear_coef]
@@ -24,7 +24,9 @@ class BaseQuadratic:
                 intercept = [intercept]
             if isinstance(quadratic_coef, (int, float)):
                 quadratic_coef = [quadratic_coef]
-            if (len(quadratic_coef) != len(intercept)) or (len(linear_coef) != len(intercept)):
+            if (len(quadratic_coef) != len(intercept)) or (
+                len(linear_coef) != len(intercept)
+            ):
                 raise ValueError("Coefficient lengths do not match.")
 
             zipped = zip(intercept, linear_coef, quadratic_coef)
@@ -47,27 +49,27 @@ class BaseQuadratic:
         """
         Creates a Quadratic object from points.
 
-        Overdetermined systems are fit with least squares if `fit=True`. 
+        Overdetermined systems are fit with least squares if `fit=True`.
         """
         x = [i[0] for i in xy_points]
         y = [i[1] for i in xy_points]
         if fit:
             coef = np.polyfit(x, y, 2)
         else:
-            A_array = [[qp[0]**2, qp[0], 1] for qp in xy_points]
+            A_array = [[qp[0] ** 2, qp[0], 1] for qp in xy_points]
             p_vals = [qp[1] for qp in xy_points]
 
             A = np.array(A_array)
             b = np.array(p_vals)
             coef = np.linalg.solve(A, b)
-            
+
         quad, lin, constant = tuple(coef)
         return cls(constant, lin, quad)
 
     @classmethod
     def from_formula(cls, equation: str):
         element = QuadraticElement.from_formula(equation)
-        return cls(elements = [element])
+        return cls(elements=[element])
 
     def horizontal_shift(self, delta, inplace=True):
         new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]
@@ -84,12 +86,11 @@ class BaseQuadratic:
             return self.__class__(elements=new_elements)
 
     def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
-        '''
-        '''
+        """ """
         if ax is None:
             fig, ax = plt.subplots()
 
-        param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls']
+        param_names = ["color", "linewidth", "linestyle", "lw", "ls"]
         plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
         # Plot each element
         for elmt in self.elements:
@@ -149,7 +150,7 @@ def intersection(element1, element2):
 
 
 def blind_sum(*curves):
-    '''
+    """
     Computes the horizontal summation of AffineElement objects.
 
     Parameters
@@ -162,17 +163,16 @@ def blind_sum(*curves):
     AffineElement
         The horizontal summation of the input curves represented as an AffineElement object.
         Returns None if no curves are provided.
-    '''
+    """
     if len(curves) == 0:
         return None
     elastic_curves = [c for c in curves if c.slope == 0]
     inelastic_curves = [c for c in curves if c.slope == np.inf]
-    regular_curves = [c for c in curves if c not in elastic_curves + inelastic_curves]
 
     if not elastic_curves and not inelastic_curves:
-        qintercept = np.sum([-c.intercept/c.slope for c in curves])
-        qslope = np.sum([1/c.slope for c in curves])
-        return AffineElement(qintercept, qslope, inverse = False)
+        qintercept = np.sum([-c.intercept / c.slope for c in curves])
+        qslope = np.sum([1 / c.slope for c in curves])
+        return AffineElement(qintercept, qslope, inverse=False)
     else:
         raise Exception("Perfectly Elastic and Inelastic curves not supported")
 
@@ -204,30 +204,33 @@ def horizontal_sum(*curves):
     cutoffs = sorted(list(set(intercepts)))
 
     # remove negative intercepts
-    cutoffs = [c for c in cutoffs if c>=0]
+    cutoffs = [c for c in cutoffs if c >= 0]
 
     # get a point in each region
-    midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [cutoffs[-1]+1]
+    midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [
+        cutoffs[-1] + 1
+    ]
 
     # get curves with positive quantity for each region
-    active_curves = [blind_sum(*[c for c in curves if c.q(price)>0]) for price in midpoints]
+    active_curves = [
+        blind_sum(*[c for c in curves if c.q(price) > 0]) for price in midpoints
+    ]
 
     return active_curves, cutoffs, midpoints
 
 
 def ppf_sum(*curves, comparative_advantage=True):
 
-    slope_and_curves = sorted([(s.slope, s) for s in curves], reverse=comparative_advantage)
+    slope_and_curves = sorted(
+        [(s.slope, s) for s in curves], reverse=comparative_advantage
+    )
     curves = [t[1] for t in slope_and_curves]
     x_intercepts = [c.q_intercept for c in curves]
     y_intercepts = [c.intercept for c in curves]
-    y_int = sum([s.intercept for s in curves])
-    x_int = sum([s.q_intercept for s in curves])
 
     for key, ppf in enumerate(curves):
-
         previous_x = sum(x_intercepts[0:key])
-        below_y = sum(y_intercepts[key+1:])
+        below_y = sum(y_intercepts[key + 1:])
 
         new = ppf.vertical_shift(below_y, inplace=False)
         new.horizontal_shift(previous_x)
@@ -269,7 +272,9 @@ class BaseAffine:
                 raise ValueError("Slope and intercept lengths do not match.")
 
             zipped = zip(slope, intercept)
-            elements = [AffineElement(slope=m, intercept=b, inverse=inverse) for m, b in zipped]
+            elements = [
+                AffineElement(slope=m, intercept=b, inverse=inverse) for m, b in zipped
+            ]
         self.elements = elements
 
         if intercept is None:
@@ -367,39 +372,43 @@ class Affine(BaseAffine):
         self.pieces = pieces
 
         # store piecewise info
-        sections = [(cuts[i], cuts[i+1]) for i in range(len(cuts)-1)]
-        qsections = [ (self.q(ps[0]), self.q(ps[1]))  for ps in sections]
-        sections.append( (cuts[-1], np.inf) )
-        if self.q(cuts[-1]+1) <= 0: # demand
-            qsections.append((0,0))
-        elif len(qsections): # supply
+        sections = [(cuts[i], cuts[i + 1]) for i in range(len(cuts) - 1)]
+        qsections = [(self.q(ps[0]), self.q(ps[1])) for ps in sections]
+        sections.append((cuts[-1], np.inf))
+        if self.q(cuts[-1] + 1) <= 0:  # demand
+            qsections.append((0, 0))
+        elif len(qsections):  # supply
             maxq = np.max(qsections[-1])
             qsections.append((maxq, np.inf))
-        else: # supply
+        else:  # supply
             qsections.append((0, np.inf))
         self.psections = sections
         self.qsections = qsections
         self._set_piece_domains()
 
         # for display _repr_latex_ behavior
-        cond = [f"{cuts[i]} \\leq p \\leq {cuts[i+1]}" for i in range(len(cuts)-1)]
-        cond += [f'p \\geq {cuts[-1]}']
+        cond = [f"{cuts[i]} \\leq p \\leq {cuts[i+1]}" for i in range(len(cuts) - 1)]
+        cond += [f"p \\geq {cuts[-1]}"]
         self.conditions = cond
-        #self.expressions = [f"{c.q_intercept:g}{1/c.slope:+g}p" if c else '0' for c in pieces]
-        self.expressions = [c.expression if c else '0' for c in pieces]
-        self.inverse_expressions = [c.inverse_expression if c else '0' for c in pieces]
+        # self.expressions = [f"{c.q_intercept:g}{1/c.slope:+g}p" if c else '0' for c in pieces]
+        self.expressions = [c.expression if c else "0" for c in pieces]
+        self.inverse_expressions = [c.inverse_expression if c else "0" for c in pieces]
 
         intersections = list()
         if len(pieces):
-            intersections = [intersection(pieces[i], pieces[i+1]) for i in range(len(pieces)-1) if (pieces[i]) and (pieces[i+1])]
+            intersections = [
+                intersection(pieces[i], pieces[i + 1])
+                for i in range(len(pieces) - 1)
+                if (pieces[i]) and (pieces[i + 1])
+            ]
 
-        #maxm = np.max([intercept]), np.min([intercept])
-        #choke = np.max([])
+        # maxm = np.max([intercept]), np.min([intercept])
+        # choke = np.max([])
 
         # inverse conditions and expressions
         self.intersections = intersections
-        #self.intercept = intercept
-        #self.slope = slope
+        # self.intercept = intercept
+        # self.slope = slope
 
     def _set_piece_domains(self):
         for piece, qs in zip(self.pieces, self.qsections):
@@ -438,11 +447,11 @@ class Affine(BaseAffine):
                     return piece(x)
         # might be x out of limits
         return np.nan
-        #return np.sum([np.max([0, c(x)]) for c in self.elements])
+        # return np.sum([np.max([0, c(x)]) for c in self.elements])
 
     def q(self, p):
         # returns q given p
-        return np.sum([np.max([0,c.q(p)]) for c in self.elements])
+        return np.sum([np.max([0, c.q(p)]) for c in self.elements])
 
     def p(self, q):
         # returns p given q
@@ -464,17 +473,21 @@ class Affine(BaseAffine):
             latex_str += r"\end{cases}"
             return f"${latex_str}$"
 
-    def price_elasticity(self, p, delta=.000001):
+    def price_elasticity(self, p, delta=0.000001):
         q = self.q(p)
-        pt = np.array([p,q])
+        pt = np.array([p, q])
         if self.intersections and np.any(pt == self.intersections, axis=1).max():
             below = self.price_elasticity(p - delta)
             above = self.price_elasticity(p + delta)
             s = f"\nElasticity is {below:+.3f} below P={p} and {above:+.3f} above."
-            raise ValueError("Point elasticity is not defined at a kink point."+s)
+            raise ValueError("Point elasticity is not defined at a kink point." + s)
         else:
             # Get q-domains
-            pc = [p for p in self.pieces if p and (q > np.min(p._domain)) and (q < np.max(p._domain))]
+            pc = [
+                p
+                for p in self.pieces
+                if p and (q > np.min(p._domain)) and (q < np.max(p._domain))
+            ]
             assert len(pc) == 1
             return pc[0].price_elasticity(p)
 
@@ -490,15 +503,15 @@ class Affine(BaseAffine):
         return type(self)(elements=elements)
 
     def __mul__(self, scalar):
-        elements = [e*scalar for e in self.elements]
+        elements = [e * scalar for e in self.elements]
         return type(self)(elements=elements)
-    
+
     def __rmul__(self, scalar):
-        elements = [e*scalar for e in self.elements]
+        elements = [e * scalar for e in self.elements]
         return type(self)(elements=elements)
 
     def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
-        '''
+        """
         Plot the Affine object.
 
         Parameters
@@ -517,7 +530,7 @@ class Affine(BaseAffine):
         Returns
         -------
         ax : matplotlib.axes.Axes
-        '''
+        """
 
         def safe_eval(x):
             # Evaluate self(x) or return np.nan if out of domain or invalid
@@ -527,14 +540,14 @@ class Affine(BaseAffine):
                     return val
                 else:
                     return np.nan
-            except:
+            except Exception:
                 return np.nan
 
         if ax is None:
             fig, ax = plt.subplots()
 
         # Plot each piece in self.pieces
-        param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls']
+        param_names = ["color", "linewidth", "linestyle", "lw", "ls"]
         plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
         for piece in self.pieces:
             if piece:
@@ -543,11 +556,11 @@ class Affine(BaseAffine):
         if set_lims:
             # Gather current limits
             ylim = ax.get_ylim()
-            xlim = ax.get_xlim()
 
             # Build a list of the piecewise domain endpoints
-            flat_q = sorted([qv for seg in self.qsections for qv in seg if np.isfinite(qv)])
-            flat_p = sorted([pv for seg in self.psections for pv in seg if np.isfinite(pv)])
+            flat_q = sorted(
+                [qv for seg in self.qsections for qv in seg if np.isfinite(qv)]
+            )
 
             # If we have no finite domain boundaries, we won't override user-limits
             if flat_q:
@@ -572,7 +585,7 @@ class Affine(BaseAffine):
 
             # Decide new upper bound for price
             max_p = max(val_at_max_q, ylim[1], 0)
-            
+
             # Only update axes if that doesn't cause error
             ax.set_ylim(0, max_p)
             ax.set_xlim(0, max_q)
@@ -593,8 +606,9 @@ class Affine(BaseAffine):
             ax.set_ylabel("Price")
 
         return ax
+
     def plot_old(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
-        '''
+        """
         Plot the Affine object.
 
         Parameters
@@ -606,7 +620,8 @@ class Affine(BaseAffine):
         max_q : float, optional
             The maximum quantity to consider for setting the x-axis limit. If None, it will be automatically determined.
         **kwargs : dict
-            Additional keyword arguments to customize the plot. These can include any valid `matplotlib.pyplot` function keyword, such as:
+            Additional keyword arguments to customize the plot. These can
+            include any valid `matplotlib.pyplot` function keyword, such as:
 
             title : str
                 The title of the plot.
@@ -622,11 +637,11 @@ class Affine(BaseAffine):
         Returns
         -------
         None
-        '''
+        """
         if ax is None:
             fig, ax = plt.subplots()
 
-        param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls']
+        param_names = ["color", "linewidth", "linestyle", "lw", "ls"]
         plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
         # Plot each element
         for piece in self.pieces:
@@ -638,25 +653,25 @@ class Affine(BaseAffine):
             ylim = ax.get_ylim()
             xlim = ax.get_xlim()
             if ylim[1] <= np.max(self.intercept):
-                ax.set_ylim(0, np.max(self.intercept)*1.01)
+                ax.set_ylim(0, np.max(self.intercept) * 1.01)
 
             flat_q = sorted([i for tup in self.qsections for i in tup])
             flat_p = sorted([i for tup in self.psections for i in tup])
             if max_q is None:
                 if np.inf in flat_q:
-                    max_q = 1.5*flat_q[-2]
+                    max_q = 1.5 * flat_q[-2]
                 else:
                     max_q = flat_q[-1]
             if np.inf in flat_p:
-                max_p = np.max([self(max_q), 1.5*flat_p[-2]])
+                max_p = np.max([self(max_q), 1.5 * flat_p[-2]])
             else:
-                max_p = np.max([self(max_q), 1.5*flat_p[-1]])
+                max_p = np.max([self(max_q), 1.5 * flat_p[-1]])
 
             # don't decrease limits relative to starting point
             ax.set_ylim(0, np.max([max_p, ylim[1]]))
             ax.set_xlim(0, np.max([max_q, 1, xlim[1]]))
             # fix for demand and supply and inverse vs q(p)
-            #ax.set_xlim(0, np.max(self.intercept))
+            # ax.set_xlim(0, np.max(self.intercept))
 
         # Run additional parameters as pyplot functions
         # xlim or ylim will overwrite the previous set_lims behavior
@@ -665,7 +680,7 @@ class Affine(BaseAffine):
                 plt_function = getattr(plt, key)
                 if callable(plt_function):
                     # Unpack sequences (e.g. for plt.text)
-                    if value in ['xticks', 'yticks']:
+                    if value in ["xticks", "yticks"]:
                         plt_function(value)
                     elif isinstance(value, tuple) or isinstance(value, list):
                         plt_function(*value)
@@ -678,11 +693,11 @@ class Affine(BaseAffine):
             for point in self.intersections:
                 x, y = point[1], point[0]
                 xticks.append(x)
-                yticks.append(y) # P is first element
+                yticks.append(y)  # P is first element
 
-                sty = {"lw":0.5, "ls": 'dotted', "color": 'gray'}
-                ax.plot([x,x], [0,y], **sty)
-                ax.plot([0,x], [y,y], **sty)
+                sty = {"lw": 0.5, "ls": "dotted", "color": "gray"}
+                ax.plot([x, x], [0, y], **sty)
+                ax.plot([0, x], [y, y], **sty)
 
             ax.set_xticks(xticks)
             ax.set_yticks(yticks)
@@ -700,26 +715,27 @@ class Affine(BaseAffine):
             ax = self.plot(max_q=max_q)
         for piece in self.pieces:
             if piece:
-                piece.plot_area(p,
-                             q=q,
-                             ax=ax,
-                             color=color,
-                             alpha=alpha)
+                piece.plot_area(p, q=q, ax=ax, color=color, alpha=alpha)
         return ax
 
     def surplus(self, p, q=None):
-        '''
+        """
         Returns surplus area. The areas are negative for producer surplus.
-        '''
+        """
         if q is None:
             q = self.q(p)
 
         if q > 0:
 
             # find inframarginal surplus
-            trapezoids = [piece for piece in self.pieces if piece and (np.max(piece._domain) < q)]
-            trap_areas = [piece._domain_length*(np.mean([piece.p(piece._domain[0]),piece.p(piece._domain[1])])-p) for piece in trapezoids]
-
+            trapezoids = [
+                piece for piece in self.pieces if piece and (np.max(piece._domain) < q)
+            ]
+            trap_areas = [
+                piece._domain_length
+                * (np.mean([piece.p(piece._domain[0]), piece.p(piece._domain[1])]) - p)
+                for piece in trapezoids
+            ]
 
             # find the last unit demanded and get surplus from that curve
             last_piece = self._get_active_piece(q)
@@ -737,7 +753,7 @@ class Affine(BaseAffine):
 
 class Demand(Affine):
 
-    def __init__(self, intercept=None, slope=None, elements=None, inverse = True):
+    def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
         """
         Initializes a Demand curve object.
         """
@@ -751,11 +767,11 @@ class Demand(Affine):
         if self.q(0) < 0:
             raise Exception("Negative demand.")
 
-    def consumer_surplus(self, p, q = None):
+    def consumer_surplus(self, p, q=None):
         return self.surplus(p, q)
 
     def total_revenue(self):
-        
+
         elements = list()
         pieces = [p for p in self.pieces if p]
         for piece in pieces:
@@ -763,7 +779,7 @@ class Demand(Affine):
             revenue_element = QuadraticElement(*coef)
             revenue_element._domain = sorted(piece._domain)
             elements.append(revenue_element)
-            
+
         return BaseQuadratic(elements=elements)
 
 
@@ -781,32 +797,34 @@ class Supply(Affine):
             if slope < 0:
                 raise Exception("Downward-sloping supply curve.")
 
-    def producer_surplus(self, p, q = None):
+    def producer_surplus(self, p, q=None):
         return -self.surplus(p, q)
 
 
 class Constraint(BaseAffine):
 
-    def __init__(self, p1, p2, endowment=1, name1=None, name2=None, elements=None, inverse=True):
-        '''
+    def __init__(
+        self, p1, p2, endowment=1, name1=None, name2=None, elements=None, inverse=True
+    ):
+        """
         Incomplete.
-        '''
+        """
 
         if elements is None:
-            slope = -p1/p2
-            intercept = endowment/p2
+            slope = -p1 / p2
+            intercept = endowment / p2
             super().__init__(intercept, slope, elements, inverse)
         else:
             super().__init__(None, None, elements, inverse)
 
 
 class PPF(BaseAffine):
-    '''
+    """
     Production possibilities frontier.
-    '''
+    """
 
     def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
-        '''
+        """
         Initializes a PPF object with given slope and intercept or elements.
 
         Parameters
@@ -824,47 +842,54 @@ class PPF(BaseAffine):
         ------
         ValueError
             If the lengths of `slope` and `intercept` do not match.
-        '''
+        """
         super().__init__(intercept, slope, elements, inverse)
         self.pieces = ppf_sum(*self.elements)
-
 
     def __add__(self, other):
         elements = self.elements + other.elements
         return type(self)(elements=elements)
 
-    def plot(self, ax=None, set_lims=True, max_q=None, label=True, backend='mpl', **kwargs):
-        '''
+    def plot(
+        self, ax=None, set_lims=True, max_q=None, label=True, backend="mpl", **kwargs
+    ):
+        """
         Plot the ppf.
-        '''
+        """
 
-        if backend == 'bokeh':
+        if backend == "bokeh":
             p = figure(width=400, height=400, tools="")
-            lines_data = {'xs': [], 'ys': [], 'label': []}
+            lines_data = {"xs": [], "ys": [], "label": []}
 
             for key, piece in enumerate(self.pieces):
                 x0, x1 = piece._domain
                 xx = np.linspace(x0, x1)
                 yy = [piece(u) for u in xx]
-                lines_data['xs'].append(xx)
-                lines_data['ys'].append(yy)
-                lines_data['label'].append(f'Piece {key}')
+                lines_data["xs"].append(xx)
+                lines_data["ys"].append(yy)
+                lines_data["label"].append(f"Piece {key}")
             source = ColumnDataSource(data=lines_data)
 
-            p.multi_line(xs='xs', ys='ys', source=source, line_width=2)
+            p.multi_line(xs="xs", ys="ys", source=source, line_width=2)
             # Add HoverTool
-            hover = HoverTool(
-                tooltips=[('', "@label")],
-                renderers=[p.renderers[-1]])
+            hover = HoverTool(tooltips=[("", "@label")], renderers=[p.renderers[-1]])
             p.add_tools(hover)
 
             return p
 
-        elif backend == 'mpl':
+        elif backend == "mpl":
             if ax is None:
                 fig, ax = plt.subplots()
 
-            param_names = ['color', 'linewidth', 'linestyle', 'lw', 'ls', 'marker', 'markersize']
+            param_names = [
+                "color",
+                "linewidth",
+                "linestyle",
+                "lw",
+                "ls",
+                "marker",
+                "markersize",
+            ]
             plot_dict = {key: kwargs[key] for key in kwargs if key in param_names}
             # Plot each element
             for piece in self.pieces:

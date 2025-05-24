@@ -2,6 +2,7 @@ import unittest
 from freeride.curves import Demand, Supply
 from freeride.equilibrium import Equilibrium
 
+
 class TestEquilibrium(unittest.TestCase):
 
     def setUp(self):

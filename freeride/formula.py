@@ -39,14 +39,10 @@ def _formula(equation: str):
     (3.0, 0.5)
     """
     # Remove whitespaces and equate p with y and q with x
-    equation = (
-        equation.lower().replace("p", "y").replace("q", "x").replace(" ", "")
-    )
+    equation = equation.lower().replace("p", "y").replace("q", "x").replace(" ", "")
 
     if "/" in equation:
-        raise ValueError(
-            "Unexpected character '/'. Use decimals and not fractions."
-        )
+        raise ValueError("Unexpected character '/'. Use decimals and not fractions.")
 
     # Check if equation is in form of y = mx + b or y = b + mx
     pattern_y = (
@@ -58,20 +54,14 @@ def _formula(equation: str):
         if match.group(1) is not None and match.group(1) != "":
             slope = float(match.group(1) if match.group(1) != "-" else -1)
             intercept = float(
-                match.group(2)
-                if match.group(2) not in (None, "", "+", "-")
-                else "0"
+                match.group(2) if match.group(2) not in (None, "", "+", "-") else "0"
             )
         else:
             slope = float(
-                match.group(4)
-                if match.group(4) not in (None, "", "+", "-")
-                else "1"
+                match.group(4) if match.group(4) not in (None, "", "+", "-") else "1"
             )
             intercept = float(
-                match.group(3)
-                if match.group(3) not in (None, "", "+", "-")
-                else "0"
+                match.group(3) if match.group(3) not in (None, "", "+", "-") else "0"
             )
         return intercept, slope
 
@@ -85,20 +75,14 @@ def _formula(equation: str):
         if match.group(1) is not None and match.group(1) != "":
             slope = float(match.group(1) if match.group(1) != "-" else -1)
             intercept = float(
-                match.group(2)
-                if match.group(2) not in (None, "", "+", "-")
-                else "0"
+                match.group(2) if match.group(2) not in (None, "", "+", "-") else "0"
             )
         else:
             slope = float(
-                match.group(4)
-                if match.group(4) not in (None, "", "+", "-")
-                else "1"
+                match.group(4) if match.group(4) not in (None, "", "+", "-") else "1"
             )
             intercept = float(
-                match.group(3)
-                if match.group(3) not in (None, "", "+", "-")
-                else "0"
+                match.group(3) if match.group(3) not in (None, "", "+", "-") else "0"
             )
         return -intercept / slope, 1 / slope
 
@@ -149,9 +133,7 @@ def _quadratic_formula(equation: str):
     )  # Replace ^2 with ² for easier parsing
 
     if "/" in equation:
-        raise ValueError(
-            "Unexpected character '/'. Use decimals and not fractions."
-        )
+        raise ValueError("Unexpected character '/'. Use decimals and not fractions.")
 
     # Ensure the equation is in the form ax²+bx+c=y
     if "y=" in equation:

@@ -2,10 +2,9 @@ import numbers
 
 import matplotlib.pyplot as plt
 import numpy as np
-from IPython.display import Latex, display
 
-from freeride.formula import _formula, _quadratic_formula
-from freeride.plotting import AREA_FILLS, textbook_axes
+from freeride.formula import _quadratic_formula
+from freeride.plotting import textbook_axes
 
 
 class PolyBase(np.polynomial.Polynomial):
@@ -59,7 +58,7 @@ class PolyBase(np.polynomial.Polynomial):
         """
         self.set_symbols(symbols)
         self.is_undefined = coef == ([],)  # helpful in sum functions
-        if self.is_undefined == False:
+        if not self.is_undefined:
             coef = np.squeeze(np.array(coef, ndmin=1))
             super().__init__(coef, domain=None, symbol=self._symbol)
         else:
@@ -550,7 +549,7 @@ class AffineElement(PolyBase):
             >>> demand_curve = AffineElement(10.0, -2.0)
             >>> demand_curve.plot()
         """
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         # core plot
@@ -581,7 +580,7 @@ class AffineElement(PolyBase):
         if textbook_style:
             textbook_axes(ax)
 
-        if label == True:
+        if label:
 
             # Label Curves
             # if type(self).__name__ == 'Demand':
@@ -697,7 +696,7 @@ class QuadraticElement(PolyBase):
         if textbook_style:
             textbook_axes(ax)
 
-        if label == True:
+        if label:
             # ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
 
