@@ -38,12 +38,10 @@ In this version, Boris prefers the boxing match while Anna prefers the opera.
 
 .. code-block:: python
 
-    import matplotlib.pyplot as plt
     from freeride.games import Game
 
-    game = Game.battle_of_the_sexes()
-    ax = game.table(usetex=False)
-    plt.savefig("battle_of_the_sexes.svg", transparent=True)
+    ax = Game.battle_of_the_sexes().table()
+    ax.figure.savefig("battle_of_the_sexes.svg", transparent=True)
 
 .. image:: battle_of_the_sexes.svg
    :align: center
