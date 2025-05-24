@@ -1,14 +1,16 @@
-'''
+"""
 Formula module using sympy
-'''
+"""
+
 import re
+
 
 def _formula(equation: str):
     """
     Parse a linear equation string and return an Affine object.
 
-    Accepts equations in forms like 'y = mx + b', 'y = b + mx', 'x = my + b', 
-    and 'x = b + my'. Variables 'y' and 'x' can be 'p', 'P', 'q', or 'Q'. 
+    Accepts equations in forms like 'y = mx + b', 'y = b + mx', 'x = my + b',
+    and 'x = b + my'. Variables 'y' and 'x' can be 'p', 'P', 'q', or 'Q'.
     Handles optional whitespaces, signs for coefficients, and decimal coefficients.
 
     Parameters
@@ -36,36 +38,51 @@ def _formula(equation: str):
     (3.0, 0.5)
     """
     # Remove whitespaces and equate p with y and q with x
-    equation = (equation.lower()
-                       .replace("p", "y")
-                       .replace("q", "x")
-                       .replace(" ", ""))
+    equation = equation.lower().replace("p", "y").replace("q", "x").replace(" ", "")
 
-    if '/' in equation:
+    if "/" in equation:
         raise ValueError("Unexpected character '/'. Use decimals and not fractions.")
-    
+
     # Check if equation is in form of y = mx + b or y = b + mx
-    match = re.match(r"y=([-+]?\d*\.?\d*)\*?x([-+]\d*\.?\d*)?|y=([-+]?\d*\.?\d*)([-+]\d*\.?\d*)\*?x?", equation)
+    match = re.match(
+        r"y=([-+]?\d*\.?\d*)\*?x([-+]\d*\.?\d*)?|y=([-+]?\d*\.?\d*)([-+]\d*\.?\d*)\*?x?",
+        equation,
+    )
     if match:
-        if match.group(1) is not None and match.group(1) != '':
-            slope = float(match.group(1) if match.group(1) != '-' else -1)
-            intercept = float(match.group(2) if match.group(2) not in (None, '', '+', '-') else '0')
+        if match.group(1) is not None and match.group(1) != "":
+            slope = float(match.group(1) if match.group(1) != "-" else -1)
+            intercept = float(
+                match.group(2) if match.group(2) not in (None, "", "+", "-") else "0"
+            )
         else:
-            slope = float(match.group(4) if match.group(4) not in (None, '', '+', '-') else '1')
-            intercept = float(match.group(3) if match.group(3) not in (None, '', '+', '-') else '0')
+            slope = float(
+                match.group(4) if match.group(4) not in (None, "", "+", "-") else "1"
+            )
+            intercept = float(
+                match.group(3) if match.group(3) not in (None, "", "+", "-") else "0"
+            )
         return intercept, slope
 
     # Check if equation is in form of x = my + b or x = b + my
-    match = re.match(r"x=([-+]?\d*\.?\d*)\*?y([-+]\d*\.?\d*)?|x=([-+]?\d*\.?\d*)([-+]\d*\.?\d*)\*?y?", equation)
+    match = re.match(
+        r"x=([-+]?\d*\.?\d*)\*?y([-+]\d*\.?\d*)?|x=([-+]?\d*\.?\d*)([-+]\d*\.?\d*)\*?y?",
+        equation,
+    )
     if match:
-        if match.group(1) is not None and match.group(1) != '':
-            slope = float(match.group(1) if match.group(1) != '-' else -1)
-            intercept = float(match.group(2) if match.group(2) not in (None, '', '+', '-') else '0')
+        if match.group(1) is not None and match.group(1) != "":
+            slope = float(match.group(1) if match.group(1) != "-" else -1)
+            intercept = float(
+                match.group(2) if match.group(2) not in (None, "", "+", "-") else "0"
+            )
         else:
-            slope = float(match.group(4) if match.group(4) not in (None, '', '+', '-') else '1')
-            intercept = float(match.group(3) if match.group(3) not in (None, '', '+', '-') else '0')
+            slope = float(
+                match.group(4) if match.group(4) not in (None, "", "+", "-") else "1"
+            )
+            intercept = float(
+                match.group(3) if match.group(3) not in (None, "", "+", "-") else "0"
+            )
         return -intercept / slope, 1 / slope
-    
+
     raise ValueError("Invalid equation")
 
 
@@ -101,39 +118,51 @@ def _quadratic_formula(equation: str):
     (-1.0, 0.0, 1.0)
     """
     # Remove whitespaces and equate p with y and q with x
-    equation = (equation.lower()
-                .replace("p", "y")
-                .replace("q", "x")
-                .replace(" ", "")
-                .replace("^2", "²")
-                .replace("**2", "²"))  # Replace ^2 with ² for easier parsing
-    
-    if '/' in equation:
+    equation = (
+        equation.lower()
+        .replace("p", "y")
+        .replace("q", "x")
+        .replace(" ", "")
+        .replace("^2", "²")
+        .replace("**2", "²")
+    )  # Replace ^2 with ² for easier parsing
+
+    if "/" in equation:
         raise ValueError("Unexpected character '/'. Use decimals and not fractions.")
-    
+
     # Ensure the equation is in the form ax²+bx+c=y
-    if 'y=' in equation:
-        equation = equation.replace('y=', '') + '=y'
-    
+    if "y=" in equation:
+        equation = equation.replace("y=", "") + "=y"
+
     # Split the equation into left and right sides
-    left_side, right_side = equation.split('=')
-    
-    if right_side != 'y':
+    left_side, right_side = equation.split("=")
+
+    if right_side != "y":
         raise ValueError("Equation must be in the form 'y = ...' or '... = y'")
-    
+
     # Use regex to find terms
-    terms = re.findall(r'([+-]?(?:\d*\.)?\d*x²|[+-]?(?:\d*\.)?\d*x|[+-]?(?:\d*\.)?\d+)', left_side)
-    
+    terms = re.findall(
+        r"([+-]?(?:\d*\.)?\d*x²|[+-]?(?:\d*\.)?\d*x|[+-]?(?:\d*\.)?\d+)", left_side
+    )
+
     a, b, c = 0, 0, 0
-    
+
     for term in terms:
-        if 'x²' in term:
-            coef = term.replace('x²', '')
-            a = float(coef) if coef and coef not in ('+', '-') else (1 if coef in ('', '+') else -1)
-        elif 'x' in term:
-            coef = term.replace('x', '')
-            b = float(coef) if coef and coef not in ('+', '-') else (1 if coef in ('', '+') else -1)
+        if "x²" in term:
+            coef = term.replace("x²", "")
+            a = (
+                float(coef)
+                if coef and coef not in ("+", "-")
+                else (1 if coef in ("", "+") else -1)
+            )
+        elif "x" in term:
+            coef = term.replace("x", "")
+            b = (
+                float(coef)
+                if coef and coef not in ("+", "-")
+                else (1 if coef in ("", "+") else -1)
+            )
         elif term:
             c += float(term)
-    
+
     return a, b, c
