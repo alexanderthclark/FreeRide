@@ -883,6 +883,36 @@ class PPF(BaseAffine):
         elements = self.elements + other.elements
         return type(self)(elements=elements)
 
+    def __call__(self, x):
+        """Return the quantity of the second good for ``x`` units of the first."""
+        for piece in self.pieces:
+            if piece:
+                a, b = piece._domain
+                if (a <= x <= b) or (a >= x >= b):
+                    return piece(x)
+        return np.nan
+
+    def horizontal_shift(self, delta, inplace=True):
+        new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]
+        if inplace:
+            self.__init__(elements=new_elements)
+            return self
+        return type(self)(elements=new_elements)
+
+    def vertical_shift(self, delta, inplace=True):
+        new_elements = [e.vertical_shift(delta, inplace=False) for e in self.elements]
+        if inplace:
+            self.__init__(elements=new_elements)
+            return self
+        return type(self)(elements=new_elements)
+
+    def __mul__(self, scalar):
+        elements = [e * scalar for e in self.elements]
+        return type(self)(elements=elements)
+
+    def __rmul__(self, scalar):
+        return self.__mul__(scalar)
+
     def plot(self, ax=None, set_lims=True, max_q=None, label=True, backend='mpl', **kwargs):
         '''
         Plot the ppf.

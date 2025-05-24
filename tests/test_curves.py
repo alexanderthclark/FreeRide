@@ -5,6 +5,7 @@ from freeride.curves import (
     BaseAffine,
     Demand,
     Supply,
+    PPF,
     intersection,
     blind_sum,
     horizontal_sum,
@@ -127,3 +128,23 @@ class TestCurveEdgeCases(unittest.TestCase):
         inelastic = AffineElement(5, 0, inverse=False)  # perfectly inelastic
         with self.assertRaises(Exception):
             horizontal_sum(inelastic)
+
+
+class TestPPF(unittest.TestCase):
+
+    def setUp(self):
+        self.ppf = PPF(10, -1)
+
+    def test_call(self):
+        self.assertAlmostEqual(self.ppf(5), 5)
+        self.assertTrue(np.isnan(self.ppf(12)))
+
+    def test_shifts_return_type(self):
+        shifted = self.ppf.horizontal_shift(2, inplace=False)
+        self.assertIsInstance(shifted, PPF)
+        shifted_v = self.ppf.vertical_shift(1, inplace=False)
+        self.assertIsInstance(shifted_v, PPF)
+
+    def test_scalar_multiplication(self):
+        scaled = 2 * self.ppf
+        self.assertIsInstance(scaled, PPF)
