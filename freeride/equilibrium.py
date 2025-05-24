@@ -633,3 +633,45 @@ class Market(Equilibrium):
             world_price=world_price,
             tariff=tariff
         )
+
+
+class LongRunCompetitiveEquilibrium:
+    """Long-run perfectly competitive equilibrium with identical firms."""
+
+    def __init__(self, demand: Demand, total_cost):
+        """Compute long-run equilibrium for a competitive market."""
+        self.total_cost = total_cost
+        self.demand = demand
+
+        # In long-run competitive equilibrium price equals breakeven price.
+        self.p = self.total_cost.breakeven_price()
+
+        # Quantity each firm produces at the breakeven price.
+        self.firm_q = self.total_cost.efficient_scale()
+
+        # Total quantity demanded at the equilibrium price.
+        self.market_q = self.demand.q(self.p)
+
+        # Number of identical firms in the market.
+        self.n_firms = self.market_q / self.firm_q
+
+    def plot(self, fig=None):
+        """Plot firm and market diagrams side by side."""
+
+        if fig is None:
+            fig = plt.gcf()
+
+        firm_ax = fig.add_subplot(1, 2, 1)
+        self.total_cost.long_run_plot(firm_ax)
+        firm_ax.set_title("Firm")
+
+        mkt_ax = fig.add_subplot(1, 2, 2, sharey=firm_ax)
+        supply_curve = Supply(self.p, 0)
+        market_eq = Equilibrium(self.demand, supply_curve)
+        market_eq.plot(mkt_ax)
+        mkt_ax.set_title("Market")
+
+        firm_ax.set_xlabel("Firm Quantity")
+        mkt_ax.set_xlabel("Market Quantity")
+
+        return fig
