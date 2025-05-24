@@ -152,3 +152,6 @@ class TestPPF(unittest.TestCase):
     def test_scalar_multiplication(self):
         scaled = 2 * self.ppf
         self.assertIsInstance(scaled, PPF)
+        self.assertEqual(scaled.intercept, [2 * self.ppf.intercept[0]])
+        self.assertEqual(scaled.slope, self.ppf.slope)
+        self.assertAlmostEqual(scaled.q_intercept, 2 * self.ppf.q_intercept)

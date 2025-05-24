@@ -914,8 +914,17 @@ class PPF(BaseAffine):
         return type(self)(elements=new_elements)
 
     def __mul__(self, scalar):
-        elements = [e * scalar for e in self.elements]
-        return type(self)(elements=elements)
+        new_elements = []
+        for e in self.elements:
+            new_intercept = scalar * e.intercept
+            new_el = AffineElement(
+                intercept=new_intercept,
+                slope=e.slope,
+                inverse=True,
+                symbols=e.symbols,
+            )
+            new_elements.append(new_el)
+        return type(self)(elements=new_elements)
 
     def __rmul__(self, scalar):
         return self.__mul__(scalar)
