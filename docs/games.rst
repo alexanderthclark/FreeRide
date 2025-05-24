@@ -54,3 +54,93 @@ In this version, Boris prefers the boxing match while Anna prefers the opera.
 .. image:: battle_of_the_sexes.svg
    :align: center
    :alt: Battle of the Sexes payoff table
+
+Prisoner's Dilemma Example
+--------------------------
+
+The prisoner's dilemma captures the tension between individual and collective
+interest. Mutual cooperation is Pareto efficient but each player has an
+incentive to defect.
+
+.. code-block:: python
+
+    from freeride.games import Game
+
+    ax = Game.prisoners_dilemma().table()
+    ax.figure.savefig("prisoners_dilemma.svg", transparent=True)
+    plt.close(ax.figure)
+
+.. image:: prisoners_dilemma.svg
+   :align: center
+   :alt: Prisoner's Dilemma payoff table
+
+Matching Pennies Example
+------------------------
+
+Matching pennies is a zero‑sum game with no pure strategy equilibrium. Each
+player wants to match or mismatch the other's choice.
+
+.. code-block:: python
+
+    from freeride.games import Game
+
+    ax = Game.matching_pennies().table()
+    ax.figure.savefig("matching_pennies.svg", transparent=True)
+    plt.close(ax.figure)
+
+.. image:: matching_pennies.svg
+   :align: center
+   :alt: Matching Pennies payoff table
+
+Stag Hunt Example
+-----------------
+
+The stag hunt models coordination with a safe action (hunting hare) and a
+potentially higher payoff from mutual cooperation (hunting stag).
+
+.. code-block:: python
+
+    from freeride.games import Game
+
+    ax = Game.stag_hunt().table()
+    ax.figure.savefig("stag_hunt.svg", transparent=True)
+    plt.close(ax.figure)
+
+.. image:: stag_hunt.svg
+   :align: center
+   :alt: Stag Hunt payoff table
+
+Pure Coordination Example
+-------------------------
+
+This simple coordination game rewards players for choosing the same action.
+
+.. code-block:: python
+
+    from freeride.games import Game
+
+    ax = Game.pure_coordination().table()
+    ax.figure.savefig("pure_coordination.svg", transparent=True)
+    plt.close(ax.figure)
+
+.. image:: pure_coordination.svg
+   :align: center
+   :alt: Pure Coordination payoff table
+
+Chicken Example
+---------------
+
+The game of chicken (or hawk–dove) illustrates the conflict between standing
+firm and yielding.
+
+.. code-block:: python
+
+    from freeride.games import Game
+
+    ax = Game.chicken().table()
+    ax.figure.savefig("chicken.svg", transparent=True)
+    plt.close(ax.figure)
+
+.. image:: chicken.svg
+   :align: center
+   :alt: Chicken payoff table
