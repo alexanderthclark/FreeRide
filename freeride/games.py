@@ -5,6 +5,31 @@ import matplotlib.pyplot as plt
 import random
 from typing import List, Tuple, Optional, Sequence
 
+
+def _convex_hull(points: np.ndarray) -> np.ndarray:
+    """Return points on the convex hull in counter-clockwise order."""
+    pts = sorted(set(map(tuple, points)))
+    if len(pts) <= 1:
+        return np.asarray(pts)
+
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+    lower = []
+    for p in pts:
+        while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:
+            lower.pop()
+        lower.append(p)
+
+    upper = []
+    for p in reversed(pts):
+        while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:
+            upper.pop()
+        upper.append(p)
+
+    hull = lower[:-1] + upper[:-1]
+    return np.asarray(hull)
+
 class Game:
     """Simple two-player game.
 
@@ -356,6 +381,47 @@ class Game:
 
         # Restore previous TeX setting
         plt.rcParams["text.usetex"] = prev
+
+        return ax
+
+    def plot_payoff_hull(
+        self,
+        ax: Optional[plt.Axes] = None,
+        annotate: bool = False,
+    ) -> plt.Axes:
+        """Plot the convex hull of payoff pairs for the game."""
+
+        if ax is None:
+            ax = plt.gca()
+
+        pts = np.column_stack((self.payoffs1.ravel(), self.payoffs2.ravel()))
+        hull = _convex_hull(pts)
+
+        if hull.size > 0:
+            closed = np.vstack([hull, hull[0]])
+            ax.fill(closed[:, 0], closed[:, 1], color="lightgray", alpha=0.5)
+            ax.plot(closed[:, 0], closed[:, 1], color="black", lw=1)
+
+        ax.scatter(pts[:, 0], pts[:, 1], color="C0")
+
+        if annotate:
+            rows, cols = self.shape
+            for i in range(rows):
+                for j in range(cols):
+                    label = f"({self.action_names[0][i]}, {self.action_names[1][j]})"
+                    ax.text(
+                        self.payoffs1[i, j],
+                        self.payoffs2[i, j],
+                        label,
+                        fontsize=8,
+                        ha="left",
+                        va="bottom",
+                    )
+
+        ax.set_xlabel(f"Payoff to {self.player_names[0]}")
+        ax.set_ylabel(f"Payoff to {self.player_names[1]}")
+        ax.set_title("Payoff Hull")
+        ax.set_aspect("equal", adjustable="datalim")
 
         return ax
 
