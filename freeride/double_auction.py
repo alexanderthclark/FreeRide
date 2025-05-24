@@ -1,11 +1,36 @@
-"""Utility classes for unit demand and supply in double auctions."""
+"""Utilities for clearing unit demand and supply in a double auction.
+
+The module defines light–weight agent classes representing unit demand and
+unit supply as well as a :class:`DoubleAuction` class which clears a market of
+these agents.  The clearing process follows the standard approach of matching
+the highest demand valuations with the lowest supply valuations to determine a
+range of market clearing prices and the quantity traded.
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 class UnitAgent:
-    """Base class storing valuations for each unit and an endowment."""
+    """Base class for agents with unit valuations and an endowment.
+
+    Parameters
+    ----------
+    *valuations : float or Sequence[float]
+        Valuations for each unit held by the agent. A single iterable can be
+        supplied or individual numerical arguments can be provided.
+    endowment : int
+        Initial quantity of the good held by the agent.
+
+    Attributes
+    ----------
+    valuations : list[float]
+        List of valuations for each unit.
+    valuation : float
+        The valuation of the first unit, provided as a convenience.
+    endowment : int
+        The initial quantity of the good held by the agent.
+    """
 
     def __init__(self, *valuations, endowment):
         if len(valuations) == 1 and isinstance(valuations[0], (list, tuple, np.ndarray)):
@@ -23,27 +48,68 @@ class UnitAgent:
 
 
 class UnitDemand(UnitAgent):
-    """Unit demand agent."""
+    """Agent demanding units of the good.
+
+    Parameters
+    ----------
+    *willingness_to_pay : float or Sequence[float]
+        Valuations representing the maximum prices the agent is willing to pay
+        for successive units.
+    """
 
     def __init__(self, *willingness_to_pay):
         super().__init__(*willingness_to_pay, endowment=0)
 
 
 class UnitSupply(UnitAgent):
-    """Unit supply agent."""
+    """Agent supplying units of the good.
+
+    Parameters
+    ----------
+    *willingness_to_sell : float or Sequence[float]
+        Valuations representing the minimum prices the agent is willing to
+        accept for successive units.
+    """
 
     def __init__(self, *willingness_to_sell):
         super().__init__(*willingness_to_sell, endowment=len(willingness_to_sell))
 
 
 def _sort_key(item):
+    """Return the valuation component of ``item`` for sorting."""
     return item[1]
 
 
 class DoubleAuction:
-    """Simple double auction clearing unit agents."""
+    """Clear a double auction comprised of unit agents.
+
+    Parameters
+    ----------
+    *agents : UnitAgent
+        Agents participating in the auction. Instances of
+        :class:`UnitDemand` represent buyers and :class:`UnitSupply`
+        represent sellers.
+
+    Attributes
+    ----------
+    demand : list[tuple[UnitDemand, float]]
+        Sorted list of demand valuations in descending order.
+    supply : list[tuple[UnitSupply, float]]
+        Sorted list of supply valuations in ascending order.
+    p : tuple[float, float]
+        Range of prices that clear the market.
+    q : int
+        Number of units traded at the clearing price.
+    """
 
     def __init__(self, *agents):
+        """Create a new auction with the given agents.
+
+        Parameters
+        ----------
+        *agents : UnitAgent
+            Agents participating in the auction.
+        """
         self.agents = agents
 
         demands = []
@@ -68,7 +134,16 @@ class DoubleAuction:
         self.q = n_trades
 
     def clear(self):
-        """Determine clearing price range and number of trades."""
+        """Compute the market clearing price range and trade quantity.
+
+        Returns
+        -------
+        tuple
+            ``(p_low, p_high)`` giving the range of prices that clear the
+            market.
+        int
+            Number of trades executed at that price range.
+        """
         total_q = sum(a.endowment for a in self.agents)
         self.valuations = sorted(
             (v for a in self.agents for v in a.valuations),
@@ -88,7 +163,14 @@ class DoubleAuction:
         return f"Price range: {self.price_range}\nQuantity: {self.q}"
 
     def demand_schedule(self):
-        """List of ``(price, quantity)`` sorted from high to low valuation."""
+        """Return the market demand schedule.
+
+        Returns
+        -------
+        list[tuple[float, int]]
+            Sequence of ``(price, quantity)`` pairs sorted from high to low
+            valuation.
+        """
         valuations = [d[1] for d in self.demand]
         unique_valuations = sorted(set(valuations), reverse=True)
         schedule = [
@@ -98,7 +180,14 @@ class DoubleAuction:
         return schedule
 
     def supply_schedule(self):
-        """List of ``(price, quantity)`` sorted from low to high valuation."""
+        """Return the market supply schedule.
+
+        Returns
+        -------
+        list[tuple[float, int]]
+            Sequence of ``(price, quantity)`` pairs sorted from low to high
+            valuation.
+        """
         valuations = [s[1] for s in self.supply]
         unique_valuations = sorted(set(valuations))
         schedule = [
@@ -108,6 +197,18 @@ class DoubleAuction:
         return schedule
 
     def plot(self, ax=None):
+        """Plot the supply and demand schedules.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes object to draw on. A new one is created if ``None``.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Axes containing the plotted schedules.
+        """
         demand = self.demand_schedule()
         demand_q = [0] + [d[1] for d in demand]
         demand_p = [np.inf] + [d[0] for d in demand]
