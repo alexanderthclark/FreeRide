@@ -67,3 +67,21 @@ plt.show()
 
 ![equilibrium.svg](equilibrium.svg)
 
+# Game Example
+
+The library also includes simple game theory utilities. Here we build the classic Prisoner's Dilemma and plot its payoff table.
+
+```python
+from freeride.games import Game
+
+# build the game and find the Nash equilibrium
+g = Game.prisoners_dilemma()
+print(g.nash_equilibria())
+
+# plot the payoff table
+ax = g.table()
+ax.figure.savefig("prisoners_dilemma.svg", transparent=True)
+```
+
+![prisoners_dilemma.svg](prisoners_dilemma.svg)
+
