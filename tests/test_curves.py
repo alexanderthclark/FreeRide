@@ -1,5 +1,15 @@
 import unittest
-from freeride.curves import Affine, BaseAffine, Demand
+import numpy as np
+from freeride.curves import (
+    Affine,
+    BaseAffine,
+    Demand,
+    Supply,
+    intersection,
+    blind_sum,
+    horizontal_sum,
+)
+from freeride.base import AffineElement
 
 class TestAffine(unittest.TestCase):
 
@@ -44,3 +54,55 @@ class TestDemand(unittest.TestCase):
 
         self.d1.horizontal_shift(1, inplace=True)
         self.assertTrue(self.d1.q(0)==7)
+
+
+class TestCurveHelpers(unittest.TestCase):
+
+    def test_intersection(self):
+        line1 = AffineElement(12, -1)
+        line2 = AffineElement(0, 2)
+        yx = intersection(line1, line2)
+        self.assertAlmostEqual(yx[0], 8.0)
+        self.assertAlmostEqual(yx[1], 4.0)
+
+    def test_intersection_parallel_raises(self):
+        line1 = AffineElement(12, -1)
+        line2 = AffineElement(6, -1)
+        with self.assertRaises(np.linalg.LinAlgError):
+            intersection(line1, line2)
+
+    def test_blind_sum(self):
+        l1 = AffineElement(10, -1)
+        l2 = AffineElement(5, -1)
+        summed = blind_sum(l1, l2)
+        self.assertAlmostEqual(summed.intercept, 7.5)
+        self.assertAlmostEqual(summed.slope, -0.5)
+        self.assertAlmostEqual(summed.q_intercept, 15.0)
+
+    def test_horizontal_sum(self):
+        l1 = AffineElement(10, -1)
+        l2 = AffineElement(5, -1)
+        active, cutoffs, midpoints = horizontal_sum(l1, l2)
+        self.assertEqual(cutoffs, [0, 5, 10])
+        self.assertEqual(midpoints, [2.5, 7.5, 11])
+        self.assertAlmostEqual(active[0].q_intercept, 15.0)
+        self.assertAlmostEqual(active[1].q_intercept, 10.0)
+        self.assertIsNone(active[2])
+
+
+class TestSurplusAndRevenue(unittest.TestCase):
+
+    def setUp(self):
+        self.demand = Demand(12, -2)
+        self.supply = Supply(0, 1)
+
+    def test_consumer_surplus(self):
+        self.assertAlmostEqual(self.demand.consumer_surplus(4), 16.0)
+
+    def test_producer_surplus(self):
+        self.assertAlmostEqual(self.supply.producer_surplus(4), 8.0)
+
+    def test_total_revenue(self):
+        revenue_curve = self.demand.total_revenue()
+        self.assertAlmostEqual(revenue_curve(4), 16.0)
+
