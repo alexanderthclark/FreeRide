@@ -330,6 +330,12 @@ class BaseAffine:
         else:
             return Affine(elements=new_elements)
 
+    @property
+    def q_intercept(self):
+        """Return the quantity intercept(s) for the affine elements."""
+        q_int = [-b / m for b, m in zip(self.intercept, self.slope)]
+        return q_int[0] if len(q_int) == 1 else q_int
+
 
 class Affine(BaseAffine):
     """
