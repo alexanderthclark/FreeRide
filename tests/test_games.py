@@ -88,6 +88,17 @@ class TestGame(unittest.TestCase):
         texts = [t.get_text() for t in ax.texts]
         self.assertTrue(any("\\underline" in t for t in texts))
 
+    def test_class_helpers(self):
+        """Class helper methods should build the expected games."""
+
+        g = Game.prisoners_dilemma()
+        self.assertEqual(g.payoffs1.tolist(), [[3, 0], [5, 1]])
+        self.assertEqual(g.payoffs2.tolist(), [[3, 5], [0, 1]])
+
+        mp = Game.matching_pennies()
+        self.assertEqual(mp.payoffs1.tolist(), [[1, -1], [-1, 1]])
+        self.assertEqual(mp.payoffs2.tolist(), [[-1, 1], [1, -1]])
+
 
 if __name__ == '__main__':
     unittest.main()

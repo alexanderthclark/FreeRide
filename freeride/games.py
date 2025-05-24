@@ -328,6 +328,55 @@ class Game:
 
         return ax
 
+    @classmethod
+    def prisoners_dilemma(cls) -> "Game":
+        """Return the classic Prisoner's Dilemma game."""
+
+        p1 = [[3, 0], [5, 1]]
+        p2 = [[3, 5], [0, 1]]
+        return cls(p1, p2)
+
+    @classmethod
+    def matching_pennies(cls) -> "Game":
+        """Return the Matching Pennies game."""
+
+        p1 = [[1, -1], [-1, 1]]
+        p2 = [[-1, 1], [1, -1]]
+        return cls(p1, p2)
+
+    @classmethod
+    def stag_hunt(cls) -> "Game":
+        """Return the Stag Hunt coordination game."""
+
+        p1 = [[2, 0], [1, 1]]
+        p2 = [[2, 1], [0, 1]]
+        return cls(p1, p2)
+
+    @classmethod
+    def battle_of_the_sexes(cls) -> "Game":
+        """Return the Battle of the Sexes coordination game."""
+
+        p1 = [[2, 0], [0, 1]]
+        p2 = [[1, 0], [0, 2]]
+        return cls(p1, p2)
+
+    @classmethod
+    def pure_coordination(cls) -> "Game":
+        """Return a simple pure coordination game."""
+
+        p1 = [[1, 0], [0, 1]]
+        p2 = [[1, 0], [0, 1]]
+        return cls(p1, p2)
+
+    @classmethod
+    def chicken(cls) -> "Game":
+        """Return the classic Chicken (Hawk-Dove) game."""
+
+        p1 = [[3, 1], [4, 0]]
+        p2 = [[3, 4], [1, 0]]
+        return cls(p1, p2)
+
 
 # Backwards compatibility
 NormalFormGame = Game
+
