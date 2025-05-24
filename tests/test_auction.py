@@ -24,6 +24,24 @@ class TestDoubleAuction(unittest.TestCase):
         self.assertTrue(q == 1)
         self.assertTrue(price0 == 5)
         self.assertTrue(price1 == 8)
+
+    def test_multi_unit_agents(self):
+        seller = UnitSupply(4, 5)
+        buyer = UnitDemand(7, 6)
+        auction = DoubleAuction(seller, buyer)
+        price0, price1 = auction.p
+        self.assertEqual(auction.q, 2)
+        self.assertEqual(price0, 5)
+        self.assertEqual(price1, 6)
+
+    def test_multi_unit_multiple_agents(self):
+        sellers = (UnitSupply(1, 2), UnitSupply(3, 4))
+        buyers = (UnitDemand(6, 5), UnitDemand(4, 3))
+        auction = DoubleAuction(*sellers, *buyers)
+        price0, price1 = auction.p
+        self.assertEqual(auction.q, 3)
+        self.assertEqual(price0, 3)
+        self.assertEqual(price1, 4)
         
     def tearDown(self):
         pass

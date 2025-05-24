@@ -5,28 +5,35 @@ import matplotlib.pyplot as plt
 
 
 class UnitAgent:
-    """Base class storing a valuation and an endowment."""
+    """Base class storing valuations for each unit and an endowment."""
 
-    def __init__(self, valuation, endowment):
-        self.valuation = valuation
-        self.endowment = endowment
+    def __init__(self, *valuations, endowment):
+        if len(valuations) == 1 and isinstance(valuations[0], (list, tuple, np.ndarray)):
+            valuations = valuations[0]
 
-        if self.valuation < 0:
+        if len(valuations) == 0:
+            raise ValueError("At least one valuation is required")
+
+        self.valuations = [float(v) for v in valuations]
+        self.valuation = self.valuations[0]
+        self.endowment = int(endowment)
+
+        if any(v < 0 for v in self.valuations):
             raise ValueError("No bads. Valuations must be non-negative.")
 
 
 class UnitDemand(UnitAgent):
     """Unit demand agent."""
 
-    def __init__(self, willingness_to_pay):
-        super().__init__(willingness_to_pay, 0)
+    def __init__(self, *willingness_to_pay):
+        super().__init__(*willingness_to_pay, endowment=0)
 
 
 class UnitSupply(UnitAgent):
     """Unit supply agent."""
 
-    def __init__(self, willingness_to_sell):
-        super().__init__(willingness_to_sell, 1)
+    def __init__(self, *willingness_to_sell):
+        super().__init__(*willingness_to_sell, endowment=len(willingness_to_sell))
 
 
 def _sort_key(item):
@@ -39,18 +46,20 @@ class DoubleAuction:
     def __init__(self, *agents):
         self.agents = agents
 
-        demands = sorted(
-            [(a, a.valuation) for a in agents if isinstance(a, UnitDemand)],
-            key=_sort_key,
-            reverse=True,
-        )
+        demands = []
+        for a in agents:
+            if isinstance(a, UnitDemand):
+                for v in a.valuations:
+                    demands.append((a, v))
+        demands = sorted(demands, key=_sort_key, reverse=True)
         self.demand = demands
 
-        supplies = sorted(
-            [(a, a.valuation) for a in agents if isinstance(a, UnitSupply)],
-            key=_sort_key,
-            reverse=False,
-        )
+        supplies = []
+        for a in agents:
+            if isinstance(a, UnitSupply):
+                for v in a.valuations:
+                    supplies.append((a, v))
+        supplies = sorted(supplies, key=_sort_key)
         self.supply = supplies
 
         price_range, n_trades = self.clear()
@@ -62,7 +71,7 @@ class DoubleAuction:
         """Determine clearing price range and number of trades."""
         total_q = sum(a.endowment for a in self.agents)
         self.valuations = sorted(
-            (a.valuation for a in self.agents),
+            (v for a in self.agents for v in a.valuations),
             reverse=True,
         )
 
@@ -72,7 +81,7 @@ class DoubleAuction:
         highest_valuations = self.valuations[:total_q]
         lowest_valuations = self.valuations[total_q:]
 
-        price_range = lowest_valuations[0], highest_valuations[-1]
+        price_range = (0, highest_valuations[-1]) if not lowest_valuations else (lowest_valuations[0], highest_valuations[-1])
         return price_range, n_trades
 
     def __repr__(self):
@@ -81,11 +90,7 @@ class DoubleAuction:
     def demand_schedule(self):
         """List of ``(price, quantity)`` sorted from high to low valuation."""
         valuations = [d[1] for d in self.demand]
-        unique_valuations = sorted({d[1] for d in self.demand}, reverse=True)
-        schedule = [
-            (p, len(valuations) - idx)
-            for idx, p in enumerate(valuations)
-        ]
+        unique_valuations = sorted(set(valuations), reverse=True)
         schedule = [
             (p, len([v for v in valuations if v >= p]))
             for p in unique_valuations
@@ -95,11 +100,7 @@ class DoubleAuction:
     def supply_schedule(self):
         """List of ``(price, quantity)`` sorted from low to high valuation."""
         valuations = [s[1] for s in self.supply]
-        unique_valuations = sorted({s[1] for s in self.supply})
-        schedule = [
-            (p, len(valuations) - idx)
-            for idx, p in enumerate(valuations)
-        ]
+        unique_valuations = sorted(set(valuations))
         schedule = [
             (p, len([v for v in valuations if v <= p]))
             for p in unique_valuations
