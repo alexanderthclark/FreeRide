@@ -19,15 +19,33 @@ class TestFormula(unittest.TestCase):
         self.affine6 = _formula(s6)
 
     def test_coef(self):
+        """Verify both slope and intercept parsing for a variety of forms."""
 
-        self.assertTrue(self.affine1[1] == self.affine2[1] == -2)
-        self.assertTrue(self.affine3[1] == 4)
-        self.assertTrue(self.affine4[0] == 0)
-        self.assertTrue(self.affine4[1] == 1)
-        self.assertTrue(self.affine5[0] == 0)
-        self.assertTrue(self.affine5[1] == 0.5)
-        self.assertTrue(self.affine6[0] == 0)
-        self.assertTrue(self.affine6[1] == 1)
+        # Slopes
+        self.assertEqual(self.affine1[1], -2)
+        self.assertEqual(self.affine2[1], -2)
+        self.assertEqual(self.affine3[1], 4)
+        self.assertEqual(self.affine4[1], 1)
+        self.assertEqual(self.affine5[1], 0.5)
+        self.assertEqual(self.affine6[1], 1)
+
+        # Intercepts
+        self.assertEqual(self.affine1[0], 10)
+        self.assertEqual(self.affine2[0], 10)
+        self.assertEqual(self.affine3[0], 2)
+        self.assertEqual(self.affine4[0], 0)
+        self.assertEqual(self.affine5[0], 0)
+        self.assertEqual(self.affine6[0], 0)
+
+    def test_fraction_raises(self):
+        """Fractions are not supported and should raise a ValueError."""
+        with self.assertRaises(ValueError):
+            _formula("y = 1/2x + 3")
+
+    def test_invalid_equation_raises(self):
+        """Equations that do not match the expected forms should error."""
+        with self.assertRaises(ValueError):
+            _formula("2x + 1 = y")
 
     def tearDown(self):
         pass
@@ -81,6 +99,21 @@ class TestQuadraticParser(unittest.TestCase):
 
     def test_no_spaces(self):
         self.assertEqual(_quadratic_formula('y=0.5x^2-0.25x+0.125'), (0.5, -0.25, 0.125))
+
+    def test_fraction_raises(self):
+        """Fractions should trigger a ValueError."""
+        with self.assertRaises(ValueError):
+            _quadratic_formula('y = 1/2x^2 + x + 1')
+
+    def test_missing_y_side_raises(self):
+        """Equations without '= y' should error."""
+        with self.assertRaises(ValueError):
+            _quadratic_formula('x^2 + x + 1')
+
+    def test_multiple_equals_raises(self):
+        """Equations with extra '=' signs should error."""
+        with self.assertRaises(ValueError):
+            _quadratic_formula('y = x^2 + x + 1 = z')
 
     def tearDown(self):
         pass
