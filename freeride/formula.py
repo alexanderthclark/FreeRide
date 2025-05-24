@@ -4,6 +4,8 @@ Formula module using sympy
 
 import re
 
+from freeride.exceptions import FormulaParseError
+
 
 def _formula(equation: str):
     """
@@ -26,7 +28,7 @@ def _formula(equation: str):
 
     Raises
     ------
-    ValueError
+    FormulaParseError
         If the equation is not valid, contains fractions, or has a zero slope.
 
     Examples
@@ -44,7 +46,7 @@ def _formula(equation: str):
     )
 
     if "/" in equation:
-        raise ValueError(
+        raise FormulaParseError(
             "Unexpected character '/'. Use decimals and not fractions."
         )
 
@@ -102,7 +104,7 @@ def _formula(equation: str):
             )
         return -intercept / slope, 1 / slope
 
-    raise ValueError("Invalid equation")
+    raise FormulaParseError("Invalid equation")
 
 
 def _quadratic_formula(equation: str):
@@ -125,7 +127,7 @@ def _quadratic_formula(equation: str):
 
     Raises
     ------
-    ValueError
+    FormulaParseError
         If the equation is not a valid quadratic equation or
         contains fractions.
 
@@ -149,7 +151,7 @@ def _quadratic_formula(equation: str):
     )  # Replace ^2 with ² for easier parsing
 
     if "/" in equation:
-        raise ValueError(
+        raise FormulaParseError(
             "Unexpected character '/'. Use decimals and not fractions."
         )
 
@@ -158,10 +160,17 @@ def _quadratic_formula(equation: str):
         equation = equation.replace("y=", "") + "=y"
 
     # Split the equation into left and right sides
-    left_side, right_side = equation.split("=")
+    try:
+        left_side, right_side = equation.split("=")
+    except ValueError as exc:
+        raise FormulaParseError(
+            "Equation must contain exactly one '=' sign"
+        ) from exc
 
     if right_side != "y":
-        raise ValueError("Equation must be in the form 'y = ...' or '... = y'")
+        raise FormulaParseError(
+            "Equation must be in the form 'y = ...' or '... = y'"
+        )
 
     # Use regex to find terms
     terms = re.findall(

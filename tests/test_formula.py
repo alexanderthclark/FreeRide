@@ -1,5 +1,6 @@
 import unittest
 from freeride.formula import _formula, _quadratic_formula
+from freeride.exceptions import FormulaParseError
 
 class TestFormula(unittest.TestCase):
 
@@ -38,13 +39,13 @@ class TestFormula(unittest.TestCase):
         self.assertEqual(self.affine6[0], 0)
 
     def test_fraction_raises(self):
-        """Fractions are not supported and should raise a ValueError."""
-        with self.assertRaises(ValueError):
+        """Fractions are not supported and should raise a FormulaParseError."""
+        with self.assertRaises(FormulaParseError):
             _formula("y = 1/2x + 3")
 
     def test_invalid_equation_raises(self):
         """Equations that do not match the expected forms should error."""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(FormulaParseError):
             _formula("2x + 1 = y")
 
     def tearDown(self):
@@ -101,18 +102,18 @@ class TestQuadraticParser(unittest.TestCase):
         self.assertEqual(_quadratic_formula('y=0.5x^2-0.25x+0.125'), (0.5, -0.25, 0.125))
 
     def test_fraction_raises(self):
-        """Fractions should trigger a ValueError."""
-        with self.assertRaises(ValueError):
+        """Fractions should trigger a FormulaParseError."""
+        with self.assertRaises(FormulaParseError):
             _quadratic_formula('y = 1/2x^2 + x + 1')
 
     def test_missing_y_side_raises(self):
         """Equations without '= y' should error."""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(FormulaParseError):
             _quadratic_formula('x^2 + x + 1')
 
     def test_multiple_equals_raises(self):
         """Equations with extra '=' signs should error."""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(FormulaParseError):
             _quadratic_formula('y = x^2 + x + 1 = z')
 
     def tearDown(self):

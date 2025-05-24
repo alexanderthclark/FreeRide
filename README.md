@@ -15,6 +15,9 @@ s1 = Supply.from_formula('Q = 2*P')
 s2 = Supply.from_formula('Q = 2*P - 1')
 ```
 
+Formula strings that don't match the expected patterns raise
+``FormulaParseError`` for quick troubleshooting.
+
 The addition operator performs horizontal summation, allowing aggregation.
 
 ```
@@ -63,3 +66,4 @@ plt.show()
 ```
 
 ![equilibrium.svg](equilibrium.svg)
+

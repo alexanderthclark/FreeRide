@@ -15,6 +15,7 @@ This is a Python package for introductory microeconomics.
    curves
    costs
    formula
+   exceptions
    plotting
    tutorials/quickstart
 
