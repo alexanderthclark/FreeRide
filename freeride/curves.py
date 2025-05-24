@@ -365,14 +365,14 @@ class BaseAffine:
         if inplace:
             self.__init__(elements=new_elements)
         else:
-            return Affine(elements=new_elements)
+            return type(self)(elements=new_elements)
 
     def vertical_shift(self, delta, inplace=True):
         new_elements = [e.vertical_shift(delta, inplace=False) for e in self.elements]
         if inplace:
             self.__init__(elements=new_elements)
         else:
-            return Affine(elements=new_elements)
+            return type(self)(elements=new_elements)
 
     @property
     def q_intercept(self):
