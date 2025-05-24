@@ -15,7 +15,21 @@ class BaseQuadratic:
     '''
 
     def __init__(self, intercept=None, linear_coef=None, quadratic_coef=None, elements=None):
-        """
+        """Create a piecewise quadratic curve.
+
+        Parameters
+        ----------
+        intercept : float or sequence of float, optional
+            Constant terms for each quadratic piece. If ``elements`` is not
+            provided these values are used to build :class:`QuadraticElement`
+            instances.
+        linear_coef : float or sequence of float, optional
+            Linear coefficients for each piece.
+        quadratic_coef : float or sequence of float, optional
+            Quadratic coefficients for each piece.
+        elements : list of :class:`QuadraticElement`, optional
+            Preconstructed elements defining the curve. When supplied the
+            coefficient arguments are ignored.
         """
         if elements is None:
             if isinstance(linear_coef, (int, float)):
@@ -84,8 +98,22 @@ class BaseQuadratic:
             return self.__class__(elements=new_elements)
 
     def plot(self, ax=None, set_lims=True, max_q=None, label=True, **kwargs):
-        '''
-        '''
+        """Plot the quadratic curve.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axis on which to draw the plot. A new axis is created if omitted.
+        set_lims : bool, optional
+            When ``True`` the axes limits are adjusted based on the data.
+        max_q : float, optional
+            Maximum quantity value for the plot. Only used if the element has no
+            explicit domain.
+        label : bool, optional
+            If ``True`` annotate the axes with standard labels.
+        **kwargs : dict
+            Additional keyword arguments forwarded to ``matplotlib``.
+        """
         if ax is None:
             fig, ax = plt.subplots()
 
@@ -216,6 +244,22 @@ def horizontal_sum(*curves):
 
 
 def ppf_sum(*curves, comparative_advantage=True):
+    """Combine production possibilities frontiers.
+
+    Parameters
+    ----------
+    *curves : sequence of :class:`AffineElement`
+        PPF curves to aggregate.
+    comparative_advantage : bool, optional
+        When ``True`` curves are ordered by slope from steepest to
+        flattest before summation, highlighting comparative advantage.
+
+    Returns
+    -------
+    list of :class:`AffineElement`
+        The shifted and vertically stacked PPF segments forming the
+        aggregate frontier.
+    """
 
     slope_and_curves = sorted([(s.slope, s) for s in curves], reverse=comparative_advantage)
     curves = [t[1] for t in slope_and_curves]
