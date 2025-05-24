@@ -89,6 +89,15 @@ class TestGame(unittest.TestCase):
         ax = game.table()
         self.assertIsInstance(ax, plt.Axes)
 
+    def test_payoff_hull_returns_axes(self):
+        """``plot_payoff_hull`` should return a Matplotlib ``Axes`` object."""
+
+        p1 = [[3, 0], [5, 1]]
+        p2 = [[3, 5], [0, 1]]
+        game = Game(p1, p2)
+        ax = game.plot_payoff_hull()
+        self.assertIsInstance(ax, plt.Axes)
+
     def test_no_raw_underline_without_tex(self):
         r"""Ensure ``\underline`` is not used when ``usetex=False``."""
 
