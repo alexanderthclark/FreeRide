@@ -17,8 +17,9 @@ Highlighting Options
 
 ``Game.table`` accepts a ``usetex`` argument. When set to ``True`` the
 underlying text is rendered with LaTeX and best responses are underlined.  When
-``False`` (the default), best responses are indicated with colored boxes and no
-raw ``\underline`` appears in the output.
+``False`` (the default), best responses are indicated with colored boxes around
+the payoff of the player with the best response and no raw ``\underline``
+appears in the output.
 
 Example::
 
@@ -38,7 +39,7 @@ Battle of the Sexes Example
 method returns the classic coordination game with players ``Anna`` and ``Boris``
 and actions ``Opera`` and ``Boxing Match`` already labeled.  The table below was
 created with ``usetex=False`` so that best responses are highlighted with
-colored boxes.
+colored boxes around only the payoff of the player with the best response.
 
 In this version, Boris prefers the boxing match while Anna prefers the opera.
 
