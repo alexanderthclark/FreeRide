@@ -56,6 +56,13 @@ class TestDemand(unittest.TestCase):
         self.d1.horizontal_shift(1, inplace=True)
         self.assertTrue(self.d1.q(0)==7)
 
+    def test_shift_return_types(self):
+        horiz = self.d1.horizontal_shift(1, inplace=False)
+        self.assertIsInstance(horiz, Demand)
+
+        vert = self.d1.vertical_shift(1, inplace=False)
+        self.assertIsInstance(vert, Demand)
+
 
 class TestCurveHelpers(unittest.TestCase):
 
