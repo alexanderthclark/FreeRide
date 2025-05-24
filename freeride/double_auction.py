@@ -46,6 +46,11 @@ class UnitAgent:
         if any(v < 0 for v in self.valuations):
             raise ValueError("No bads. Valuations must be non-negative.")
 
+    def __repr__(self):
+        """Return a concise representation of the agent."""
+        cls_name = self.__class__.__name__
+        return f"{cls_name}(endowment={self.endowment}, valuations={self.valuations})"
+
 
 class UnitDemand(UnitAgent):
     """Agent demanding units of the good.
