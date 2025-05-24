@@ -16,6 +16,7 @@ This is a Python package for introductory microeconomics.
    costs
    formula
    plotting
+   double_auction
    tutorials/quickstart
 
 
