@@ -99,6 +99,15 @@ class TestGame(unittest.TestCase):
         self.assertEqual(mp.payoffs1.tolist(), [[1, -1], [-1, 1]])
         self.assertEqual(mp.payoffs2.tolist(), [[-1, 1], [1, -1]])
 
+        bos = Game.battle_of_the_sexes()
+        self.assertEqual(bos.payoffs1.tolist(), [[2, 0], [0, 1]])
+        self.assertEqual(bos.payoffs2.tolist(), [[1, 0], [0, 2]])
+        self.assertEqual(bos.player_names, ("Anna", "Boris"))
+        self.assertEqual(
+            bos.action_names,
+            (("Opera", "Boxing Match"), ("Opera", "Boxing Match")),
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

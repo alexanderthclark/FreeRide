@@ -16,9 +16,24 @@ class Game:
         Payoff matrix for player 2 with the same shape as ``payoffs1``.
     """
 
-    def __init__(self, payoffs1, payoffs2):
+    def __init__(
+        self,
+        payoffs1,
+        payoffs2,
+        *,
+        player_names: Sequence[str] = ("Player A", "Player B"),
+        action_names: Sequence[Sequence[str]] = (
+            ("action 0", "action 1"),
+            ("action 0", "action 1"),
+        ),
+    ):
         self.payoffs1 = np.asarray(payoffs1, dtype=float)
         self.payoffs2 = np.asarray(payoffs2, dtype=float)
+        self.player_names = tuple(player_names)
+        self.action_names = (
+            tuple(action_names[0]),
+            tuple(action_names[1]),
+        )
 
         if self.payoffs1.shape != self.payoffs2.shape:
             raise ValueError("Payoff matrices must have the same shape")
@@ -151,8 +166,8 @@ class Game:
         self,
         ax: Optional[plt.Axes] = None,
         show_solution: bool = True,
-        player_names: Sequence[str] = ("Player A", "Player B"),
-        action_names: Sequence[Sequence[str]] = (("action 0", "action 1"), ("action 0", "action 1")),
+        player_names: Optional[Sequence[str]] = None,
+        action_names: Optional[Sequence[Sequence[str]]] = None,
         usetex: bool = False,
     ) -> plt.Axes:
         """Plot a 2x2 payoff table.
@@ -164,10 +179,11 @@ class Game:
         show_solution : bool, default ``True``
             Highlight best responses and Nash equilibria when ``True``.
         player_names : sequence of str, optional
-            Names for the row and column players.
+            Names for the row and column players.  Defaults to the names stored
+            on the ``Game`` instance.
         action_names : sequence of sequence of str, optional
             ``action_names[0]`` are actions for player A and ``action_names[1]``
-            for player B.
+            for player B. Defaults to the names stored on the ``Game`` instance.
         usetex : bool, default ``False``
             Use LaTeX for text rendering and underline best responses when
             ``True``. When ``False``, best responses are highlighted with colored
@@ -188,6 +204,11 @@ class Game:
 
         if ax is None:
             ax = plt.gca()
+
+        if player_names is None:
+            player_names = self.player_names
+        if action_names is None:
+            action_names = self.action_names
 
         prev = plt.rcParams.get("text.usetex", False)
         if usetex:
@@ -358,7 +379,12 @@ class Game:
 
         p1 = [[2, 0], [0, 1]]
         p2 = [[1, 0], [0, 2]]
-        return cls(p1, p2)
+        return cls(
+            p1,
+            p2,
+            player_names=("Anna", "Boris"),
+            action_names=(("Opera", "Boxing Match"), ("Opera", "Boxing Match")),
+        )
 
     @classmethod
     def pure_coordination(cls) -> "Game":
