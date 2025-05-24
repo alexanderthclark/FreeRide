@@ -677,7 +677,21 @@ class QuadraticElement(PolyBase):
             return self.__class__(*coef, symbols=self.symbols)
 
     def plot(self, ax=None, textbook_style=True, max_q=100, label=True, **kwargs):
-        """ """
+        """Plot the quadratic element.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axis on which to draw. Created automatically if omitted.
+        textbook_style : bool, optional
+            If ``True`` the axes are formatted with :func:`textbook_axes`.
+        max_q : float, optional
+            Upper bound for the quantity range when no domain is specified.
+        label : bool, optional
+            When ``True`` add basic axis labels.
+        **kwargs : dict
+            Additional ``matplotlib`` styling options passed to ``plot``.
+        """
         if ax is None:
             ax = plt.gca()
 
