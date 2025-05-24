@@ -7,7 +7,16 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 
-from freeride.games import Game, NormalFormGame
+from freeride.games import (
+    Game,
+    NormalFormGame,
+    prisoners_dilemma,
+    matching_pennies,
+    stag_hunt,
+    battle_of_the_sexes,
+    pure_coordination,
+    chicken,
+)
 
 
 class TestGame(unittest.TestCase):
@@ -67,6 +76,22 @@ class TestGame(unittest.TestCase):
         game = Game(p1, p2)
         ax = game.table()
         self.assertIsInstance(ax, plt.Axes)
+
+    def test_helper_functions(self):
+        helpers = [
+            (prisoners_dilemma, [[3, 0], [5, 1]], [[3, 5], [0, 1]]),
+            (matching_pennies, [[1, -1], [-1, 1]], [[-1, 1], [1, -1]]),
+            (stag_hunt, [[2, 0], [1, 1]], [[2, 1], [0, 1]]),
+            (battle_of_the_sexes, [[2, 0], [0, 1]], [[1, 0], [0, 2]]),
+            (pure_coordination, [[1, 0], [0, 1]], [[1, 0], [0, 1]]),
+            (chicken, [[3, 1], [4, 0]], [[3, 4], [1, 0]]),
+        ]
+
+        for func, p1, p2 in helpers:
+            game = func()
+            self.assertIsInstance(game, Game)
+            self.assertEqual(game.payoffs1.tolist(), p1)
+            self.assertEqual(game.payoffs2.tolist(), p2)
 
 
 if __name__ == '__main__':
