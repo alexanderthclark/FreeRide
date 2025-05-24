@@ -24,3 +24,23 @@ Example::
     g = Game(p1, p2)
     ax = g.table(usetex=False)
     plt.close(ax.figure)
+
+Battle of the Sexes Example
+---------------------------
+
+``Game`` comes with constructors for common games.  The ``battle_of_the_sexes``
+method returns the classic coordination game.  The table below was created with
+``usetex=False`` so that best responses are highlighted with colored boxes.
+
+.. code-block:: python
+
+    import matplotlib.pyplot as plt
+    from freeride.games import Game
+
+    game = Game.battle_of_the_sexes()
+    ax = game.table(usetex=False)
+    plt.savefig("battle_of_the_sexes.svg", transparent=True)
+
+.. image:: battle_of_the_sexes.svg
+   :align: center
+   :alt: Battle of the Sexes payoff table
