@@ -1,8 +1,11 @@
+"""Cost curve utilities and classes."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import numbers
+
+from freeride.base import PolyBase
 from freeride.plotting import textbook_axes
-from freeride.curves import *
 
 
 ############################################################
@@ -317,7 +320,7 @@ class Cost(PolyBase):
         ac = self.average_cost()
         mc = self.marginal_cost()
 
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         p, q = self.breakeven_price(), self.efficient_scale()
@@ -362,7 +365,7 @@ class Cost(PolyBase):
             >>> cost_curve = Cost(0.5, 0.1, -0.02)
             >>> cost_curve.cost_profit_plot(0.4, items=['tc', 'tr', 'profit'])
         """
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         items = [str(x).lower() for x in items]
@@ -498,7 +501,7 @@ class AverageCost:
             >>> ac_curve = AverageCost([0.5, 0.1, -0.02])
             >>> ac_curve.plot(max_q=20, label='AC Curve')
         """
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         xs = np.linspace(0.01, max_q, int(10*max_q))
