@@ -1,7 +1,8 @@
 """Game theory utilities."""
 
 import numpy as np
-from typing import List, Tuple
+import matplotlib.pyplot as plt
+from typing import List, Tuple, Optional, Sequence
 
 class Game:
     """Simple two-player game.
@@ -145,6 +146,159 @@ class Game:
                 dom2.add(a)
 
         return {"A": dom1, "B": dom2}
+
+    def table(
+        self,
+        ax: Optional[plt.Axes] = None,
+        show_solution: bool = True,
+        player_names: Sequence[str] = ("Player A", "Player B"),
+        action_names: Sequence[Sequence[str]] = (("action 0", "action 1"), ("action 0", "action 1")),
+    ) -> plt.Axes:
+        """Plot a 2x2 payoff table.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axis on which to draw. If ``None``, uses :func:`matplotlib.pyplot.gca`.
+        show_solution : bool, default ``True``
+            Highlight best responses and Nash equilibria when ``True``.
+        player_names : sequence of str, optional
+            Names for the row and column players.
+        action_names : sequence of sequence of str, optional
+            ``action_names[0]`` are actions for player A and ``action_names[1]``
+            for player B.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axis containing the table.
+
+        Notes
+        -----
+        Currently only works for 2x2 games.
+        """
+
+        if self.shape != (2, 2):
+            raise ValueError("table() only implemented for 2x2 games")
+
+        if ax is None:
+            ax = plt.gca()
+
+        for i in range(2):
+            for j in range(2):
+                br = self.best_response((i, j))
+                a_is_br = br[0] == i
+                b_is_br = br[1] == j
+
+                location = (j, -i)
+                rec = plt.Rectangle(
+                    location,
+                    width=-1,
+                    height=-1,
+                    facecolor="white",
+                    edgecolor="black",
+                    linewidth=2,
+                )
+                ax.add_artist(rec)
+
+                p1, p2 = self.payoffs1[i, j], self.payoffs2[i, j]
+                s1, s2 = str(p1), str(p2)
+                bbox = None
+                if show_solution:
+                    if a_is_br:
+                        s1 = r"\underline{" + s1 + r"}"
+                    if b_is_br:
+                        s2 = r"\underline{" + s2 + r"}"
+                    if a_is_br and b_is_br:
+                        bbox = dict(
+                            facecolor="lightyellow",
+                            edgecolor="black",
+                            alpha=0.85,
+                        )
+
+                ax.text(
+                    j - 0.5,
+                    -i - 0.5,
+                    f"{s1}, {s2}",
+                    va="center",
+                    ha="center",
+                    size=12,
+                    bbox=bbox,
+                )
+
+        ax.set_aspect("equal")
+        ax.set_ylim(-2.05, 0.05)
+        ax.set_xlim(-1.05, 1.05)
+
+        ax.text(
+            -0.08,
+            0.5,
+            player_names[0],
+            rotation=90,
+            transform=ax.transAxes,
+            ha="right",
+            va="center",
+            size=12,
+        )
+
+        ax.text(
+            0,
+            0.25,
+            action_names[0][1],
+            rotation=90,
+            transform=ax.transAxes,
+            ha="right",
+            va="center",
+            size=10,
+        )
+
+        ax.text(
+            0,
+            0.75,
+            action_names[0][0],
+            rotation=90,
+            transform=ax.transAxes,
+            ha="right",
+            va="center",
+            size=10,
+        )
+
+        ax.text(
+            0.5,
+            1.08,
+            player_names[1],
+            rotation=0,
+            transform=ax.transAxes,
+            ha="center",
+            va="bottom",
+            size=12,
+        )
+
+        ax.text(
+            0.75,
+            1,
+            action_names[1][1],
+            rotation=0,
+            transform=ax.transAxes,
+            ha="center",
+            va="bottom",
+            size=10,
+        )
+
+        ax.text(
+            0.25,
+            1,
+            action_names[1][0],
+            rotation=0,
+            transform=ax.transAxes,
+            ha="center",
+            va="bottom",
+            size=10,
+        )
+
+        ax.axis("off")
+
+        return ax
 
 
 # Backwards compatibility
