@@ -59,6 +59,27 @@ class TestGame(unittest.TestCase):
         game = Game(p1, p2)
         self.assertEqual(game.weakly_dominant_strategies(), {"A": {0}, "B": {0}})
 
+    def test_repr_includes_player_names(self):
+        """Representation should mention both player names."""
+
+        game = Game([[0]], [[0]], player_names=("Alice", "Bob"))
+        rep = repr(game)
+        self.assertIn("Alice", rep)
+        self.assertIn("Bob", rep)
+
+    def test_repr_contains_payoff_table(self):
+        """``repr`` should show payoff pairs."""
+
+        g = Game(
+            [[1, 2], [3, 4]],
+            [[5, 6], [7, 8]],
+            player_names=("A", "B"),
+            action_names=(("X", "Y"), ("L", "R")),
+        )
+        rep = repr(g)
+        self.assertIn("(1, 5)", rep)
+        self.assertIn("(4, 8)", rep)
+
     def test_table_returns_axes(self):
         """The ``table`` method should return a Matplotlib ``Axes`` object."""
 

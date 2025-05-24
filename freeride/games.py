@@ -54,6 +54,31 @@ class Game:
     def shape(self) -> Tuple[int, int]:
         return self.payoffs1.shape
 
+    def __repr__(self) -> str:
+        """Return a short ASCII summary of the game."""
+
+        p1, p2 = self.player_names
+        rows, cols = self.shape
+
+        row_actions = list(self.action_names[0])[:rows]
+        col_actions = list(self.action_names[1])[:cols]
+
+        row_width = max([len(r) for r in row_actions] + [0]) + 2
+
+        lines = [f"{p1} \\ {p2}"]
+        header = " " * row_width + " ".join(f"{n:>12}" for n in col_actions)
+        lines.append(header)
+
+        for i, rname in enumerate(row_actions):
+            cells = [
+                f"({self.payoffs1[i, j]:g}, {self.payoffs2[i, j]:g})"
+                for j in range(cols)
+            ]
+            line = f"{rname:>{row_width}}" + " ".join(f"{c:>12}" for c in cells)
+            lines.append(line)
+
+        return "\n".join(lines)
+
     def best_response(self, profile: Tuple[int, int]) -> List[int]:
         """Return a best response profile to ``profile``.
 
