@@ -387,6 +387,25 @@ class Game:
         )
 
     @classmethod
+    def bach_or_stravinsky(cls) -> "Game":
+        """Return the Bach or Stravinsky coordination game.
+
+        This is identical to :meth:`battle_of_the_sexes` but labels the
+        actions as ``Bach`` and ``Stravinsky``.
+        """
+
+        p1 = [[2, 0], [0, 1]]
+        p2 = [[1, 0], [0, 2]]
+        return cls(
+            p1,
+            p2,
+            action_names=(
+                ("Bach", "Stravinsky"),
+                ("Bach", "Stravinsky"),
+            ),
+        )
+
+    @classmethod
     def pure_coordination(cls) -> "Game":
         """Return a simple pure coordination game."""
 

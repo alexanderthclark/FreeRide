@@ -48,3 +48,4 @@ In this version, Boris prefers the boxing match while Anna prefers the opera.
 .. image:: battle_of_the_sexes.svg
    :align: center
    :alt: Battle of the Sexes payoff table
+
