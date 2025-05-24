@@ -2,6 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 from typing import List, Tuple, Optional, Sequence
 
 class Game:
@@ -14,6 +15,10 @@ class Game:
         columns correspond to player 2 actions.
     payoffs2 : array-like
         Payoff matrix for player 2 with the same shape as ``payoffs1``.
+    player_names : sequence of str, optional
+        Names for the row and column players. If omitted the row player name is
+        randomly chosen from ``{"Anna", "Alice"}`` and the column player name
+        from ``{"Boris", "Bob"}``.
     """
 
     def __init__(
@@ -21,7 +26,7 @@ class Game:
         payoffs1,
         payoffs2,
         *,
-        player_names: Sequence[str] = ("Player A", "Player B"),
+        player_names: Optional[Sequence[str]] = None,
         action_names: Sequence[Sequence[str]] = (
             ("action 0", "action 1"),
             ("action 0", "action 1"),
@@ -29,6 +34,11 @@ class Game:
     ):
         self.payoffs1 = np.asarray(payoffs1, dtype=float)
         self.payoffs2 = np.asarray(payoffs2, dtype=float)
+        if player_names is None:
+            player_names = (
+                random.choice(["Anna", "Alice"]),
+                random.choice(["Boris", "Bob"]),
+            )
         self.player_names = tuple(player_names)
         self.action_names = (
             tuple(action_names[0]),
@@ -355,7 +365,14 @@ class Game:
 
         p1 = [[3, 0], [5, 1]]
         p2 = [[3, 5], [0, 1]]
-        return cls(p1, p2)
+        return cls(
+            p1,
+            p2,
+            action_names=(
+                ("Cooperate", "Defect"),
+                ("Cooperate", "Defect"),
+            ),
+        )
 
     @classmethod
     def matching_pennies(cls) -> "Game":
@@ -363,7 +380,14 @@ class Game:
 
         p1 = [[1, -1], [-1, 1]]
         p2 = [[-1, 1], [1, -1]]
-        return cls(p1, p2)
+        return cls(
+            p1,
+            p2,
+            action_names=(
+                ("Heads", "Tails"),
+                ("Heads", "Tails"),
+            ),
+        )
 
     @classmethod
     def stag_hunt(cls) -> "Game":
@@ -371,7 +395,14 @@ class Game:
 
         p1 = [[2, 0], [1, 1]]
         p2 = [[2, 1], [0, 1]]
-        return cls(p1, p2)
+        return cls(
+            p1,
+            p2,
+            action_names=(
+                ("Stag", "Hare"),
+                ("Stag", "Hare"),
+            ),
+        )
 
     @classmethod
     def battle_of_the_sexes(cls) -> "Game":
@@ -392,7 +423,14 @@ class Game:
 
         p1 = [[1, 0], [0, 1]]
         p2 = [[1, 0], [0, 1]]
-        return cls(p1, p2)
+        return cls(
+            p1,
+            p2,
+            action_names=(
+                ("Left", "Right"),
+                ("Left", "Right"),
+            ),
+        )
 
     @classmethod
     def chicken(cls) -> "Game":
@@ -400,7 +438,14 @@ class Game:
 
         p1 = [[3, 1], [4, 0]]
         p2 = [[3, 4], [1, 0]]
-        return cls(p1, p2)
+        return cls(
+            p1,
+            p2,
+            action_names=(
+                ("Straight", "Swerve"),
+                ("Straight", "Swerve"),
+            ),
+        )
 
 
 # Backwards compatibility
