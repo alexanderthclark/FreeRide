@@ -153,6 +153,7 @@ class Game:
         show_solution: bool = True,
         player_names: Sequence[str] = ("Player A", "Player B"),
         action_names: Sequence[Sequence[str]] = (("action 0", "action 1"), ("action 0", "action 1")),
+        usetex: bool = False,
     ) -> plt.Axes:
         """Plot a 2x2 payoff table.
 
@@ -167,6 +168,10 @@ class Game:
         action_names : sequence of sequence of str, optional
             ``action_names[0]`` are actions for player A and ``action_names[1]``
             for player B.
+        usetex : bool, default ``False``
+            Use LaTeX for text rendering and underline best responses when
+            ``True``. When ``False``, best responses are highlighted with colored
+            boxes.
 
         Returns
         -------
@@ -183,6 +188,10 @@ class Game:
 
         if ax is None:
             ax = plt.gca()
+
+        prev = plt.rcParams.get("text.usetex", False)
+        if usetex:
+            plt.rcParams["text.usetex"] = True
 
         for i in range(2):
             for j in range(2):
@@ -205,21 +214,37 @@ class Game:
                 s1, s2 = str(p1), str(p2)
                 bbox = None
                 if show_solution:
-                    if a_is_br:
-                        s1 = r"\underline{" + s1 + r"}"
-                    if b_is_br:
-                        s2 = r"\underline{" + s2 + r"}"
-                    if a_is_br and b_is_br:
-                        bbox = dict(
-                            facecolor="lightyellow",
-                            edgecolor="black",
-                            alpha=0.85,
-                        )
+                    if usetex:
+                        if a_is_br:
+                            s1 = r"\underline{" + s1 + r"}"
+                        if b_is_br:
+                            s2 = r"\underline{" + s2 + r"}"
+                        if a_is_br and b_is_br:
+                            bbox = dict(
+                                facecolor="lightyellow",
+                                edgecolor="black",
+                                alpha=0.85,
+                            )
+                    else:
+                        if a_is_br and b_is_br:
+                            bbox = dict(
+                                facecolor="lightyellow",
+                                edgecolor="black",
+                                alpha=0.85,
+                            )
+                        elif a_is_br:
+                            bbox = dict(facecolor="lightblue", edgecolor="none", alpha=0.5)
+                        elif b_is_br:
+                            bbox = dict(facecolor="lightgreen", edgecolor="none", alpha=0.5)
+
+                text = f"{s1}, {s2}"
+                if usetex:
+                    text = f"${s1}$, ${s2}$"
 
                 ax.text(
                     j - 0.5,
                     -i - 0.5,
-                    f"{s1}, {s2}",
+                    text,
                     va="center",
                     ha="center",
                     size=12,
@@ -297,6 +322,9 @@ class Game:
         )
 
         ax.axis("off")
+
+        # Restore previous TeX setting
+        plt.rcParams["text.usetex"] = prev
 
         return ax
 

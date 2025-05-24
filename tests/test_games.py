@@ -68,6 +68,26 @@ class TestGame(unittest.TestCase):
         ax = game.table()
         self.assertIsInstance(ax, plt.Axes)
 
+    def test_no_raw_underline_without_tex(self):
+        r"""Ensure ``\underline`` is not used when ``usetex=False``."""
+
+        p1 = [[3, 0], [5, 1]]
+        p2 = [[3, 5], [0, 1]]
+        game = Game(p1, p2)
+        ax = game.table(usetex=False)
+        texts = [t.get_text() for t in ax.texts]
+        self.assertFalse(any("\\underline" in t for t in texts))
+
+    def test_tex_highlighting(self):
+        r"""Best response highlighting works with ``usetex=True``."""
+
+        p1 = [[3, 0], [5, 1]]
+        p2 = [[3, 5], [0, 1]]
+        game = Game(p1, p2)
+        ax = game.table(usetex=True)
+        texts = [t.get_text() for t in ax.texts]
+        self.assertTrue(any("\\underline" in t for t in texts))
+
 
 if __name__ == '__main__':
     unittest.main()
