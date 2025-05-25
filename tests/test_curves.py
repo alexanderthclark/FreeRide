@@ -10,6 +10,7 @@ from freeride.curves import (
     blind_sum,
     horizontal_sum,
 )
+from freeride.exceptions import PPFError
 from freeride.base import AffineElement
 
 class TestAffine(unittest.TestCase):
@@ -137,7 +138,7 @@ class TestCurveEdgeCases(unittest.TestCase):
             horizontal_sum(inelastic)
 
     def test_upward_sloping_ppf_raises(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(PPFError):
             PPF(10, 1)
 
 
