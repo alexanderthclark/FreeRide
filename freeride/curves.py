@@ -31,6 +31,11 @@ class BaseQuadratic:
         elements : list of :class:`QuadraticElement`, optional
             Preconstructed elements defining the curve. When supplied the
             coefficient arguments are ignored.
+
+        Notes
+        -----
+        Elements that do not define a domain are treated as active for all
+        quantities.
         """
         if elements is None:
             if isinstance(linear_coef, (int, float)):
@@ -130,7 +135,7 @@ class BaseQuadratic:
     def active_element(self, q):
         for piece in self.elements:
             domain = piece._domain
-            if domain and (np.min(domain) <= q <= np.max(domain)):
+            if domain is None or (np.min(domain) <= q <= np.max(domain)):
                 return piece
         return None
 
