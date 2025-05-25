@@ -3,7 +3,6 @@ import numpy as np
 from freeride.curves import (
     Affine,
     BaseAffine,
-    BaseQuadratic,
     Demand,
     Supply,
     PPF,
@@ -11,6 +10,7 @@ from freeride.curves import (
     blind_sum,
     horizontal_sum,
 )
+from freeride.base import BaseQuadratic
 from freeride.exceptions import PPFError
 from freeride.base import AffineElement
 
