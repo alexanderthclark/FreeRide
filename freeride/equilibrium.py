@@ -274,6 +274,10 @@ class Equilibrium:
 
         if surplus:
             self.plot_surplus(ax)
+
+        ax.relim()
+        ax.autoscale_view()
+
         return ax
 
     def plot_surplus(self, ax):
@@ -312,6 +316,11 @@ class Equilibrium:
 
         # 4) DWL shading
         self._plot_dwl(ax)
+
+        ax.relim()
+        ax.autoscale_view()
+
+        return ax
 
     def _plot_gov_revenue(self, ax):
         """
