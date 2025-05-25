@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
 
-from freeride.plotting import ALPHA, AREA_FILLS, textbook_axes
+from freeride.plotting import ALPHA, AREA_FILLS, textbook_axes, update_axes_limits
 
 
 class TestPlotting(unittest.TestCase):
@@ -47,6 +47,30 @@ class TestPlotting(unittest.TestCase):
         fig, ax = plt.subplots()
         plt.sca(ax)
         result = textbook_axes()
+
+        self.assertIs(result, ax)
+
+    def test_update_axes_limits_includes_origin(self):
+        fig, ax = plt.subplots()
+        ax.plot([1, 2], [3, 4])
+        ax.set_xlim(1, 2)
+        ax.set_ylim(3, 4)
+
+        result = update_axes_limits(ax)
+
+        self.assertIs(result, ax)
+        x0, x1 = ax.get_xlim()
+        y0, y1 = ax.get_ylim()
+        self.assertLessEqual(x0, 0)
+        self.assertGreaterEqual(x1, 0)
+        self.assertLessEqual(y0, 0)
+        self.assertGreaterEqual(y1, 0)
+
+    def test_update_axes_limits_uses_current_axes(self):
+        fig, ax = plt.subplots()
+        plt.sca(ax)
+        ax.plot([0, 1], [0, 1])
+        result = update_axes_limits()
 
         self.assertIs(result, ax)
 

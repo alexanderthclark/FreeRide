@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from .base import PolyBase
-from .plotting import textbook_axes
+from .plotting import textbook_axes, update_axes_limits
 from .formula import _quadratic_formula
 
 class QuadraticElement(PolyBase):
@@ -83,8 +83,7 @@ class QuadraticElement(PolyBase):
             # ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         return ax
 
@@ -99,8 +98,7 @@ class QuadraticElement(PolyBase):
         ys = self(xs)
         ax.fill_between(xs, 0, ys, zorder=zorder, color=color, alpha=alpha)
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         return ax
 
@@ -115,8 +113,7 @@ class QuadraticElement(PolyBase):
         ys = self(xs)
         ax.fill_between(xs, ys, y, zorder=zorder, color=color, alpha=alpha)
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         return ax
 
@@ -205,8 +202,7 @@ class BaseQuadratic:
                 elmt.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
 
         if set_lims:
-            ax.relim()
-            ax.autoscale_view()
+            update_axes_limits(ax)
 
         return ax
 

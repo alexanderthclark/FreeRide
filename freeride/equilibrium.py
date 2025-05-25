@@ -26,6 +26,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from freeride.curves import Demand, Supply, intersection
+from freeride.plotting import update_axes_limits
 
 
 class Equilibrium:
@@ -275,8 +276,7 @@ class Equilibrium:
         if surplus:
             self.plot_surplus(ax)
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         return ax
 
@@ -317,8 +317,7 @@ class Equilibrium:
         # 4) DWL shading
         self._plot_dwl(ax)
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         return ax
 

@@ -49,3 +49,17 @@ def textbook_axes(ax: Optional[plt.Axes] = None) -> plt.Axes:
     ax.spines["right"].set_visible(False)
 
     return ax
+
+
+def update_axes_limits(ax: Optional[plt.Axes] = None) -> plt.Axes:
+    """Recalculate limits and ensure the origin is visible."""
+    if ax is None:
+        ax = plt.gca()
+    ax.relim()
+    ax.autoscale_view()
+    x0, x1 = ax.get_xlim()
+    y0, y1 = ax.get_ylim()
+    ax.set_xlim(min(x0, 0), max(x1, 0))
+    ax.set_ylim(min(y0, 0), max(y1, 0))
+    return ax
+

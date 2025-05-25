@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from .base import PolyBase
-from .plotting import textbook_axes
+from .plotting import textbook_axes, update_axes_limits
 
 class AffineElement(PolyBase):
     """
@@ -318,8 +318,7 @@ class AffineElement(PolyBase):
             ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         return ax
 
@@ -353,8 +352,7 @@ class AffineElement(PolyBase):
 
         ax.fill_between(q, p01, p, zorder=zorder, color=color, alpha=alpha)
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         return ax
 

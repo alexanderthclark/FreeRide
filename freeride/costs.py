@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numbers
 
 from freeride.base import PolyBase
-from freeride.plotting import textbook_axes
+from freeride.plotting import textbook_axes, update_axes_limits
 
 
 ############################################################
@@ -340,8 +340,7 @@ class Cost(PolyBase):
         ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
         ax.plot([q], [p], marker = 'o')
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         ax.legend()
 
@@ -405,8 +404,7 @@ class Cost(PolyBase):
         if 'tr' in items:
             ax.fill_between([0,q], 0, p, facecolor = 'blue', alpha = 0.1, label = 'TR', hatch = '+')
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         return ax
 
@@ -512,7 +510,6 @@ class AverageCost:
         ys = self(xs)
         ax.plot(xs, ys, label = label)
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
         return ax
