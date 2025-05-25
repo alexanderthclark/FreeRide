@@ -7,7 +7,7 @@ from freeride.base import PolyBase, QuadraticElement, AffineElement
 from IPython.display import Latex, display
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource
-from freeride.exceptions import PPFError
+from freeride.exceptions import PPFError, PerfectSegmentError
 
 
 class BaseQuadratic:
@@ -227,14 +227,14 @@ def blind_sum(*curves):
         return None
     elastic_curves = [c for c in curves if c.slope == 0]
     inelastic_curves = [c for c in curves if c.slope == np.inf]
-    regular_curves = [c for c in curves if c not in elastic_curves + inelastic_curves]
+    if elastic_curves or inelastic_curves:
+        raise PerfectSegmentError(
+            "Cannot combine curves with perfectly elastic or perfectly inelastic segments."
+        )
 
-    if not elastic_curves and not inelastic_curves:
-        qintercept = np.sum([-c.intercept/c.slope for c in curves])
-        qslope = np.sum([1/c.slope for c in curves])
-        return AffineElement(qintercept, qslope, inverse = False)
-    else:
-        raise Exception("Perfectly Elastic and Inelastic curves not supported")
+    qintercept = np.sum([-c.intercept / c.slope for c in curves])
+    qslope = np.sum([1 / c.slope for c in curves])
+    return AffineElement(qintercept, qslope, inverse=False)
 
 
 def horizontal_sum(*curves):
@@ -258,6 +258,10 @@ def horizontal_sum(*curves):
     """
     elastic_curves = [c for c in curves if c.slope == 0]
     inelastic_curves = [c for c in curves if c.slope == np.inf]
+    if elastic_curves or inelastic_curves:
+        raise PerfectSegmentError(
+            "Cannot add curves with perfectly elastic or perfectly inelastic segments."
+        )
     regular_curves = [c for c in curves if c not in elastic_curves + inelastic_curves]
 
     intercepts = [0] + [c.intercept for c in regular_curves + elastic_curves]

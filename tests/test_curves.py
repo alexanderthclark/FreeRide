@@ -10,7 +10,7 @@ from freeride.curves import (
     blind_sum,
     horizontal_sum,
 )
-from freeride.exceptions import PPFError
+from freeride.exceptions import PPFError, PerfectSegmentError
 from freeride.base import AffineElement
 
 class TestAffine(unittest.TestCase):
@@ -155,12 +155,12 @@ class TestCurveEdgeCases(unittest.TestCase):
 
     def test_blind_sum_rejects_elastic(self):
         elastic = AffineElement(5, 0)  # perfectly elastic
-        with self.assertRaises(Exception):
+        with self.assertRaises(PerfectSegmentError):
             blind_sum(elastic)
 
     def test_horizontal_sum_rejects_inelastic(self):
         inelastic = AffineElement(5, 0, inverse=False)  # perfectly inelastic
-        with self.assertRaises(Exception):
+        with self.assertRaises(PerfectSegmentError):
             horizontal_sum(inelastic)
 
     def test_upward_sloping_ppf_raises(self):

@@ -25,3 +25,7 @@ class PPFError(FreeRideError):
     """Error raised for invalid production possibility frontiers."""
 
 
+class PerfectSegmentError(FreeRideError):
+    """Raised when perfectly elastic or inelastic segments are unsupported."""
+
+
