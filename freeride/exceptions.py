@@ -21,3 +21,7 @@ class FormulaParseError(FreeRideError):
     """Error raised when parsing a formula string fails."""
 
 
+class PPFError(FreeRideError):
+    """Error raised for invalid production possibility frontiers."""
+
+

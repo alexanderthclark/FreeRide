@@ -7,6 +7,7 @@ from freeride.base import PolyBase, QuadraticElement, AffineElement
 from IPython.display import Latex, display
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource
+from freeride.exceptions import PPFError
 
 
 class BaseQuadratic:
@@ -883,7 +884,7 @@ class PPF(BaseAffine):
     def _check_slope(self):
         for slope in self.slope:
             if slope >= 0:
-                raise Exception("Upward-sloping PPF.")
+                raise PPFError("Upward-sloping PPF.")
 
 
     def __add__(self, other):
