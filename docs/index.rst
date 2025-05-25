@@ -6,6 +6,10 @@
 Welcome to FreeRide's documentation!
 =====================================
 
+.. image:: https://github.com/user-attachments/assets/70913001-c9b9-4732-8b53-a6098ec9189a
+   :align: center
+   :alt: FreeRide banner
+
 This is a Python package for introductory microeconomics.
 
 .. toctree::
