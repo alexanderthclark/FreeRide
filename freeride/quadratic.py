@@ -44,6 +44,14 @@ class QuadraticElement(PolyBase):
         else:
             return self.__class__(*coef, symbols=self.symbols)
 
+    def vertical_shift(self, delta, inplace=True):
+        """Shift the curve vertically by ``delta``."""
+        new_intercept = self.intercept + delta
+        if inplace:
+            self.__init__(new_intercept, self.linear_coef, self.quadratic_coef, symbols=self.symbols)
+        else:
+            return self.__class__(new_intercept, self.linear_coef, self.quadratic_coef, symbols=self.symbols)
+
     def plot(self, ax=None, textbook_style=True, max_q=100, label=True, **kwargs):
         """Plot the quadratic element.
 
