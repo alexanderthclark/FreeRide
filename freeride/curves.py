@@ -466,6 +466,26 @@ class Affine(BaseAffine):
 
         super().__init__(intercept, slope, elements, inverse)
 
+        # Bypass horizontal_sum for a single perfectly elastic or inelastic element
+        if len(self.elements) == 1 and (
+            self.elements[0].slope == 0 or np.isinf(self.elements[0].slope)
+        ):
+            piece = self.elements[0]
+            self.pieces = [piece]
+            if piece.slope == 0:
+                self.psections = [(0, np.inf)]
+                self.qsections = [(0, np.inf)]
+            else:
+                q0 = piece.q_intercept
+                self.psections = [(0, np.inf)]
+                self.qsections = [(q0, q0)]
+            self._set_piece_domains()
+            self.conditions = ["p >= 0"]
+            self.expressions = [piece.expression]
+            self.inverse_expressions = [piece.inverse_expression]
+            self.intersections = []
+            return
+
         pieces, cuts, mids = horizontal_sum(*self.elements)
         self.pieces = pieces
 

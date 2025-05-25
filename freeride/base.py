@@ -141,9 +141,13 @@ class PolyBase(np.polynomial.Polynomial):
             >>> poly.q(1.0)
             1.0
         """
-        # Perfectly Inelastic
+        # Perfectly inelastic
         if self.slope == np.inf:
             return self.q_intercept
+
+        # Perfectly elastic
+        if self.slope == 0:
+            return np.inf if p >= self.intercept else 0
 
         coef2 = (self.coef[0] - p, *self.coef[1:])[::-1]
         roots = np.roots(coef2)

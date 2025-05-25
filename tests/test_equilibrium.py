@@ -32,3 +32,22 @@ class TestEquilibrium(unittest.TestCase):
         self.assertEqual(eq_floor.q, self.equilibrium.q)
         if hasattr(eq_floor, "excess_supply"):
             self.assertEqual(eq_floor.excess_supply, 0)
+
+
+class TestPerfectCurveEquilibrium(unittest.TestCase):
+    """Equilibrium outcomes with perfectly elastic or inelastic curves."""
+
+    def test_horizontal_supply(self):
+        demand = Demand(10, -1)
+        supply = Supply(5, 0)
+        eq = Equilibrium(demand, supply)
+        self.assertAlmostEqual(eq.p, 5.0)
+        self.assertAlmostEqual(eq.q, 5.0)
+
+    def test_vertical_demand(self):
+        demand = Demand(5, 0, inverse=False)
+        supply = Supply(0, 1)
+        eq = Equilibrium(demand, supply)
+        self.assertAlmostEqual(eq.p, 5.0)
+        self.assertAlmostEqual(eq.q, 5.0)
+
