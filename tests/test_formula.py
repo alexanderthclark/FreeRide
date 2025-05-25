@@ -11,6 +11,10 @@ class TestFormula(unittest.TestCase):
         s4 = 'y = 1*x'
         s5 = 'x = 2y'
         s6 = 'y=x'
+        s7 = 'y = 10 - x'
+        s8 = 'y = 10 - x*2'
+        s9 = 'x + y = 10'
+        s10 = '2x + 3y = 6'
 
         self.affine1 = _formula(s1)
         self.affine2 = _formula(s2)
@@ -18,6 +22,10 @@ class TestFormula(unittest.TestCase):
         self.affine4 = _formula(s4)
         self.affine5 = _formula(s5)
         self.affine6 = _formula(s6)
+        self.affine7 = _formula(s7)
+        self.affine8 = _formula(s8)
+        self.affine9 = _formula(s9)
+        self.affine10 = _formula(s10)
 
     def test_coef(self):
         """Verify both slope and intercept parsing for a variety of forms."""
@@ -29,6 +37,10 @@ class TestFormula(unittest.TestCase):
         self.assertEqual(self.affine4[1], 1)
         self.assertEqual(self.affine5[1], 0.5)
         self.assertEqual(self.affine6[1], 1)
+        self.assertEqual(self.affine7[1], -1)
+        self.assertEqual(self.affine8[1], -2)
+        self.assertEqual(self.affine9[1], -1)
+        self.assertAlmostEqual(self.affine10[1], -2/3)
 
         # Intercepts
         self.assertEqual(self.affine1[0], 10)
@@ -37,6 +49,10 @@ class TestFormula(unittest.TestCase):
         self.assertEqual(self.affine4[0], 0)
         self.assertEqual(self.affine5[0], 0)
         self.assertEqual(self.affine6[0], 0)
+        self.assertEqual(self.affine7[0], 10)
+        self.assertEqual(self.affine8[0], 10)
+        self.assertEqual(self.affine9[0], 10)
+        self.assertEqual(self.affine10[0], 2)
 
     def test_fraction_raises(self):
         """Fractions are not supported and should raise a FormulaParseError."""
@@ -46,7 +62,7 @@ class TestFormula(unittest.TestCase):
     def test_invalid_equation_raises(self):
         """Equations that do not match the expected forms should error."""
         with self.assertRaises(FormulaParseError):
-            _formula("2x + 1 = y")
+            _formula("y = x*y")
 
     def tearDown(self):
         pass
