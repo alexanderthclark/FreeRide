@@ -984,3 +984,5 @@ class PPF(BaseAffine):
                             plt_function(value)
 
             return ax
+
+

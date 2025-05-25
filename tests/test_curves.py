@@ -162,3 +162,19 @@ class TestPPF(unittest.TestCase):
         self.assertEqual(scaled.intercept, [2 * self.ppf.intercept[0]])
         self.assertEqual(scaled.slope, self.ppf.slope)
         self.assertAlmostEqual(scaled.q_intercept, 2 * self.ppf.q_intercept)
+
+    def test_addition(self):
+        other = PPF(5, -0.5)
+        joint = self.ppf + other
+        # addition should produce a new PPF instance
+        self.assertIsInstance(joint, PPF)
+        # verify calling on key points
+        self.assertAlmostEqual(joint(0), 15.0)
+        self.assertAlmostEqual(joint(10), 10.0)
+        self.assertAlmostEqual(joint(20), 0.0)
+
+    def test_commutative_add(self):
+        p1 = PPF(10, -1)
+        p2 = PPF(5, -0.5)
+        self.assertAlmostEqual((p1 + p2)(7), (p2 + p1)(7))
+
