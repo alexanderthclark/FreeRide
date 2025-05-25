@@ -230,7 +230,7 @@ class Game:
         action_names: Optional[Sequence[Sequence[str]]] = None,
         usetex: bool = False,
     ) -> plt.Axes:
-        """Plot a 2x2 payoff table.
+        """Plot a payoff table.
 
         Parameters
         ----------
@@ -256,11 +256,10 @@ class Game:
 
         Notes
         -----
-        Currently only works for 2x2 games.
+        Supports arbitrary ``rows \times cols`` games.
         """
 
-        if self.shape != (2, 2):
-            raise ValueError("table() only implemented for 2x2 games")
+        rows, cols = self.shape
 
         if ax is None:
             ax = plt.gca()
@@ -274,8 +273,8 @@ class Game:
         if usetex:
             plt.rcParams["text.usetex"] = True
 
-        for i in range(2):
-            for j in range(2):
+        for i in range(rows):
+            for j in range(cols):
                 br = self.best_response((i, j))
                 a_is_br = br[0] == i
                 b_is_br = br[1] == j
@@ -362,8 +361,8 @@ class Game:
                     )
 
         ax.set_aspect("equal")
-        ax.set_ylim(-2.05, 0.05)
-        ax.set_xlim(-1.05, 1.05)
+        ax.set_ylim(-rows - 0.05, 0.05)
+        ax.set_xlim(-1.05, cols - 1 + 0.05)
 
         ax.text(
             -0.08,
@@ -376,27 +375,17 @@ class Game:
             size=12,
         )
 
-        ax.text(
-            0,
-            0.25,
-            action_names[0][1],
-            rotation=90,
-            transform=ax.transAxes,
-            ha="right",
-            va="center",
-            size=10,
-        )
-
-        ax.text(
-            0,
-            0.75,
-            action_names[0][0],
-            rotation=90,
-            transform=ax.transAxes,
-            ha="right",
-            va="center",
-            size=10,
-        )
+        for i in range(rows):
+            ax.text(
+                0,
+                1 - (i + 0.5) / rows,
+                action_names[0][i],
+                rotation=90,
+                transform=ax.transAxes,
+                ha="right",
+                va="center",
+                size=10,
+            )
 
         ax.text(
             0.5,
@@ -409,27 +398,17 @@ class Game:
             size=12,
         )
 
-        ax.text(
-            0.75,
-            1,
-            action_names[1][1],
-            rotation=0,
-            transform=ax.transAxes,
-            ha="center",
-            va="bottom",
-            size=10,
-        )
-
-        ax.text(
-            0.25,
-            1,
-            action_names[1][0],
-            rotation=0,
-            transform=ax.transAxes,
-            ha="center",
-            va="bottom",
-            size=10,
-        )
+        for j in range(cols):
+            ax.text(
+                (j + 0.5) / cols,
+                1,
+                action_names[1][j],
+                rotation=0,
+                transform=ax.transAxes,
+                ha="center",
+                va="bottom",
+                size=10,
+            )
 
         ax.axis("off")
 

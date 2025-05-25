@@ -50,6 +50,29 @@ class TestGame(unittest.TestCase):
         game = Game(p1, p2)
         self.assertEqual(set(game.nash_equilibria()), {(1, 0), (0, 1)})
 
+    def test_rock_paper_scissors(self):
+        """Rock-paper-scissors has no pure Nash equilibria."""
+
+        p1 = [
+            [0, -1, 1],
+            [1, 0, -1],
+            [-1, 1, 0],
+        ]
+        p2 = [
+            [0, 1, -1],
+            [-1, 0, 1],
+            [1, -1, 0],
+        ]
+        game = Game(
+            p1,
+            p2,
+            action_names=(
+                ("Rock", "Paper", "Scissors"),
+                ("Rock", "Paper", "Scissors"),
+            ),
+        )
+        self.assertEqual(game.nash_equilibria(), [])
+
     def test_alias(self):
         self.assertIs(NormalFormGame, Game)
 
@@ -86,6 +109,30 @@ class TestGame(unittest.TestCase):
         p1 = [[3, 0], [5, 1]]
         p2 = [[3, 5], [0, 1]]
         game = Game(p1, p2)
+        ax = game.table()
+        self.assertIsInstance(ax, plt.Axes)
+
+    def test_table_returns_axes_non_square(self):
+        """``table`` should support games larger than 2x2."""
+
+        p1 = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+        ]
+        p2 = [
+            [0, 0, 0],
+            [1, 1, 1],
+            [2, 2, 2],
+        ]
+        game = Game(
+            p1,
+            p2,
+            action_names=(
+                ("r0", "r1", "r2"),
+                ("c0", "c1", "c2"),
+            ),
+        )
         ax = game.table()
         self.assertIsInstance(ax, plt.Axes)
 
