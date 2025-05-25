@@ -265,8 +265,6 @@ def ppf_sum(*curves, comparative_advantage=True):
     curves = [t[1] for t in slope_and_curves]
     x_intercepts = [c.q_intercept for c in curves]
     y_intercepts = [c.intercept for c in curves]
-    y_int = sum([s.intercept for s in curves])
-    x_int = sum([s.q_intercept for s in curves])
 
     for key, ppf in enumerate(curves):
 
