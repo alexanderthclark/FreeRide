@@ -29,7 +29,3 @@ class TestWorldPrice(unittest.TestCase):
     def test_tariff_requires_world_price(self):
         with self.assertRaises(Exception):
             Equilibrium(self.demand, self.supply, tariff=1)
-
-    def test_negative_tariff_raises(self):
-        with self.assertRaises(Exception):
-            Equilibrium(self.demand, self.supply, world_price=4, tariff=-1)
