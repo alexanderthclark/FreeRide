@@ -188,6 +188,9 @@ class PolyBase(np.polynomial.Polynomial):
         if textbook_style:
             textbook_axes(ax)
 
+        ax.relim()
+        ax.autoscale_view()
+
     # Similar to numpy ABCPolyBase
     def _repr_latex_(self):
         """
@@ -597,9 +600,8 @@ class AffineElement(PolyBase):
             ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
 
-        # fix lims
-        ylims = ax.get_ylim()
-        ax.set_ylim(0, ylims[1])
+        ax.relim()
+        ax.autoscale_view()
 
         return ax
 
@@ -632,6 +634,9 @@ class AffineElement(PolyBase):
         p01 = self.p(q[0]), self.p(q[1])
 
         ax.fill_between(q, p01, p, zorder=zorder, color=color, alpha=alpha)
+
+        ax.relim()
+        ax.autoscale_view()
 
         return ax
 
@@ -715,6 +720,9 @@ class QuadraticElement(PolyBase):
             # ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
 
+        ax.relim()
+        ax.autoscale_view()
+
         return ax
 
     def plot_area_below(self, q0, q1, ax=None, zorder=-1, color=None, alpha=None):
@@ -728,6 +736,9 @@ class QuadraticElement(PolyBase):
         ys = self(xs)
         ax.fill_between(xs, 0, ys, zorder=zorder, color=color, alpha=alpha)
 
+        ax.relim()
+        ax.autoscale_view()
+
         return ax
 
     def plot_area_above(self, q0, q1, y, ax=None, zorder=-1, color=None, alpha=None):
@@ -740,6 +751,10 @@ class QuadraticElement(PolyBase):
         xs = np.linspace(q0, q1, 100)
         ys = self(xs)
         ax.fill_between(xs, ys, y, zorder=zorder, color=color, alpha=alpha)
+
+        ax.relim()
+        ax.autoscale_view()
+
         return ax
 
     @classmethod

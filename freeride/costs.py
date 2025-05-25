@@ -339,8 +339,10 @@ class Cost(PolyBase):
         ax.plot([0,q], [p,p], linestyle = 'dashed', color = 'gray')
         ax.plot([q,q], [0,p], linestyle = 'dashed', color = 'gray')
         ax.plot([q], [p], marker = 'o')
-        ax.set_xlim(0,max_q)
-        ax.set_ylim(0,2*p)
+
+        ax.relim()
+        ax.autoscale_view()
+
         ax.legend()
 
     def cost_profit_plot(self, p, ax = None, items = ['tc', 'tr', 'profit']):
@@ -403,8 +405,10 @@ class Cost(PolyBase):
         if 'tr' in items:
             ax.fill_between([0,q], 0, p, facecolor = 'blue', alpha = 0.1, label = 'TR', hatch = '+')
 
+        ax.relim()
+        ax.autoscale_view()
 
-
+        return ax
 
 class AverageCost:
     """
@@ -507,3 +511,8 @@ class AverageCost:
         xs = np.linspace(0.01, max_q, int(10*max_q))
         ys = self(xs)
         ax.plot(xs, ys, label = label)
+
+        ax.relim()
+        ax.autoscale_view()
+
+        return ax

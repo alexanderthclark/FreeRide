@@ -130,6 +130,10 @@ class BaseQuadratic:
             if elmt:
                 elmt.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
 
+        if set_lims:
+            ax.relim()
+            ax.autoscale_view()
+
         return ax
 
     def active_element(self, q):
@@ -649,41 +653,8 @@ class Affine(BaseAffine):
                 piece.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
 
         if set_lims:
-            # Gather current limits
-            ylim = ax.get_ylim()
-            xlim = ax.get_xlim()
-
-            # Build a list of the piecewise domain endpoints
-            flat_q = sorted([qv for seg in self.qsections for qv in seg if np.isfinite(qv)])
-            flat_p = sorted([pv for seg in self.psections for pv in seg if np.isfinite(pv)])
-
-            # If we have no finite domain boundaries, we won't override user-limits
-            if flat_q:
-                # If user didn't specify max_q, pick it from the largest domain endpoint
-                if max_q is None:
-                    possible_max_q = flat_q[-1]
-                    # If it's infinite, skip. If there's only ∞, fallback to 10 or something
-                    if np.isinf(possible_max_q):
-                        possible_max_q = 10.0
-                    max_q = possible_max_q
-            else:
-                # fallback if we have no piecewise domain info
-                if max_q is None:
-                    max_q = 10.0
-
-            # Evaluate the curve at max_q
-            val_at_max_q = safe_eval(max_q)
-
-            # If that fails, fallback to 0
-            if np.isnan(val_at_max_q):
-                val_at_max_q = 0
-
-            # Decide new upper bound for price
-            max_p = max(val_at_max_q, ylim[1], 0)
-            
-            # Only update axes if that doesn't cause error
-            ax.set_ylim(0, max_p)
-            ax.set_xlim(0, max_q)
+            ax.relim()
+            ax.autoscale_view()
 
         # Apply any leftover kwargs that might be e.g. title, xlim, ylim
         for key, value in kwargs.items():
@@ -743,28 +714,8 @@ class Affine(BaseAffine):
 
         # check limits
         if set_lims:
-            ylim = ax.get_ylim()
-            xlim = ax.get_xlim()
-            if ylim[1] <= np.max(self.intercept):
-                ax.set_ylim(0, np.max(self.intercept)*1.01)
-
-            flat_q = sorted([i for tup in self.qsections for i in tup])
-            flat_p = sorted([i for tup in self.psections for i in tup])
-            if max_q is None:
-                if np.inf in flat_q:
-                    max_q = 1.5*flat_q[-2]
-                else:
-                    max_q = flat_q[-1]
-            if np.inf in flat_p:
-                max_p = np.max([self(max_q), 1.5*flat_p[-2]])
-            else:
-                max_p = np.max([self(max_q), 1.5*flat_p[-1]])
-
-            # don't decrease limits relative to starting point
-            ax.set_ylim(0, np.max([max_p, ylim[1]]))
-            ax.set_xlim(0, np.max([max_q, 1, xlim[1]]))
-            # fix for demand and supply and inverse vs q(p)
-            #ax.set_xlim(0, np.max(self.intercept))
+            ax.relim()
+            ax.autoscale_view()
 
         # Run additional parameters as pyplot functions
         # xlim or ylim will overwrite the previous set_lims behavior
@@ -813,6 +764,10 @@ class Affine(BaseAffine):
                              ax=ax,
                              color=color,
                              alpha=alpha)
+
+        ax.relim()
+        ax.autoscale_view()
+
         return ax
 
     def surplus(self, p, q=None):
@@ -1044,6 +999,9 @@ class PPF(BaseAffine):
                             plt_function(*value)
                         else:
                             plt_function(value)
+
+            ax.relim()
+            ax.autoscale_view()
 
             return ax
 
