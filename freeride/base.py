@@ -3,7 +3,7 @@ import numbers
 import matplotlib.pyplot as plt
 import numpy as np
 
-from freeride.plotting import textbook_axes
+from freeride.plotting import textbook_axes, update_axes_limits
 
 class PolyBase(np.polynomial.Polynomial):
     """
@@ -185,8 +185,7 @@ class PolyBase(np.polynomial.Polynomial):
         if textbook_style:
             textbook_axes(ax)
 
-        ax.relim()
-        ax.autoscale_view()
+        update_axes_limits(ax)
 
     # Similar to numpy ABCPolyBase
     def _repr_latex_(self):
