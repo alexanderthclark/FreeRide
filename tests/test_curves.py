@@ -165,6 +165,17 @@ class TestCurveEdgeCases(unittest.TestCase):
         except Exception as e:
             self.fail(f"BaseAffine raised {e} unexpectedly")
 
+    def test_q_perfectly_elastic(self):
+        d_curve = AffineElement(5, 0)
+        d_curve.role = "demand"
+        s_curve = AffineElement(5, 0)
+        s_curve.role = "supply"
+
+        self.assertEqual(d_curve.q(4), np.inf)
+        self.assertEqual(d_curve.q(5), 0)
+        self.assertEqual(s_curve.q(4), 0)
+        self.assertEqual(s_curve.q(5), np.inf)
+
 
 class TestPPF(unittest.TestCase):
 

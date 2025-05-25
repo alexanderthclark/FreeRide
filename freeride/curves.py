@@ -814,6 +814,8 @@ class Demand(Affine):
         Initializes a Demand curve object.
         """
         super().__init__(intercept, slope, elements, inverse)
+        for el in self.elements:
+            setattr(el, "role", "demand")
         self._check_slope()
 
     def _check_slope(self):
@@ -847,6 +849,8 @@ class Supply(Affine):
         Initializes a Supply curve object.
         """
         super().__init__(intercept, slope, elements, inverse)
+        for el in self.elements:
+            setattr(el, "role", "supply")
         self._check_slope()
 
     def _check_slope(self):
