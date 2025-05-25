@@ -1,7 +1,10 @@
-# Intro-Microeconomics
+# FreeRide
 
-This is a package for introductory microeconomics topics. Find additional code, albeit unpackaged, in the loose-code branch. This new refactor does not yet have all of the same capabilities as in the old unpackaged code.
+This is a package for introductory microeconomics topics. Find additional code, albeit unpackaged, in the loose-code branch. 
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/70913001-c9b9-4732-8b53-a6098ec9189a" alt="freeridebanner" width="50%">
+</p>
 
 # Example Usage
 
