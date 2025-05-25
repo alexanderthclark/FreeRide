@@ -141,6 +141,30 @@ class TestCurveEdgeCases(unittest.TestCase):
         with self.assertRaises(PPFError):
             PPF(10, 1)
 
+    def test_has_perfect_segment_property(self):
+        elastic = BaseAffine(5, 0, inverse=True)
+        self.assertTrue(elastic.has_perfectly_elastic_segment)
+        self.assertFalse(elastic.has_perfectly_inelastic_segment)
+        self.assertTrue(elastic.has_perfect_segment)
+
+        inelastic = BaseAffine(5, 0, inverse=False)
+        self.assertTrue(inelastic.has_perfectly_inelastic_segment)
+        self.assertFalse(inelastic.has_perfectly_elastic_segment)
+        self.assertTrue(inelastic.has_perfect_segment)
+
+        regular = BaseAffine(12, -1, inverse=True)
+        self.assertFalse(regular.has_perfectly_elastic_segment)
+        self.assertFalse(regular.has_perfectly_inelastic_segment)
+        self.assertFalse(regular.has_perfect_segment)
+
+    def test_demand_with_perfect_segment_no_negative_check(self):
+        # Ensure creating a BaseAffine with a perfectly elastic segment
+        # succeeds without triggering negative quantity checks.
+        try:
+            BaseAffine(5, 0)
+        except Exception as e:
+            self.fail(f"BaseAffine raised {e} unexpectedly")
+
 
 class TestPPF(unittest.TestCase):
 
