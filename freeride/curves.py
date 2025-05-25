@@ -326,6 +326,29 @@ class BaseAffine:
     def __bool__(self):
         return bool(np.any([bool(el) for el in self.elements]))
 
+    def _has_perfectly_elastic_segment(self):
+        """Return ``True`` if any element is perfectly elastic (zero slope)."""
+        return any(el.slope == 0 for el in self.elements)
+
+    def _has_perfectly_inelastic_segment(self):
+        """Return ``True`` if any element is perfectly inelastic (infinite slope)."""
+        return any(np.isinf(el.slope) for el in self.elements)
+
+    @property
+    def has_perfectly_elastic_segment(self):
+        """bool: Whether the curve contains a perfectly elastic segment."""
+        return self._has_perfectly_elastic_segment()
+
+    @property
+    def has_perfectly_inelastic_segment(self):
+        """bool: Whether the curve contains a perfectly inelastic segment."""
+        return self._has_perfectly_inelastic_segment()
+
+    @property
+    def has_perfect_segment(self):
+        """bool: Whether the curve contains a perfectly elastic or inelastic segment."""
+        return self.has_perfectly_elastic_segment or self.has_perfectly_inelastic_segment
+
     @classmethod
     def from_two_points(cls, x1, y1, x2, y2):
         """
@@ -797,8 +820,9 @@ class Demand(Affine):
         for slope in self.slope:
             if slope > 0:
                 raise Exception("Upward-sloping demand curve.")
-        if self.q(0) < 0:
-            raise Exception("Negative demand.")
+        if not self.has_perfectly_elastic_segment:
+            if self.q(0) < 0:
+                raise Exception("Negative demand.")
 
     def consumer_surplus(self, p, q = None):
         return self.surplus(p, q)
@@ -829,6 +853,9 @@ class Supply(Affine):
         for slope in self.slope:
             if slope < 0:
                 raise Exception("Downward-sloping supply curve.")
+        if not self.has_perfectly_elastic_segment:
+            if self.q(0) < 0:
+                raise Exception("Negative supply.")
 
     def producer_surplus(self, p, q = None):
         return -self.surplus(p, q)
