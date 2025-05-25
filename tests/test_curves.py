@@ -3,6 +3,7 @@ import numpy as np
 from freeride.curves import (
     Affine,
     BaseAffine,
+    BaseQuadratic,
     Demand,
     Supply,
     PPF,
@@ -232,4 +233,29 @@ class TestPPF(unittest.TestCase):
         p1 = PPF(10, -1)
         p2 = PPF(5, -0.5)
         self.assertAlmostEqual((p1 + p2)(7), (p2 + p1)(7))
+
+
+class TestBaseQuadratic(unittest.TestCase):
+
+    def setUp(self):
+        self.bq1 = BaseQuadratic(1, 1, 1)
+        self.bq2 = BaseQuadratic(0, 2, 0)
+
+    def test_addition(self):
+        joint = self.bq1 + self.bq2
+        self.assertIsInstance(joint, BaseQuadratic)
+        self.assertAlmostEqual(joint(2), self.bq1(2) + self.bq2(2))
+
+    def test_scalar_multiplication(self):
+        scaled = 2 * self.bq1
+        self.assertIsInstance(scaled, BaseQuadratic)
+        self.assertAlmostEqual(scaled(3), 2 * self.bq1(3))
+
+    def test_marginal_curve(self):
+        bq = BaseQuadratic(1, 3, 2)
+        marg = bq.marginal_curve()
+        self.assertIsInstance(marg, BaseAffine)
+        self.assertEqual(marg.intercept, [3])
+        self.assertEqual(marg.slope, [4])
+        self.assertAlmostEqual(marg(2), 3 + 4 * 2)
 

@@ -142,6 +142,74 @@ class BaseQuadratic:
             # q is out of range
             return 0
 
+    def __add__(self, other):
+        """Return a new curve with elements from both operands."""
+        elements = self.elements + other.elements
+        return type(self)(elements=elements)
+
+    def __mul__(self, scalar):
+        """Scale coefficients by ``scalar`` and return a new curve."""
+        if not isinstance(scalar, numbers.Real):
+            return NotImplemented
+        new_elements = []
+        for e in self.elements:
+            coef = (
+                scalar * e.intercept,
+                scalar * e.linear_coef,
+                scalar * e.quadratic_coef,
+            )
+            new_el = QuadraticElement(*coef, symbols=e.symbols, domain=e._domain)
+            new_elements.append(new_el)
+        return type(self)(elements=new_elements)
+
+    def __rmul__(self, scalar):
+        return self.__mul__(scalar)
+
+    def marginal_curve(self):
+        """Return the derivative as an :class:`Affine` curve."""
+        derivative_elements = []
+        for e in self.elements:
+            intercept = e.linear_coef
+            slope = 2 * e.quadratic_coef
+            deriv = AffineElement(
+                intercept=intercept,
+                slope=slope,
+                inverse=True,
+                symbols=e.symbols,
+            )
+            deriv._domain = e._domain
+            derivative_elements.append(deriv)
+        return Affine(elements=derivative_elements)
+
+    def _repr_latex_(self):
+        parts = []
+        conds = []
+        for e in self.elements:
+            e.set_symbols(("q", "p"))
+            expr = e._repr_latex_().strip("$")
+            if "=" in expr:
+                expr = expr.split("=")[1]
+            domain = e._domain
+            if domain:
+                d = sorted(domain)
+                if np.isinf(d[1]):
+                    cond = f"{d[0]:g} \\leq q"
+                else:
+                    cond = f"{d[0]:g} \\leq q \\leq {d[1]:g}"
+            else:
+                cond = ""
+            parts.append(expr)
+            conds.append(cond)
+
+        latex_str = r"p = \begin{cases} "
+        for expr, cond in zip(parts, conds):
+            if cond:
+                latex_str += f"{expr} & \\text{{if }} {cond} \\\\"  # noqa: W605
+            else:
+                latex_str += f"{expr} \\\\"  # noqa: W605
+        latex_str += r"\end{cases}"
+        return f"${latex_str}$"
+
 
 def intersection(element1, element2):
     """Return the intersection of two affine elements.
