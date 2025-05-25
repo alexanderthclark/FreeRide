@@ -145,6 +145,14 @@ class PolyBase(np.polynomial.Polynomial):
         if self.slope == np.inf:
             return self.q_intercept
 
+        # Perfectly Elastic
+        if self.slope == 0:
+            role = getattr(self, "role", "demand")
+            if role == "supply":
+                return np.inf if p >= self.intercept else 0
+            else:
+                return np.inf if p < self.intercept else 0
+
         coef2 = (self.coef[0] - p, *self.coef[1:])[::-1]
         roots = np.roots(coef2)
 
