@@ -144,25 +144,28 @@ class BaseQuadratic:
 
 
 def intersection(element1, element2):
-    """
-    Compute the intersection point of two lines given by `element1` and `element2`.
+    """Return the intersection of two affine elements.
+
+    The result is a 1D array ``[p, q]`` giving the price and quantity at the
+    intersection.  When either line is perfectly vertical (``slope == np.inf``)
+    or perfectly horizontal (``slope == 0``) the intersection is computed
+    directly.  If both lines are vertical or both horizontal, a
+    ``LinAlgError`` is raised.
 
     Parameters
     ----------
-    element1 : AffineElement
-        An AffineElement representing the first line.
-    element2 : AffineElement
-        An AffineElement representing the second line.
+    element1, element2 : :class:`AffineElement`
+        Lines for which to compute the intersection.
 
     Returns
     -------
     numpy.ndarray
-        A 1D array containing the y and x coordinates of the intersection point.
+        ``[p, q]`` of the intersection point.
 
     Raises
     ------
     numpy.linalg.LinAlgError
-        If the matrix `A` is singular, i.e., the two lines are parallel.
+        If the lines are parallel.
 
     Examples
     --------
@@ -171,6 +174,34 @@ def intersection(element1, element2):
     >>> intersection(line1, line2)
     array([8., 4.])
     """
+
+    # Parallel vertical or horizontal lines
+    if (element1.slope == np.inf and element2.slope == np.inf) or (
+        element1.slope == 0 and element2.slope == 0
+    ):
+        raise np.linalg.LinAlgError("Lines are parallel")
+
+    # Handle a vertical line (perfectly inelastic)
+    if element1.slope == np.inf:
+        q = element1.q_intercept
+        p = element2(q)
+        return np.array([p, q])
+    if element2.slope == np.inf:
+        q = element2.q_intercept
+        p = element1(q)
+        return np.array([p, q])
+
+    # Handle a horizontal line (perfectly elastic)
+    if element1.slope == 0:
+        p = element1.intercept
+        q = element2.q(p)
+        return np.array([p, q])
+    if element2.slope == 0:
+        p = element2.intercept
+        q = element1.q(p)
+        return np.array([p, q])
+
+    # Generic case
     A = np.array([[1, -element1.slope], [1, -element2.slope]])
     b = np.array([[element1.intercept], [element2.intercept]])
     yx = np.matmul(np.linalg.inv(A), b)

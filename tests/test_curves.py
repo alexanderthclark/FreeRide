@@ -80,6 +80,32 @@ class TestCurveHelpers(unittest.TestCase):
         with self.assertRaises(np.linalg.LinAlgError):
             intersection(line1, line2)
 
+    def test_intersection_vertical(self):
+        vertical = AffineElement(5, 0, inverse=False)
+        line = AffineElement(0, 1)
+        p, q = intersection(vertical, line)
+        self.assertAlmostEqual(p, 5.0)
+        self.assertAlmostEqual(q, 5.0)
+
+    def test_intersection_horizontal(self):
+        horizontal = AffineElement(3, 0)
+        line = AffineElement(0, 2)
+        p, q = intersection(horizontal, line)
+        self.assertAlmostEqual(p, 3.0)
+        self.assertAlmostEqual(q, 1.5)
+
+    def test_intersection_parallel_vertical_raises(self):
+        v1 = AffineElement(5, 0, inverse=False)
+        v2 = AffineElement(6, 0, inverse=False)
+        with self.assertRaises(np.linalg.LinAlgError):
+            intersection(v1, v2)
+
+    def test_intersection_parallel_horizontal_raises(self):
+        h1 = AffineElement(3, 0)
+        h2 = AffineElement(4, 0)
+        with self.assertRaises(np.linalg.LinAlgError):
+            intersection(h1, h2)
+
     def test_blind_sum(self):
         l1 = AffineElement(10, -1)
         l2 = AffineElement(5, -1)
