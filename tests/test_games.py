@@ -53,23 +53,14 @@ class TestGame(unittest.TestCase):
     def test_rock_paper_scissors(self):
         """Rock-paper-scissors has no pure Nash equilibria."""
 
-        p1 = [
-            [0, -1, 1],
-            [1, 0, -1],
-            [-1, 1, 0],
-        ]
-        p2 = [
-            [0, 1, -1],
-            [-1, 0, 1],
-            [1, -1, 0],
-        ]
-        game = Game(
-            p1,
-            p2,
-            action_names=(
-                ("Rock", "Paper", "Scissors"),
-                ("Rock", "Paper", "Scissors"),
-            ),
+        game = Game.rock_paper_scissors()
+        self.assertEqual(
+            game.payoffs1.tolist(),
+            [[0, -1, 1], [1, 0, -1], [-1, 1, 0]],
+        )
+        self.assertEqual(
+            game.payoffs2.tolist(),
+            [[0, 1, -1], [-1, 0, 1], [1, -1, 0]],
         )
         self.assertEqual(game.nash_equilibria(), [])
 
@@ -226,6 +217,20 @@ class TestGame(unittest.TestCase):
         self.assertEqual(
             ch.action_names,
             (("Straight", "Swerve"), ("Straight", "Swerve")),
+        )
+
+        rps = Game.rock_paper_scissors()
+        self.assertEqual(
+            rps.payoffs1.tolist(),
+            [[0, -1, 1], [1, 0, -1], [-1, 1, 0]],
+        )
+        self.assertEqual(
+            rps.payoffs2.tolist(),
+            [[0, 1, -1], [-1, 0, 1], [1, -1, 0]],
+        )
+        self.assertEqual(
+            rps.action_names,
+            (("Rock", "Paper", "Scissors"), ("Rock", "Paper", "Scissors")),
         )
 
 

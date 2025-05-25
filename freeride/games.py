@@ -546,6 +546,29 @@ class Game:
             ),
         )
 
+    @classmethod
+    def rock_paper_scissors(cls) -> "Game":
+        """Return the Rock-Paper-Scissors game."""
+
+        p1 = [
+            [0, -1, 1],
+            [1, 0, -1],
+            [-1, 1, 0],
+        ]
+        p2 = [
+            [0, 1, -1],
+            [-1, 0, 1],
+            [1, -1, 0],
+        ]
+        return cls(
+            p1,
+            p2,
+            action_names=(
+                ("Rock", "Paper", "Scissors"),
+                ("Rock", "Paper", "Scissors"),
+            ),
+        )
+
 
 # Backwards compatibility
 NormalFormGame = Game
