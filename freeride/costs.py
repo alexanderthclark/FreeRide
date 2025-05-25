@@ -375,8 +375,8 @@ class Cost(PolyBase):
         q = mc.q(p)
 
         # plot AC and MC
-        self.average_cost().plot(label = "ATC")
-        mc.plot(label = "MC")
+        self.average_cost().plot(ax=ax, label="ATC")
+        mc.plot(ax=ax, label="MC")
 
 
         # plot price and quantity
