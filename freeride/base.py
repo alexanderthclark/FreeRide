@@ -5,7 +5,7 @@ import numpy as np
 from IPython.display import Latex, display
 
 from freeride.formula import _formula, _quadratic_formula
-from freeride.plotting import AREA_FILLS, textbook_axes
+from freeride.plotting import AREA_FILLS, textbook_axes, finalize_axes
 
 
 class PolyBase(np.polynomial.Polynomial):
@@ -188,8 +188,7 @@ class PolyBase(np.polynomial.Polynomial):
         if textbook_style:
             textbook_axes(ax)
 
-        ax.relim()
-        ax.autoscale_view()
+        finalize_axes(ax)
 
     # Similar to numpy ABCPolyBase
     def _repr_latex_(self):
@@ -600,8 +599,7 @@ class AffineElement(PolyBase):
             ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
 
-        ax.relim()
-        ax.autoscale_view()
+        finalize_axes(ax)
 
         return ax
 
@@ -635,8 +633,7 @@ class AffineElement(PolyBase):
 
         ax.fill_between(q, p01, p, zorder=zorder, color=color, alpha=alpha)
 
-        ax.relim()
-        ax.autoscale_view()
+        finalize_axes(ax)
 
         return ax
 
@@ -720,8 +717,7 @@ class QuadraticElement(PolyBase):
             # ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
 
-        ax.relim()
-        ax.autoscale_view()
+        finalize_axes(ax)
 
         return ax
 
@@ -736,8 +732,7 @@ class QuadraticElement(PolyBase):
         ys = self(xs)
         ax.fill_between(xs, 0, ys, zorder=zorder, color=color, alpha=alpha)
 
-        ax.relim()
-        ax.autoscale_view()
+        finalize_axes(ax)
 
         return ax
 
@@ -752,8 +747,7 @@ class QuadraticElement(PolyBase):
         ys = self(xs)
         ax.fill_between(xs, ys, y, zorder=zorder, color=color, alpha=alpha)
 
-        ax.relim()
-        ax.autoscale_view()
+        finalize_axes(ax)
 
         return ax
 
@@ -842,8 +836,7 @@ class BaseQuadratic:
                 elmt.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
 
         if set_lims:
-            ax.relim()
-            ax.autoscale_view()
+            finalize_axes(ax)
 
         return ax
 

@@ -49,3 +49,43 @@ def textbook_axes(ax: Optional[plt.Axes] = None) -> plt.Axes:
     ax.spines["right"].set_visible(False)
 
     return ax
+
+
+def finalize_axes(ax: Optional[plt.Axes] = None) -> plt.Axes:
+    """Autoscale and ensure the origin is visible.
+
+    This convenience wraps ``relim`` and ``autoscale_view`` and then
+    adjusts the limits so that ``(0, 0)`` always falls within the view.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes, optional
+        Axis to update. If omitted, the current axes are used.
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The updated axes instance.
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    ax.relim()
+    ax.autoscale_view()
+
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+
+    if xmin > 0:
+        xmin = 0
+    if xmax < 0:
+        xmax = 0
+    if ymin > 0:
+        ymin = 0
+    if ymax < 0:
+        ymax = 0
+
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+
+    return ax

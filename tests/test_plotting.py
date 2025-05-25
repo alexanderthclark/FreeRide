@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
 
-from freeride.plotting import ALPHA, AREA_FILLS, textbook_axes
+from freeride.plotting import ALPHA, AREA_FILLS, textbook_axes, finalize_axes
 
 
 class TestPlotting(unittest.TestCase):
@@ -47,6 +47,26 @@ class TestPlotting(unittest.TestCase):
         fig, ax = plt.subplots()
         plt.sca(ax)
         result = textbook_axes()
+
+        self.assertIs(result, ax)
+
+    def test_finalize_axes_includes_origin(self):
+        """``finalize_axes`` should ensure the origin is visible."""
+
+        fig, ax = plt.subplots()
+        ax.plot([1, 2], [1, 2])
+        finalize_axes(ax)
+
+        self.assertLessEqual(ax.get_xlim()[0], 0)
+        self.assertLessEqual(ax.get_ylim()[0], 0)
+
+    def test_finalize_axes_uses_current_axes(self):
+        """When no axis is supplied, ``finalize_axes`` should use the current one."""
+
+        fig, ax = plt.subplots()
+        plt.sca(ax)
+        ax.plot([1, 2], [1, 2])
+        result = finalize_axes()
 
         self.assertIs(result, ax)
 

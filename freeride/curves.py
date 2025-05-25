@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from freeride.plotting import textbook_axes, AREA_FILLS
+from freeride.plotting import textbook_axes, AREA_FILLS, finalize_axes
 from freeride.formula import _formula
 from freeride.base import QuadraticElement, AffineElement, BaseQuadratic
 from IPython.display import Latex, display
@@ -511,8 +511,7 @@ class Affine(BaseAffine):
                 piece.plot(ax=ax, label=label, max_q=max_q, **plot_dict)
 
         if set_lims:
-            ax.relim()
-            ax.autoscale_view()
+            finalize_axes(ax)
 
         # Apply any leftover kwargs that might be e.g. title, xlim, ylim
         for key, value in kwargs.items():
@@ -548,8 +547,7 @@ class Affine(BaseAffine):
                              color=color,
                              alpha=alpha)
 
-        ax.relim()
-        ax.autoscale_view()
+        finalize_axes(ax)
 
         return ax
 
@@ -783,8 +781,7 @@ class PPF(BaseAffine):
                         else:
                             plt_function(value)
 
-            ax.relim()
-            ax.autoscale_view()
+            finalize_axes(ax)
 
             return ax
 
