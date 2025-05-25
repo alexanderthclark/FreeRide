@@ -10,9 +10,9 @@ from freeride.curves import (
     blind_sum,
     horizontal_sum,
 )
-from freeride.base import BaseQuadratic
+from freeride.quadratic import BaseQuadratic
 from freeride.exceptions import PPFError
-from freeride.base import AffineElement
+from freeride.affine import AffineElement
 
 class TestAffine(unittest.TestCase):
 
