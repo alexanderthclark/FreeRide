@@ -3,6 +3,7 @@ import numpy as np
 from freeride.curves import (
     Affine,
     BaseAffine,
+    BaseQuadratic,
     Demand,
     Supply,
     PPF,
@@ -232,4 +233,13 @@ class TestPPF(unittest.TestCase):
         p1 = PPF(10, -1)
         p2 = PPF(5, -0.5)
         self.assertAlmostEqual((p1 + p2)(7), (p2 + p1)(7))
+
+
+class TestBaseQuadraticRegression(unittest.TestCase):
+
+    def test_numeric_coefficients(self):
+        curve = BaseQuadratic(intercept=1, linear_coef=2, quadratic_coef=3)
+        for q in [-1, 0, 1, 2]:
+            expected = 1 + 2 * q + 3 * q**2
+            self.assertAlmostEqual(curve(q), expected)
 
