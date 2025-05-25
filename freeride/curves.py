@@ -4,6 +4,7 @@ from freeride.plotting import textbook_axes, AREA_FILLS, update_axes_limits
 from freeride.formula import _formula
 from freeride.affine import AffineElement
 from freeride.quadratic import QuadraticElement, BaseQuadratic
+from freeride.revenue import Revenue
 from IPython.display import Latex, display
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource
@@ -602,15 +603,7 @@ class Demand(Affine):
 
     def total_revenue(self):
         
-        elements = list()
-        pieces = [p for p in self.pieces if p]
-        for piece in pieces:
-            coef = 0, piece.intercept, piece.slope
-            revenue_element = QuadraticElement(*coef)
-            revenue_element._domain = sorted(piece._domain)
-            elements.append(revenue_element)
-            
-        return BaseQuadratic(elements=elements)
+        return Revenue.from_demand(self)
 
 
 class Supply(Affine):

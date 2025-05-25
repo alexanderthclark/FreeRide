@@ -140,6 +140,8 @@ class TestSurplusAndRevenue(unittest.TestCase):
 
     def test_total_revenue(self):
         revenue_curve = self.demand.total_revenue()
+        from freeride.revenue import Revenue
+        self.assertIsInstance(revenue_curve, Revenue)
         self.assertAlmostEqual(revenue_curve(4), 16.0)
 
 
