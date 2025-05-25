@@ -908,8 +908,8 @@ class PPF(BaseAffine):
 
     def _check_slope(self):
         for slope in self.slope:
-            if slope >= 0:
-                raise PPFError("Upward-sloping PPF.")
+            if slope >= 0 or np.isinf(slope):
+                raise PPFError("Upward-sloping or infinite-slope PPF.")
 
 
     def __add__(self, other):

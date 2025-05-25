@@ -141,6 +141,10 @@ class TestCurveEdgeCases(unittest.TestCase):
         with self.assertRaises(PPFError):
             PPF(10, 1)
 
+    def test_infinite_slope_ppf_raises(self):
+        with self.assertRaises(PPFError):
+            PPF(10, -np.inf)
+
     def test_has_perfect_segment_property(self):
         elastic = BaseAffine(5, 0, inverse=True)
         self.assertTrue(elastic.has_perfectly_elastic_segment)
