@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from freeride.plotting import textbook_axes, AREA_FILLS
 from freeride.formula import _formula
-from freeride.base import QuadraticElement, AffineElement, BaseQuadratic
+from freeride.affine import AffineElement
+from freeride.quadratic import QuadraticElement, BaseQuadratic
 from IPython.display import Latex, display
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource
