@@ -12,13 +12,13 @@ The Prisoner's Dilemma
      </a>
    </div>
 
-The Prisoner's Dilemma is one of the most famous examples in game theory. It illustrates why two 
-rational individuals might not cooperate even when it would be in their best interest to do so.
+The Prisoner's Dilemma is one of the most famous games. It illustrates how two 
+players might not cooperate even when it would be in their collective interest to do so.
 
 The Scenario
 ------------
 
-Two prisoners are arrested and held in separate cells. They cannot communicate with each other. 
+Two prisoners are arrested and held in separate cells. They cannot communicate with each other and the game is only played once. 
 Each has two options:
 
 - **Cooperate** (remain silent)  
@@ -47,16 +47,15 @@ Let's model this game using FreeRide's game theory tools:
 
 .. code-block:: text
 
-   [(1, 1)]
+   [('Defect', 'Defect')]
 
-The visual game table will also be displayed, and the Nash equilibrium `[(1, 1)]` corresponds to 
-(Defect, Defect) - both players choosing their second action (index 1).
+The visual game table will also be displayed, showing the Nash equilibrium as the actual 
+strategy profile with action names.
 
-Analysis
---------
-
-The Nash equilibrium is **(Defect, Defect)** even though **(Cooperate, Cooperate)** would give 
-both players a better outcome. 
+.. image:: game_table.svg
+   :alt: Prisoner's Dilemma game table showing payoffs and Nash equilibrium
+   :align: center
+   :width: 400px
 
 
 Try It Yourself

@@ -146,17 +146,28 @@ class Game:
             br2.append([j for j in range(cols) if row[j] == max_val])
         return br1, br2
 
-    def nash_equilibria(self) -> List[Tuple[int, int]]:
-        """Compute pure strategy Nash equilibria."""
+    def nash_equilibria(self) -> List[Tuple[str, str]]:
+        """Compute pure strategy Nash equilibria.
+        
+        Returns
+        -------
+        list of tuple of str
+            List of Nash equilibria as strategy profiles (action name pairs).
+            Each equilibrium is a tuple of (player1_action, player2_action).
+            A Nash equilibrium is a strategy profile where no player can 
+            unilaterally deviate and improve their payoff.
+        """
         br1, br2 = self.best_responses()
         eqs = []
         for j, rows in enumerate(br1):
             for i in rows:
                 if j in br2[i]:
-                    eqs.append((i, j))
+                    action1 = self.action_names[0][i]
+                    action2 = self.action_names[1][j]
+                    eqs.append((action1, action2))
         return eqs
 
-    def nash(self) -> List[Tuple[int, int]]:
+    def nash(self) -> List[Tuple[str, str]]:
         """Alias for :meth:`nash_equilibria`."""
         return self.nash_equilibria()
 

@@ -15,7 +15,8 @@ class TestGame(unittest.TestCase):
         p1 = [[3, 0], [5, 1]]
         p2 = [[3, 5], [0, 1]]
         game = Game(p1, p2)
-        self.assertEqual(game.nash_equilibria(), [(1, 1)])
+        # Nash equilibrium is (Defect, Defect) - both players choose action 1
+        self.assertEqual(game.nash_equilibria(), [('action 1', 'action 1')])
 
     def test_matching_pennies(self):
         p1 = [[1, -1], [-1, 1]]
@@ -30,25 +31,29 @@ class TestGame(unittest.TestCase):
         p1 = [[2, 0], [1, 1]]
         p2 = [[2, 1], [0, 1]]
         game = Game(p1, p2)
-        self.assertEqual(set(game.nash_equilibria()), {(0, 0), (1, 1)})
+        # Two equilibria: (Stag, Stag) and (Hare, Hare)
+        self.assertEqual(set(game.nash_equilibria()), {('action 0', 'action 0'), ('action 1', 'action 1')})
 
     def test_battle_of_the_sexes(self):
         p1 = [[2, 0], [0, 1]]
         p2 = [[1, 0], [0, 2]]
         game = Game(p1, p2)
-        self.assertEqual(set(game.nash_equilibria()), {(0, 0), (1, 1)})
+        # Two equilibria: both at Opera or both at Boxing Match
+        self.assertEqual(set(game.nash_equilibria()), {('action 0', 'action 0'), ('action 1', 'action 1')})
 
     def test_pure_coordination(self):
         p1 = [[1, 0], [0, 1]]
         p2 = [[1, 0], [0, 1]]
         game = Game(p1, p2)
-        self.assertEqual(set(game.nash_equilibria()), {(0, 0), (1, 1)})
+        # Two equilibria: both Left or both Right
+        self.assertEqual(set(game.nash_equilibria()), {('action 0', 'action 0'), ('action 1', 'action 1')})
 
     def test_chicken(self):
         p1 = [[3, 1], [4, 0]]
         p2 = [[3, 4], [1, 0]]
         game = Game(p1, p2)
-        self.assertEqual(set(game.nash_equilibria()), {(1, 0), (0, 1)})
+        # Two equilibria: one Swerves, one goes Straight
+        self.assertEqual(set(game.nash_equilibria()), {('action 1', 'action 0'), ('action 0', 'action 1')})
 
     def test_rock_paper_scissors(self):
         """Rock-paper-scissors has no pure Nash equilibria."""
@@ -186,6 +191,8 @@ class TestGame(unittest.TestCase):
             g.action_names,
             (("Cooperate", "Defect"), ("Cooperate", "Defect")),
         )
+        # Test that nash equilibrium returns action names for predefined games
+        self.assertEqual(g.nash_equilibria(), [('Defect', 'Defect')])
 
         mp = Game.matching_pennies()
         self.assertEqual(mp.payoffs1.tolist(), [[1, -1], [-1, 1]])
@@ -200,16 +207,22 @@ class TestGame(unittest.TestCase):
             bos.action_names,
             (("Opera", "Boxing Match"), ("Opera", "Boxing Match")),
         )
+        # Test nash equilibrium with proper action names
+        self.assertEqual(set(bos.nash_equilibria()), {('Opera', 'Opera'), ('Boxing Match', 'Boxing Match')})
 
         sh = Game.stag_hunt()
         self.assertEqual(sh.payoffs1.tolist(), [[2, 0], [1, 1]])
         self.assertEqual(sh.payoffs2.tolist(), [[2, 1], [0, 1]])
         self.assertEqual(sh.action_names, (("Stag", "Hare"), ("Stag", "Hare")))
+        # Test nash equilibrium returns proper action names
+        self.assertEqual(set(sh.nash_equilibria()), {('Stag', 'Stag'), ('Hare', 'Hare')})
 
         pc = Game.pure_coordination()
         self.assertEqual(pc.payoffs1.tolist(), [[1, 0], [0, 1]])
         self.assertEqual(pc.payoffs2.tolist(), [[1, 0], [0, 1]])
         self.assertEqual(pc.action_names, (("Left", "Right"), ("Left", "Right")))
+        # Test nash equilibrium returns proper action names
+        self.assertEqual(set(pc.nash_equilibria()), {('Left', 'Left'), ('Right', 'Right')})
 
         ch = Game.chicken()
         self.assertEqual(ch.payoffs1.tolist(), [[3, 1], [4, 0]])
@@ -218,6 +231,8 @@ class TestGame(unittest.TestCase):
             ch.action_names,
             (("Straight", "Swerve"), ("Straight", "Swerve")),
         )
+        # Test nash equilibrium returns proper action names
+        self.assertEqual(set(ch.nash_equilibria()), {('Swerve', 'Straight'), ('Straight', 'Swerve')})
 
         rps = Game.rock_paper_scissors()
         self.assertEqual(
