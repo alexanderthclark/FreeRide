@@ -1,0 +1,531 @@
+/* FreeRide Custom Sphinx Theme - Elegant Economics */
+
+/* Color Palette - Economics-inspired */
+:root {
+    --freeride-primary: #1a2332;      /* Deeper blue-black - professional */
+    --freeride-secondary: #c0392b;    /* Deep red - for demand curves */
+    --freeride-accent: #2980b9;        /* Muted blue - for supply curves */
+    --freeride-success: #27AE60;       /* Green - for equilibrium */
+    --freeride-bg-light: #f8f9fa;     /* Light background */
+    --freeride-bg-card: #ffffff;      /* Card background */
+    --freeride-text: #2C3E50;         /* Main text color */
+    --freeride-gold: #f39c12;         /* Gold accent - for highlights */
+    --freeride-border: #e1e8ed;       /* Subtle borders */
+}
+
+/* Override sphinx-book-theme colors */
+html[data-theme="light"] {
+    --pst-color-primary: var(--freeride-primary);
+    --pst-color-secondary: var(--freeride-secondary);
+    --pst-color-accent: var(--freeride-accent);
+    --pst-color-link: var(--freeride-accent);
+    --pst-color-link-hover: var(--freeride-primary);
+}
+
+/* Links */
+a {
+    color: var(--freeride-accent);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--freeride-primary);
+    text-decoration: underline;
+}
+
+/* Elegant Typography */
+body {
+    font-family: 'Crimson Text', 'Georgia', serif;
+    color: var(--freeride-text);
+    line-height: 1.7;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', 'Helvetica Neue', sans-serif;
+    font-weight: 600;
+    color: var(--freeride-primary);
+    margin-top: 2rem;
+}
+
+/* Beautiful code blocks */
+div.highlight {
+    background: #fafbfc;
+    border: 1px solid var(--freeride-border);
+    border-radius: 8px;
+    box-shadow: none;
+    margin: 1.5rem 0;
+    position: relative;
+}
+
+div.highlight::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, var(--freeride-accent), var(--freeride-secondary));
+    border-radius: 8px 8px 0 0;
+}
+
+div.highlight pre {
+    padding: 1.5rem 1.2rem 1.2rem;
+    margin: 0;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    background: transparent;
+}
+
+/* Make inline code elegant */
+code.literal {
+    background: rgba(41, 128, 185, 0.08);
+    color: var(--freeride-accent);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-size: 0.875em;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-weight: 500;
+}
+
+/* Mathematical equations styling */
+.math {
+    font-size: 1.1em;
+    color: var(--freeride-text);
+}
+
+div.math {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: linear-gradient(to right, #F8F9FA, transparent);
+    border-left: 4px solid var(--freeride-gold);
+    overflow-x: auto;
+}
+
+/* Navigation enhancement */
+.bd-sidebar-primary {
+    background: #fafbfc;
+    border-right: 1px solid var(--freeride-border);
+}
+
+.bd-sidebar nav ul li a {
+    color: #5a6c7d;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    margin: 2px 0;
+}
+
+.bd-sidebar nav ul li a:hover {
+    color: var(--freeride-primary);
+    background: rgba(26, 35, 50, 0.05);
+    padding-left: 1rem;
+}
+
+.bd-sidebar nav ul li.active > a {
+    color: var(--freeride-accent);
+    background: rgba(41, 128, 185, 0.08);
+    font-weight: 500;
+}
+
+/* Logo area */
+.bd-sidebar-primary .navbar-brand {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid var(--freeride-border);
+    margin-bottom: 1rem;
+}
+
+/* Header/navbar improvements */
+.bd-header {
+    background: var(--freeride-bg-card);
+    border-bottom: 1px solid var(--freeride-border);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.navbar-nav {
+    gap: 0.5rem;
+}
+
+.navbar-nav .nav-link {
+    color: var(--freeride-text);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    background: var(--freeride-bg-light);
+    color: var(--freeride-accent);
+}
+
+/* Content area styling - wider without right sidebar */
+.bd-main .bd-content {
+    max-width: 1200px;
+    padding: 2rem;
+    margin: 0 auto;
+}
+
+/* Hide right sidebar completely */
+.bd-sidebar-secondary,
+.sidebar-secondary-item,
+.page-toc,
+.tocsection {
+    display: none !important;
+}
+
+/* Make main content take full width */
+.bd-main {
+    flex-grow: 1;
+    max-width: 100%;
+}
+
+.bd-container {
+    max-width: 100% !important;
+    padding-right: 1rem !important;
+}
+
+.bd-content {
+    max-width: 100% !important;
+}
+
+/* Adjust article container */
+.bd-article-container {
+    max-width: 100% !important;
+}
+
+.bd-article {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+/* Beautiful admonitions */
+.admonition {
+    border-radius: 8px;
+    border: 1px solid var(--freeride-border);
+    box-shadow: none;
+    margin: 2rem 0;
+    padding: 1rem 1.5rem;
+    background: var(--freeride-bg-card);
+}
+
+.admonition-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.admonition.note {
+    border-left: 4px solid var(--freeride-accent);
+}
+
+.admonition.note .admonition-title {
+    color: var(--freeride-accent);
+}
+
+.admonition.warning {
+    border-left: 4px solid var(--freeride-gold);
+}
+
+.admonition.warning .admonition-title {
+    color: var(--freeride-gold);
+}
+
+.admonition.tip {
+    border-left: 4px solid var(--freeride-success);
+}
+
+.admonition.tip .admonition-title {
+    color: var(--freeride-success);
+}
+
+/* Example blocks */
+.example {
+    background: #F5F7FA;
+    border: 1px solid #E1E8ED;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.example::before {
+    content: "Example";
+    position: absolute;
+    top: -0.5rem;
+    left: 1rem;
+    background: white;
+    padding: 0 0.5rem;
+    color: var(--freeride-accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Button styling - More subtle */
+.btn, .btn-primary, .btn-sm {
+    background: var(--freeride-bg-card);
+    color: var(--freeride-text);
+    border: 1px solid var(--freeride-border);
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.btn:hover, .btn-primary:hover, .btn-sm:hover {
+    background: var(--freeride-bg-light);
+    border-color: var(--freeride-primary);
+    color: var(--freeride-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Override back to top button */
+#pst-back-to-top {
+    background: var(--freeride-primary);
+    color: white;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#pst-back-to-top:hover {
+    background: var(--freeride-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Homepage hero section - Full width */
+.hero-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: var(--freeride-text);
+    padding: 5rem 2rem;
+    margin: -2rem -2rem 3rem -2rem;
+    text-align: center;
+    border-bottom: 1px solid var(--freeride-border);
+    position: relative;
+    overflow: hidden;
+    width: calc(100% + 4rem);
+    margin-left: -2rem;
+    margin-right: -2rem;
+}
+
+/* Add subtle pattern overlay */
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(41, 128, 185, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(192, 57, 43, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.hero-section img {
+    max-width: 800px;
+    width: 90%;
+    height: auto;
+    margin: 0 auto 2rem;
+    display: block;
+    position: relative;
+    z-index: 1;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.hero-section h1 {
+    color: var(--freeride-primary);
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    color: var(--freeride-accent);
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+}
+
+/* Responsive banner sizing */
+@media (min-width: 768px) {
+    .hero-section {
+        padding: 4rem 2rem;
+    }
+    
+    .hero-section img {
+        max-width: 500px;
+    }
+}
+
+/* Feature cards */
+.feature-card {
+    background: var(--freeride-bg-card);
+    border: 1px solid var(--freeride-border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--freeride-accent), var(--freeride-secondary));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-color: var(--freeride-border);
+}
+
+.feature-card:hover::before {
+    opacity: 1;
+}
+
+.feature-card h3 {
+    color: var(--freeride-primary);
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.feature-card p {
+    color: #5a6c7d;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Plot/Figure styling */
+figure {
+    margin: 2rem 0;
+    text-align: center;
+}
+
+figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+figcaption {
+    margin-top: 1rem;
+    font-style: italic;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* Table styling */
+table.docutils {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 2rem 0;
+}
+
+table.docutils thead {
+    background: var(--freeride-primary);
+    color: white;
+}
+
+table.docutils thead th {
+    padding: 1rem;
+    font-weight: 600;
+    text-align: left;
+}
+
+table.docutils tbody tr {
+    border-bottom: 1px solid #E9ECEF;
+}
+
+table.docutils tbody tr:hover {
+    background: var(--freeride-bg-light);
+}
+
+table.docutils tbody td {
+    padding: 0.8rem 1rem;
+}
+
+/* API documentation enhancement */
+.py.class, .py.function, .py.method {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #E9ECEF;
+    border-radius: 8px;
+}
+
+.sig-name {
+    color: var(--freeride-primary);
+    font-weight: 600;
+}
+
+.sig-param {
+    color: var(--freeride-accent);
+}
+
+/* Footer enhancement */
+.bd-footer {
+    background: var(--freeride-primary);
+    color: white;
+    margin-top: 4rem;
+    padding: 2rem 0;
+}
+
+.bd-footer a {
+    color: white;
+    opacity: 0.8;
+}
+
+.bd-footer a:hover {
+    opacity: 1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .bd-main .bd-content {
+        padding: 1rem;
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #F5F5F5;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #CCC;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #AAA;
+}
