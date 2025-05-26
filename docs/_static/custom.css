@@ -529,3 +529,12 @@ table.docutils tbody td {
 ::-webkit-scrollbar-thumb:hover {
     background: #AAA;
 }
+
+/* Hide dark mode toggle */
+.theme-switch-button,
+.navbar-nav .nav-item .nav-link[title*="theme"],
+button[title*="theme"],
+.bd-header .theme-toggle,
+.pst-navbar-icon {
+    display: none !important;
+}

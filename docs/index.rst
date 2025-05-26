@@ -1,35 +1,51 @@
-.. raw:: html
-
-   <div class="hero-section">
-      <img src="_static/freeride-banner.png" alt="FreeRide Banner" style="max-width: 600px; margin-bottom: 2rem;">
-   </div>
-
 Welcome to FreeRide
 ===================
 
-FreeRide is a Python package designed specifically for **introductory microeconomics education**. 
-Built with elegance and simplicity in mind, it provides intuitive tools for modeling economic 
-concepts that "just work" the way economics textbooks expect them to.
+.. image:: _static/freeride-banner.png
+   :alt: FreeRide Banner
+   :align: center
+   :width: 600px
+
+FreeRide is a Python package designed specifically for **introductory microeconomics**. 
+Built with simplicity in mind, it provides intuitive tools for modeling economic 
+concepts that "just work" the way economics students expect them to.
 
 .. raw:: html
 
    <div class="feature-card">
       <h3>🎯 Designed for Economics 101</h3>
-      <p>Every feature is crafted with introductory economics in mind. From supply and demand curves 
-      to game theory, FreeRide makes economic modeling intuitive and beautiful.</p>
+      <p>Every feature is crafted with introductory economics in mind. The focus is on simple cases, like linear or piecewise-linear demand curves, that illustrate key concepts.</p>
    </div>
 
    <div class="feature-card">
-      <h3>✨ Elegant by Design</h3>
-      <p>Clean, readable code that matches textbook notation. Operations like <code>A + B</code> 
-      for demand curves naturally perform horizontal summation. Beautiful plots by default.</p>
+      <h3>✨ Intuitive by Design</h3>
+      <p>Clean, readable code that matches conventional notation. Operations like <code>a + b</code> 
+      for demand curves naturally perform horizontal summation.</p>
    </div>
 
    <div class="feature-card">
-      <h3>📊 Publication-Quality Visualizations</h3>
-      <p>Every plot looks like it belongs in an economics textbook. Clean axes, automatic 
-      equilibrium highlighting, and thoughtful styling make your analysis shine.</p>
+      <h3>📊 Learn Visually</h3>
+      <p>Plotting capabilities are emphasized. Every plot looks like it belongs in an economics textbook. Clean axes, automatic equilibrium highlighting, and thoughtful styling make your analysis shine.</p>
    </div>
+
+Installation
+------------
+
+Install FreeRide using pip:
+
+.. code-block:: bash
+
+   pip install freeride
+
+**Where to run this:**
+
+- **Mac**: Open Terminal (found in Applications → Utilities)
+- **Windows**: Open Command Prompt (search "cmd" in Start menu)
+- **Both**: Or use Anaconda Prompt if you have Anaconda installed
+
+**New to Python?** We recommend starting with `Google Colab <https://colab.research.google.com/>`_, 
+which provides a free Python environment in your browser. No installation required - just run 
+``!pip install freeride`` in a code cell.
 
 Quick Example
 -------------
@@ -37,18 +53,31 @@ Quick Example
 .. code-block:: python
 
    from freeride.curves import Demand, Supply
-   from freeride.equilibrium import Equilibrium
+   from freeride.equilibrium import Market
    
    # Create supply and demand curves
    demand = Demand.from_formula("Q = 20 - 2*P")
    supply = Supply.from_formula("Q = -5 + 3*P")
    
    # Find equilibrium
-   eq = Equilibrium(demand, supply)
-   print(f"Equilibrium: P = {eq.p}, Q = {eq.q}")
+   market = Market(demand, supply)
    
-   # Beautiful plot with one line
-   eq.plot()
+   # Beautiful plot with shaded surplus
+   market.plot(surplus=True)
+
+   # Inspect the equilibrium
+   print(market)  # shows price and quantity
+   print(market.consumer_surplus)
+   print(market.producer_surplus)
+
+
+The plot shows the supply and demand curves with the equilibrium point clearly marked, 
+and the consumer and producer surplus areas shaded:
+
+.. image:: _static/quick_example_plot.svg
+   :alt: Market equilibrium plot with supply and demand curves and shaded surplus
+   :align: center
+   :width: 600px
 
 .. toctree::
    :maxdepth: 1

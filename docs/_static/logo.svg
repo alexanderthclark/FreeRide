@@ -10,7 +10,6 @@
   <!-- Supply and Demand curves background -->
   <path d="M10 50 Q30 20, 50 10" stroke="#E74C3C" stroke-width="2" fill="none" opacity="0.3"/>
   <path d="M10 10 Q30 40, 50 50" stroke="#3498DB" stroke-width="2" fill="none" opacity="0.3"/>
-  <circle cx="30" cy="30" r="3" fill="#27AE60" opacity="0.5"/>
   
   <!-- FreeRide text -->
   <text x="60" y="38" font-family="Montserrat, sans-serif" font-size="28" font-weight="600" fill="url(#grad1)">FreeRide</text>

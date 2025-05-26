@@ -77,7 +77,6 @@ html_theme_options = {
     "logo": {
         "image_light": "_static/logo.svg",
         "image_dark": "_static/logo.svg",
-        "text": "FreeRide",
     },
     "icon_links": [
         {
