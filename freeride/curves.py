@@ -595,8 +595,9 @@ class Demand(Affine):
         if self.has_perfectly_elastic_segment:
             warnings.warn(
                 f"Created perfectly elastic demand curve. "
-                f"Note: This curve has indeterminate quantity at certain prices and "
-                f"cannot be used with Equilibrium or combined with other curves.",
+                f"Note: Due to current implementation limitations, this curve "
+                f"cannot be used with Equilibrium or combined with other curves. "
+                f"The economics are valid, but the software support is incomplete.",
                 UserWarning
             )
 
@@ -625,8 +626,7 @@ class Demand(Affine):
                     if np.isclose(p, p_star):
                         warnings.warn(
                             f"Quantity demanded is indeterminate at P={p_star} for perfectly elastic demand. "
-                            f"Returning np.inf for computational purposes. "
-                            f"Note: Avoid combining perfectly elastic curves with other objects.",
+                            f"Returning np.inf as a placeholder (actual quantity is indeterminate).",
                             UserWarning
                         )
                         return np.inf
@@ -659,8 +659,9 @@ class Supply(Affine):
         if self.has_perfectly_elastic_segment:
             warnings.warn(
                 f"Created perfectly elastic supply curve. "
-                f"Note: This curve has indeterminate quantity at certain prices and "
-                f"cannot be used with Equilibrium or combined with other curves.",
+                f"Note: Due to current implementation limitations, this curve "
+                f"cannot be used with Equilibrium or combined with other curves. "
+                f"The economics are valid, but the software support is incomplete.",
                 UserWarning
             )
 
@@ -689,8 +690,7 @@ class Supply(Affine):
                     if np.isclose(p, p_star):
                         warnings.warn(
                             f"Quantity supplied is indeterminate at P={p_star} for perfectly elastic supply. "
-                            f"Returning np.inf for computational purposes. "
-                            f"Note: Avoid combining perfectly elastic curves with other objects.",
+                            f"Returning np.inf as a placeholder (actual quantity is indeterminate).",
                             UserWarning
                         )
                         return np.inf
