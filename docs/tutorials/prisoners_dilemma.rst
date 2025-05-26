@@ -37,13 +37,10 @@ Let's model this game using FreeRide's game theory tools:
 
 .. code-block:: python
 
-   from freeride.games import PrisonersDilemma
+   from freeride.games import Game
 
    # Create the classic Prisoner's Dilemma game
-   game = PrisonersDilemma(cooperate_cooperate=(3, 3), 
-                          defect_defect=(1, 1),
-                          cooperate_defect=(0, 5), 
-                          defect_cooperate=(5, 0))
+   game = Game.prisoners_dilemma()
 
    # Display the game table
    print("Prisoner's Dilemma Payoff Matrix:")
@@ -51,7 +48,11 @@ Let's model this game using FreeRide's game theory tools:
 
    # Find Nash equilibrium
    print("Nash Equilibrium:")
-   print(game.nash_equilibrium())
+   equilibria = game.nash_equilibria()
+   for eq in equilibria:
+       player1_action = game.action_names[0][eq[0]]
+       player2_action = game.action_names[1][eq[1]]
+       print(f"({player1_action}, {player2_action})")
 
 **Expected Output:**
 
