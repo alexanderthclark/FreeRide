@@ -8,6 +8,7 @@ from freeride.revenue import Revenue
 from IPython.display import Latex, display
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource
+from bokeh.palettes import Category10
 from freeride.exceptions import PPFError
 
 
@@ -144,8 +145,8 @@ def horizontal_sum(*curves):
     return active_curves, cutoffs, midpoints
 
 
-def ppf_sum(*curves, comparative_advantage=True):
-    """Combine production possibilities frontiers.
+def ppf_sum(*curves, comparative_advantage=True, labels=None):
+    """Combine production possibilities frontiers and keep piece metadata.
 
     Parameters
     ----------
@@ -159,14 +160,22 @@ def ppf_sum(*curves, comparative_advantage=True):
     -------
     list of :class:`AffineElement`
         The shifted and vertically stacked PPF segments forming the
-        aggregate frontier.
+        aggregate frontier with producer metadata.
+    list
+        The order of the original curves after sorting by comparative
+        advantage.
     """
 
-    slope_and_curves = sorted([(s.slope, s) for s in curves], reverse=comparative_advantage)
+    slope_and_curves = sorted(
+        [(s.slope, s, idx) for idx, s in enumerate(curves)],
+        reverse=comparative_advantage,
+    )
+    order = [t[2] for t in slope_and_curves]
     curves = [t[1] for t in slope_and_curves]
     x_intercepts = [c.q_intercept for c in curves]
     y_intercepts = [c.intercept for c in curves]
 
+    new_curves = []
     for key, ppf in enumerate(curves):
 
         previous_x = sum(x_intercepts[0:key])
@@ -174,11 +183,15 @@ def ppf_sum(*curves, comparative_advantage=True):
 
         new = ppf.vertical_shift(below_y, inplace=False)
         new.horizontal_shift(previous_x)
-        curves[key] = new
-
         new._domain = previous_x + ppf.q_intercept, previous_x
+        new._shift_x = previous_x
+        new._shift_y = below_y
+        new.producer_index = order[key]
+        if labels is not None and order[key] < len(labels):
+            new.producer_label = labels[order[key]]
+        new_curves.append(new)
 
-    return curves
+    return new_curves, order
 
 
 class BaseAffine:
@@ -459,7 +472,8 @@ class Affine(BaseAffine):
 
     def __add__(self, other):
         elements = self.elements + other.elements
-        return type(self)(elements=elements)
+        labels = self.labels + other.labels
+        return type(self)(elements=elements, labels=labels)
 
     def __mul__(self, scalar):
         elements = [e*scalar for e in self.elements]
@@ -647,7 +661,7 @@ class PPF(BaseAffine):
     Production possibilities frontier.
     '''
 
-    def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
+    def __init__(self, intercept=None, slope=None, elements=None, inverse=True, labels=None):
         '''
         Initializes a PPF object with given slope and intercept or elements.
 
@@ -669,7 +683,11 @@ class PPF(BaseAffine):
         '''
         super().__init__(intercept, slope, elements, inverse)
         self._check_slope()
-        self.pieces = ppf_sum(*self.elements)
+        if labels is None:
+            labels = [f"Producer {i+1}" for i in range(len(self.elements))]
+        self.labels = labels
+        self.pieces, self.order = ppf_sum(*self.elements, labels=self.labels)
+        self.sorted_elements = [self.elements[i] for i in self.order]
 
 
     def _check_slope(self):
@@ -680,7 +698,8 @@ class PPF(BaseAffine):
 
     def __add__(self, other):
         elements = self.elements + other.elements
-        return type(self)(elements=elements)
+        labels = self.labels + other.labels
+        return type(self)(elements=elements, labels=labels)
 
     def __call__(self, x):
         """Return the quantity of the second good for ``x`` units of the first."""
@@ -694,16 +713,16 @@ class PPF(BaseAffine):
     def horizontal_shift(self, delta, inplace=True):
         new_elements = [e.horizontal_shift(delta, inplace=False) for e in self.elements]
         if inplace:
-            self.__init__(elements=new_elements)
+            self.__init__(elements=new_elements, labels=self.labels)
             return self
-        return type(self)(elements=new_elements)
+        return type(self)(elements=new_elements, labels=self.labels)
 
     def vertical_shift(self, delta, inplace=True):
         new_elements = [e.vertical_shift(delta, inplace=False) for e in self.elements]
         if inplace:
-            self.__init__(elements=new_elements)
+            self.__init__(elements=new_elements, labels=self.labels)
             return self
-        return type(self)(elements=new_elements)
+        return type(self)(elements=new_elements, labels=self.labels)
 
     def __mul__(self, scalar):
         new_elements = []
@@ -716,7 +735,7 @@ class PPF(BaseAffine):
                 symbols=e.symbols,
             )
             new_elements.append(new_el)
-        return type(self)(elements=new_elements)
+        return type(self)(elements=new_elements, labels=self.labels)
 
     def __rmul__(self, scalar):
         return self.__mul__(scalar)
@@ -727,24 +746,48 @@ class PPF(BaseAffine):
         '''
 
         if backend == 'bokeh':
-            p = figure(width=400, height=400, tools="")
-            lines_data = {'xs': [], 'ys': [], 'label': []}
+            p = figure(width=400, height=400, tools="pan,wheel_zoom,box_zoom,reset,save")
 
-            for key, piece in enumerate(self.pieces):
+            renderers = []
+            for idx, piece in enumerate(self.pieces):
                 x0, x1 = piece._domain
-                xx = np.linspace(x0, x1)
+                xx = np.linspace(x0, x1, 50)
                 yy = [piece(u) for u in xx]
-                lines_data['xs'].append(xx)
-                lines_data['ys'].append(yy)
-                lines_data['label'].append(f'Piece {key}')
-            source = ColumnDataSource(data=lines_data)
 
-            p.multi_line(xs='xs', ys='ys', source=source, line_width=2)
-            # Add HoverTool
-            hover = HoverTool(
-                tooltips=[('', "@label")],
-                renderers=[p.renderers[-1]])
+                info_strings = []
+                for x_val, y_val in zip(xx, yy):
+                    parts = []
+                    for j, el in enumerate(self.sorted_elements):
+                        label_j = self.labels[self.order[j]]
+                        if j < idx:
+                            q1 = el.q_intercept
+                            q2 = 0
+                        elif j == idx:
+                            q1 = x_val - piece._shift_x
+                            q2 = y_val - piece._shift_y
+                        else:
+                            q1 = 0
+                            q2 = el.intercept
+                        parts.append(f"{label_j}: ({q1:.1f}, {q2:.1f})")
+                    info_strings.append("; ".join(parts))
+
+                source = ColumnDataSource(
+                    data={
+                        'x': xx,
+                        'y': yy,
+                        'producer': [getattr(piece, 'producer_label', f'Piece {idx}')]*len(xx),
+                        'info': info_strings,
+                    }
+                )
+                color = Category10[10][idx % 10]
+                r = p.line('x', 'y', source=source, line_width=2, color=color)
+                renderers.append(r)
+
+            hover = HoverTool(tooltips=[('Producer', '@producer'), ('Allocation', '@info')], renderers=renderers)
             p.add_tools(hover)
+
+            p.xaxis.axis_label = 'Good 1'
+            p.yaxis.axis_label = 'Good 2'
 
             return p
 
