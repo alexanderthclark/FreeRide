@@ -47,16 +47,23 @@ Let's model this game using FreeRide's game theory tools:
 
 .. code-block:: text
 
-   [(1, 1)]
+   [('Defect', 'Defect')]
 
-The visual game table will also be displayed, and the Nash equilibrium `[(1, 1)]` corresponds to 
-(Defect, Defect) - both players choosing their second action (index 1).
+The visual game table will also be displayed, showing the Nash equilibrium as the actual 
+strategy profile with action names.
 
 Analysis
 --------
 
 The Nash equilibrium is **(Defect, Defect)** even though **(Cooperate, Cooperate)** would give 
-both players a better outcome. 
+both players a better outcome. This demonstrates the conflict between individual rationality 
+and collective welfare.
+
+**Key Insights:**
+
+- Each player has a **dominant strategy** to defect
+- The equilibrium outcome is **Pareto inefficient**  
+- This explains many real-world cooperation problems 
 
 
 Try It Yourself
