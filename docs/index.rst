@@ -70,6 +70,13 @@ Quick Example
    print(market.consumer_surplus)
    print(market.producer_surplus)
 
+**Output:**
+
+.. code-block:: text
+
+   Market(price=5.0, quantity=10.0)
+   25.0
+   37.5
 
 The plot shows the supply and demand curves with the equilibrium point clearly marked, 
 and the consumer and producer surplus areas shaded:
@@ -90,6 +97,12 @@ and the consumer and producer surplus areas shaded:
    plotting
    games
    tutorials/quickstart
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
+   tutorials/prisoners_dilemma
 
 
 
