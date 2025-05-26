@@ -54,6 +54,18 @@ class Equilibrium:
             world_price=None,
             tariff=0
     ):
+        # Check for perfectly elastic or inelastic curves
+        if demand.has_perfect_segment:
+            raise ValueError(
+                "Equilibrium does not support perfectly elastic or inelastic demand curves. "
+                "These curves have indeterminate quantities at certain prices."
+            )
+        if supply.has_perfect_segment:
+            raise ValueError(
+                "Equilibrium does not support perfectly elastic or inelastic supply curves. "
+                "These curves have indeterminate quantities at certain prices."
+            )
+        
         self.demand = demand
         self.supply = supply
 

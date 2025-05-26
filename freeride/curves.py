@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import warnings
 from freeride.plotting import textbook_axes, AREA_FILLS, update_axes_limits
 from freeride.formula import _formula
 from freeride.affine import AffineElement
@@ -589,6 +590,15 @@ class Demand(Affine):
         """
         super().__init__(intercept, slope, elements, inverse)
         self._check_slope()
+        
+        # Warn about perfectly elastic segments
+        if self.has_perfectly_elastic_segment:
+            warnings.warn(
+                f"Created perfectly elastic demand curve. "
+                f"Note: This curve has indeterminate quantity at certain prices and "
+                f"cannot be used with Equilibrium or combined with other curves.",
+                UserWarning
+            )
 
     def _check_slope(self):
         for slope in self.slope:
@@ -597,6 +607,36 @@ class Demand(Affine):
         if not self.has_perfectly_elastic_segment:
             if self.q(0) < 0:
                 raise Exception("Negative demand.")
+    
+    def q(self, p):
+        """
+        Calculate quantity demanded at price p, handling perfectly elastic segments.
+        
+        For horizontal demand at price P*:
+        - q(P*) = 0 (with warning about indeterminacy)
+        - q(P > P*) = 0 
+        - q(P < P*) = ∞
+        """
+        # Check if we have perfectly elastic segments
+        if self.has_perfectly_elastic_segment:
+            for element in self.elements:
+                if element.slope == 0:  # Horizontal segment
+                    p_star = element.intercept
+                    if np.isclose(p, p_star):
+                        warnings.warn(
+                            f"Quantity demanded is indeterminate at P={p_star} for perfectly elastic demand. "
+                            f"Returning np.inf for computational purposes. "
+                            f"Note: Avoid combining perfectly elastic curves with other objects.",
+                            UserWarning
+                        )
+                        return np.inf
+                    elif p > p_star:
+                        return 0
+                    else:  # p < p_star
+                        return np.inf
+        
+        # Default behavior for non-horizontal curves
+        return super().q(p)
 
     def consumer_surplus(self, p, q = None):
         return self.surplus(p, q)
@@ -614,6 +654,15 @@ class Supply(Affine):
         """
         super().__init__(intercept, slope, elements, inverse)
         self._check_slope()
+        
+        # Warn about perfectly elastic segments
+        if self.has_perfectly_elastic_segment:
+            warnings.warn(
+                f"Created perfectly elastic supply curve. "
+                f"Note: This curve has indeterminate quantity at certain prices and "
+                f"cannot be used with Equilibrium or combined with other curves.",
+                UserWarning
+            )
 
     def _check_slope(self):
         for slope in self.slope:
@@ -622,6 +671,36 @@ class Supply(Affine):
         if not self.has_perfectly_elastic_segment:
             if self.q(0) < 0:
                 raise Exception("Negative supply.")
+    
+    def q(self, p):
+        """
+        Calculate quantity supplied at price p, handling perfectly elastic segments.
+        
+        For horizontal supply at price P*:
+        - q(P*) = 0 (with warning about indeterminacy)
+        - q(P > P*) = ∞ 
+        - q(P < P*) = 0
+        """
+        # Check if we have perfectly elastic segments
+        if self.has_perfectly_elastic_segment:
+            for element in self.elements:
+                if element.slope == 0:  # Horizontal segment
+                    p_star = element.intercept
+                    if np.isclose(p, p_star):
+                        warnings.warn(
+                            f"Quantity supplied is indeterminate at P={p_star} for perfectly elastic supply. "
+                            f"Returning np.inf for computational purposes. "
+                            f"Note: Avoid combining perfectly elastic curves with other objects.",
+                            UserWarning
+                        )
+                        return np.inf
+                    elif p > p_star:
+                        return np.inf
+                    else:  # p < p_star
+                        return 0
+        
+        # Default behavior for non-horizontal curves
+        return super().q(p)
 
     def producer_surplus(self, p, q = None):
         return -self.surplus(p, q)
