@@ -336,20 +336,33 @@ class Affine(BaseAffine):
 
         super().__init__(intercept, slope, elements, inverse)
 
-        pieces, cuts, mids = horizontal_sum(*self.elements)
-        self.pieces = pieces
-
-        # store piecewise info
-        sections = [(cuts[i], cuts[i+1]) for i in range(len(cuts)-1)]
-        qsections = [ (self.q(ps[0]), self.q(ps[1]))  for ps in sections]
-        sections.append( (cuts[-1], np.inf) )
-        if self.q(cuts[-1]+1) <= 0: # demand
-            qsections.append((0,0))
-        elif len(qsections): # supply
-            maxq = np.max(qsections[-1])
-            qsections.append((maxq, np.inf))
-        else: # supply
-            qsections.append((0, np.inf))
+        # Special handling for perfectly elastic curves - they can't be summed
+        # so they'll only have one element and don't need horizontal_sum
+        if self.has_perfectly_elastic_segment:
+            # Set up minimal structure for a single horizontal curve
+            pieces = [self.elements[0]]
+            self.pieces = pieces
+            cuts = [0, np.inf]
+            mids = [self.elements[0].intercept]
+            sections = [(0, np.inf)]
+            qsections = [(0, np.inf)]
+        else:
+            # Normal processing for non-horizontal curves
+            pieces, cuts, mids = horizontal_sum(*self.elements)
+            self.pieces = pieces
+            # store piecewise info
+            sections = [(cuts[i], cuts[i+1]) for i in range(len(cuts)-1)]
+            qsections = [ (self.q(ps[0]), self.q(ps[1]))  for ps in sections]
+            sections.append( (cuts[-1], np.inf) )
+        # Skip the q() calls for perfectly elastic curves to avoid warnings
+        if not self.has_perfectly_elastic_segment:
+            if self.q(cuts[-1]+1) <= 0: # demand
+                qsections.append((0,0))
+            elif len(qsections): # supply
+                maxq = np.max(qsections[-1])
+                qsections.append((maxq, np.inf))
+            else: # supply
+                qsections.append((0, np.inf))
         self.psections = sections
         self.qsections = qsections
         self._set_piece_domains()
