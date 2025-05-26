@@ -1,12 +1,83 @@
-.. microecon documentation master file, created by
-   sphinx-quickstart on Sun Oct  1 17:11:35 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Welcome to FreeRide
+===================
 
-Welcome to FreeRide's documentation!
-=====================================
+.. image:: _static/freeride-banner.png
+   :alt: FreeRide Banner
+   :align: center
+   :width: 600px
 
-This is a Python package for introductory microeconomics.
+FreeRide is a Python package designed specifically for **introductory microeconomics**. 
+Built with simplicity in mind, it provides intuitive tools for modeling economic 
+concepts that "just work" the way economics students expect them to.
+
+.. raw:: html
+
+   <div class="feature-card">
+      <h3>🎯 Designed for Economics 101</h3>
+      <p>Every feature is crafted with introductory economics in mind. The focus is on simple cases, like linear or piecewise-linear demand curves, that illustrate key concepts.</p>
+   </div>
+
+   <div class="feature-card">
+      <h3>✨ Intuitive by Design</h3>
+      <p>Clean, readable code that matches conventional notation. Operations like <code>a + b</code> 
+      for demand curves naturally perform horizontal summation.</p>
+   </div>
+
+   <div class="feature-card">
+      <h3>📊 Learn Visually</h3>
+      <p>Plotting capabilities are emphasized. Every plot looks like it belongs in an economics textbook. Clean axes, automatic equilibrium highlighting, and thoughtful styling make your analysis shine.</p>
+   </div>
+
+Installation
+------------
+
+Install FreeRide using pip:
+
+.. code-block:: bash
+
+   pip install freeride
+
+**Where to run this:**
+
+- **Mac**: Open Terminal (found in Applications → Utilities)
+- **Windows**: Open Command Prompt (search "cmd" in Start menu)
+- **Both**: Or use Anaconda Prompt if you have Anaconda installed
+
+**New to Python?** We recommend starting with `Google Colab <https://colab.research.google.com/>`_, 
+which provides a free Python environment in your browser. No installation required - just run 
+``!pip install freeride`` in a code cell.
+
+Quick Example
+-------------
+
+.. code-block:: python
+
+   from freeride.curves import Demand, Supply
+   from freeride.equilibrium import Market
+   
+   # Create supply and demand curves
+   demand = Demand.from_formula("Q = 20 - 2*P")
+   supply = Supply.from_formula("Q = -5 + 3*P")
+   
+   # Find equilibrium
+   market = Market(demand, supply)
+   
+   # Beautiful plot with shaded surplus
+   market.plot(surplus=True)
+
+   # Inspect the equilibrium
+   print(market)  # shows price and quantity
+   print(market.consumer_surplus)
+   print(market.producer_surplus)
+
+
+The plot shows the supply and demand curves with the equilibrium point clearly marked, 
+and the consumer and producer surplus areas shaded:
+
+.. image:: _static/quick_example_plot.svg
+   :alt: Market equilibrium plot with supply and demand curves and shaded surplus
+   :align: center
+   :width: 600px
 
 .. toctree::
    :maxdepth: 1

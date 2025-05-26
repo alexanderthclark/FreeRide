@@ -54,3 +54,52 @@ autodoc_mock_imports = ['IPython', 'pandas', 'numpy', 'matplotlib', 'papermill',
 
 html_theme = 'sphinx_book_theme'
 html_static_path = ['_static']
+
+# Custom CSS and JavaScript
+html_css_files = [
+    'custom.css',
+]
+
+html_js_files = [
+    'custom.js',
+]
+
+# Theme options for sphinx-book-theme
+html_theme_options = {
+    "repository_url": "https://github.com/alexanderthclark/FreeRide",
+    "use_repository_button": True,
+    "use_issues_button": True,
+    "use_edit_page_button": True,
+    "path_to_docs": "docs",
+    "home_page_in_toc": True,
+    "show_navbar_depth": 2,
+    "show_toc_level": 2,
+    "logo": {
+        "image_light": "_static/logo.svg",
+        "image_dark": "_static/logo.svg",
+    },
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/alexanderthclark/FreeRide",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/freeride/",
+            "icon": "fa-brands fa-python",
+        },
+    ],
+    # Color customization through theme
+    "primary_sidebar_end": ["indices.html"],
+    "footer_content_items": ["copyright", "last-updated"],
+    # Remove right sidebar for more content space
+    "show_toc_level": 0,  # This removes the right table of contents
+    "use_sidenotes": False,
+}
+
+# Add custom HTML title
+html_title = "FreeRide"
+
+# Favicon
+html_favicon = "_static/favicon.svg"

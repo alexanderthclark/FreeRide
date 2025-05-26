@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Economic curves intersection on transparent background -->
+  <path d="M4 28 Q16 8, 28 4" stroke="#E74C3C" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M4 4 Q16 24, 28 28" stroke="#3498DB" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>
