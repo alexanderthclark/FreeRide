@@ -100,7 +100,7 @@ html_theme_options = {
 }
 
 # Add custom HTML title
-html_title = "FreeRide - Elegant Economics for Python"
+html_title = "FreeRide"
 
 # Favicon
 html_favicon = "_static/favicon.svg"

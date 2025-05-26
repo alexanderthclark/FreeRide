@@ -2,8 +2,6 @@
 
    <div class="hero-section">
       <img src="_static/freeride-banner.png" alt="FreeRide Banner" style="max-width: 600px; margin-bottom: 2rem;">
-      <h1 style="margin-top: 0;">FreeRide</h1>
-      <p>Elegant Economics for Python</p>
    </div>
 
 Welcome to FreeRide
