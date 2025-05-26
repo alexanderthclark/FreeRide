@@ -252,19 +252,30 @@ class AffineElement(PolyBase):
         Plot the affine curve.
 
         Parameters
-        --------
-            ax (matplotlib.axes._axes.Axes, optional): The matplotlib axis to use for plotting.
-                If not provided, the current axes will be used.
-            textbook_style (bool, optional): If True, use textbook-style plot formatting.
-                Defaults to True.
-            max_q (float, optional): The maximum quantity value for the plot. Defaults to 10.
-            color (str, optional): The color of the plot. Defaults to 'black'.
-            linewidth (int, optional): The linewidth of the plot. Defaults to 2.
-            label (bool, optional): If True, label the curve and axes. Defaults to True.
+        ----------
+        ax : matplotlib.axes._axes.Axes, optional
+            The matplotlib axis to use for plotting. If not provided, the current 
+            axes will be used or a new figure will be created.
+        textbook_style : bool, optional
+            If True, use textbook-style plot formatting with clean axes and 
+            appropriate labels. Defaults to True.
+        max_q : float, optional
+            The maximum quantity value for the plot. If not specified, a sensible
+            default will be calculated based on the curve's intercepts.
+        label : bool, optional
+            If True, label the curve and axes. Defaults to True.
+        **kwargs : dict
+            Additional keyword arguments passed to matplotlib's plot function.
+            Common options include:
+            - color : str, default 'black'
+            - linewidth : int, default 2
+            - linestyle : str, default '-'
+            - alpha : float, default 1.0
 
         Returns
-        --------
-            None
+        -------
+        matplotlib.axes._axes.Axes
+            The axes object containing the plot, which can be further customized.
 
         Example
         --------
