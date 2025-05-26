@@ -39,45 +39,25 @@ Let's model this game using FreeRide's game theory tools:
 
    from freeride.games import Game
 
-   # Create the classic Prisoner's Dilemma game
    game = Game.prisoners_dilemma()
-
-   # Display the game table
-   print("Prisoner's Dilemma Payoff Matrix:")
-   print(game)
-
-   # Find Nash equilibrium
-   print("Nash Equilibrium:")
-   equilibria = game.nash_equilibria()
-   for eq in equilibria:
-       player1_action = game.action_names[0][eq[0]]
-       player2_action = game.action_names[1][eq[1]]
-       print(f"({player1_action}, {player2_action})")
+   ax = game.table()
+   print(game.nash())
 
 **Expected Output:**
 
 .. code-block:: text
 
-   Prisoner's Dilemma Payoff Matrix:
-             Cooperate  Defect
-   Cooperate    (3,3)   (0,5)
-   Defect       (5,0)   (1,1)
+   [(1, 1)]
 
-   Nash Equilibrium:
-   (Defect, Defect)
+The visual game table will also be displayed, and the Nash equilibrium `[(1, 1)]` corresponds to 
+(Defect, Defect) - both players choosing their second action (index 1).
 
 Analysis
 --------
 
 The Nash equilibrium is **(Defect, Defect)** even though **(Cooperate, Cooperate)** would give 
-both players a better outcome. This demonstrates the conflict between individual rationality 
-and collective welfare.
+both players a better outcome. 
 
-**Key Insights:**
-
-- Each player has a **dominant strategy** to defect
-- The equilibrium outcome is **Pareto inefficient**  
-- This explains many real-world cooperation problems
 
 Try It Yourself
 ---------------
