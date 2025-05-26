@@ -24,11 +24,11 @@ Each has two options:
 - **Cooperate** (remain silent)  
 - **Defect** (betray the other)
 
-The payoffs depend on what both players choose:
+The payoffs represent utility (higher numbers are better):
 
-- If both cooperate: Both get 3 years in prison
-- If both defect: Both get 1 year in prison  
-- If one cooperates and one defects: The cooperator gets 0 years, the defector gets 5 years
+- If both cooperate: Both get utility of 3 (mutual cooperation reward)
+- If both defect: Both get utility of 1 (mutual punishment)  
+- If one cooperates and one defects: The cooperator gets 0 (sucker's payoff), the defector gets 5 (temptation payoff)
 
 Modeling with FreeRide
 ----------------------
