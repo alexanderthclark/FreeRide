@@ -28,16 +28,17 @@ Let's create and analyze a basic market:
 
 .. code-block:: python
 
-   from freeride import Demand, Supply, Equilibrium
+   from freeride.curves import Demand, Supply
+   from freeride.equilibrium import Market
 
    # Create demand: P = 10 - Q
-   demand = Demand("P = 10 - Q")
+   demand = Demand.from_formula("P = 10 - Q")
    
    # Create supply: P = 2 + Q
-   supply = Supply("P = 2 + Q")
+   supply = Supply.from_formula("P = 2 + Q")
    
    # Find equilibrium
-   market = Equilibrium(demand, supply)
+   market = Market(demand, supply)
    
    print(f"Equilibrium: P = ${market.p:.2f}, Q = {market.q:.0f}")
    print(f"Consumer Surplus: ${market.consumer_surplus:.2f}")
@@ -71,8 +72,8 @@ higher prices, being less price sensitive.
 .. code-block:: python
 
    # Two demand curves with SAME slope but DIFFERENT elasticities
-   demand1 = Demand("P = 10 - Q")
-   demand2 = Demand("P = 12 - Q")
+   demand1 = Demand.from_formula("P = 10 - Q")
+   demand2 = Demand.from_formula("P = 12 - Q")
    
    # Compare elasticities at P = 8
    elasticity1 = demand1.price_elasticity(8)
