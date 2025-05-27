@@ -667,6 +667,14 @@ class Demand(Affine):
     def total_revenue(self):
         
         return Revenue.from_demand(self)
+    
+    def __and__(self, other):
+        """Create a Market from intersection with Supply using & operator."""
+        from .equilibrium import Market
+        if isinstance(other, Supply):
+            return Market(demand=self, supply=other)
+        else:
+            return NotImplemented
 
 
 class Supply(Affine):
@@ -727,6 +735,14 @@ class Supply(Affine):
 
     def producer_surplus(self, p, q = None):
         return -self.surplus(p, q)
+    
+    def __and__(self, other):
+        """Create a Market from intersection with Demand using & operator."""
+        from .equilibrium import Market
+        if isinstance(other, Demand):
+            return Market(demand=other, supply=self)
+        else:
+            return NotImplemented
 
 
 class Constraint(BaseAffine):
