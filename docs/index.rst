@@ -52,7 +52,7 @@ Quick Example
 
 .. code-block:: python
 
-   from freeride.curves import Demand, Supply
+   from freeride import Demand, Supply
    
    # Create supply and demand curves
    demand = Demand.from_formula("Q = 20 - 2*P")
@@ -82,6 +82,25 @@ and the consumer and producer surplus areas shaded:
 
 .. image:: _static/quick_example_plot.svg
    :alt: Market equilibrium plot with supply and demand curves and shaded surplus
+   :align: center
+   :width: 600px
+
+Basic Tax Example
+-----------------
+
+We can easily add a tax to the market and visualize its effects.
+
+.. code-block:: python
+
+   # Apply a $2.50 tax
+   market.tax = 2.5
+   market.plot(surplus=True)
+
+This plot shows the higher price paid by consumers, the lower price
+received by producers, and the shaded tax revenue rectangle.
+
+.. image:: _static/tax_example_plot.svg
+   :alt: Market plot with tax revenue shaded
    :align: center
    :width: 600px
 
