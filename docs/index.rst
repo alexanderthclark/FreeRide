@@ -102,6 +102,7 @@ and the consumer and producer surplus areas shaded:
    :maxdepth: 1
    :caption: Tutorials
 
+   tutorials/market_equilibrium
    tutorials/prisoners_dilemma
 
 

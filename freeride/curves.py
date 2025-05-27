@@ -618,6 +618,16 @@ class Demand(Affine):
         for slope in self.slope:
             if slope > 0:
                 raise Exception("Upward-sloping demand curve.")
+        
+        # Check for economically reasonable demand curves
+        for intercept in self.intercept:
+            if intercept <= 0:
+                raise Exception(
+                    f"Demand curve intercept must be positive (got {intercept}). "
+                    f"A demand curve represents willingness to pay, so the price intercept "
+                    f"should be positive."
+                )
+        
         if not self.has_perfectly_elastic_segment:
             if self.q(0) < 0:
                 raise Exception("Negative demand.")
