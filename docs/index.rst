@@ -85,6 +85,25 @@ and the consumer and producer surplus areas shaded:
    :align: center
    :width: 600px
 
+Basic Tax Example
+-----------------
+
+We can easily add a tax to the market and visualize its effects.
+
+.. code-block:: python
+
+   # Apply a $2.50 tax
+   market.tax = 2.5
+   market.plot(surplus=True)
+
+This plot shows the higher price paid by consumers, the lower price
+received by producers, and the shaded tax revenue rectangle.
+
+.. image:: _static/tax_example_plot.svg
+   :alt: Market plot with tax revenue shaded
+   :align: center
+   :width: 600px
+
 .. toctree::
    :maxdepth: 1
    :caption: Contents
