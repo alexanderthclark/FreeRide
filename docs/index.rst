@@ -53,14 +53,13 @@ Quick Example
 .. code-block:: python
 
    from freeride.curves import Demand, Supply
-   from freeride.equilibrium import Market
    
    # Create supply and demand curves
    demand = Demand.from_formula("Q = 20 - 2*P")
    supply = Supply.from_formula("Q = -5 + 3*P")
    
-   # Find equilibrium
-   market = Market(demand, supply)
+   # Find equilibrium using the intersection operator
+   market = demand & supply
    
    # Beautiful plot with shaded surplus
    market.plot(surplus=True)
