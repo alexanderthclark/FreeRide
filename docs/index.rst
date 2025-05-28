@@ -109,6 +109,7 @@ received by producers, and the shaded tax revenue rectangle.
    :caption: Contents
 
    curves
+   revenue
    costs
    formula
    exceptions
