@@ -12,11 +12,6 @@ Double Auction
      </a>
    </div>
 
-FreeRide provides a lightweight way to simulate a sealed bid double auction.  
-Buyers and sellers each submit valuations for at most one unit.  The auction 
-clears by matching the highest buyer valuations with the lowest seller 
-valuations.
-
 UnitDemand and UnitSupply
 -------------------------
 
@@ -31,7 +26,7 @@ Example
 -------
 
 The snippet below creates two buyers and two sellers, clears the auction and 
-plots the resulting allocation.
+plots the demand and supply curves.
 
 .. code-block:: python
 
@@ -47,11 +42,3 @@ plots the resulting allocation.
 
 The output displays the clearing price range and quantity traded, while the plot
 shows the demand and supply schedules as step functions.
-
-Try It Yourself
----------------
-
-Use the **"Open in Colab"** badge above to experiment with your own buyers and 
-sellers.  Adjust their valuations to see how the clearing price range and traded
-quantity respond.
-
