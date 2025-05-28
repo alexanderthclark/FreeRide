@@ -122,6 +122,7 @@ received by producers, and the shaded tax revenue rectangle.
 
    tutorials/market_equilibrium
    tutorials/prisoners_dilemma
+   tutorials/double_auction
 
 
 
