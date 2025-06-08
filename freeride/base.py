@@ -1,4 +1,5 @@
 import numbers
+from collections.abc import Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -73,6 +74,8 @@ class PolyBase(np.polynomial.Polynomial):
             return True
 
     def __call__(self, x):
+        if isinstance(x, Iterable):
+            return [self.__call__(i) for i in x]
         if self.is_undefined:
             raise ValueError("Polynomial is undefined.")
         elif self.in_domain(x):
