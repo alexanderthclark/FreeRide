@@ -25,7 +25,8 @@ Plotting logic:
 import numpy as np
 import matplotlib.pyplot as plt
 
-from freeride.curves import Demand, Supply, intersection
+from freeride.curves import Demand, Supply
+from freeride.affine import intersection
 from freeride.plotting import update_axes_limits
 
 
