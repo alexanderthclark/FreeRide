@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import warnings
 from freeride.plotting import textbook_axes, AREA_FILLS, update_axes_limits
 from freeride.formula import _formula
-from freeride.affine import AffineElement, Affine, BaseAffine
+from freeride.affine import AffineElement, Affine, BaseAffine, intersection, blind_sum, horizontal_sum, ppf_sum
 from freeride.quadratic import QuadraticElement, BaseQuadratic
 from freeride.revenue import Revenue, MarginalRevenue
 from IPython.display import Latex, display
