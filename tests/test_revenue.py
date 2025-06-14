@@ -125,5 +125,26 @@ class TestRevenueIntegration(unittest.TestCase):
         self.assertAlmostEqual(flat_mr(2), 8, places=5)   # 10 - 1*2
 
 
+class TestKinkedDemandMarginalRevenue(unittest.TestCase):
+    
+    def setUp(self):
+        """Create a kinked demand curve to test discontinuous MR."""
+        d1 = Demand(20, -1)  # P = 20 - Q, steep segment
+        d2 = Demand(10, -0.5)  # P = 10 - 0.5*Q, flat segment
+        self.kinked_demand = d1 + d2
+        
+    def test_discontinuous_marginal_revenue(self):
+        """Test that MR is discontinuous at the kink."""
+        mr = MarginalRevenue.from_demand(self.kinked_demand)
+        
+        # Test points on either side of Q=10 kink
+        mr_before = mr(9.9)  
+        mr_after = mr(10.1)
+        
+        # Should have a significant jump (discontinuity)
+        gap = abs(mr_after - mr_before)
+        self.assertGreater(gap, 2, "MR should be discontinuous at the kink")
+
+
 if __name__ == '__main__':
     unittest.main()
