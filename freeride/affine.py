@@ -541,7 +541,7 @@ def ppf_sum(*curves, comparative_advantage=True):
 
 class BaseAffine:
 
-    def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
+    def __init__(self, intercept=None, slope=None, elements=None, inverse=True, sum_elements=True):
         """
         Initialize the BaseAffine object.
 
@@ -555,6 +555,8 @@ class BaseAffine:
             List of AffineElement objects. If provided, it will override `intercept` and `slope`. Default is None.
         inverse : bool, optional
             Indicates if the transformation should be inverted. Default is True.
+        sum_elements : bool, optional
+            Whether to sum elements together (True) or keep them as separate pieces (False). Default is True.
 
         Raises
         ------
@@ -572,6 +574,7 @@ class BaseAffine:
             zipped = zip(slope, intercept)
             elements = [AffineElement(slope=m, intercept=b, inverse=inverse) for m, b in zipped]
         self.elements = elements
+        self.sum_elements = sum_elements
 
         if intercept is None:
             intercept = [c.intercept for c in elements]
@@ -666,13 +669,13 @@ class Affine(BaseAffine):
     A class to represent a piecewise affine function.
     """
 
-    def __init__(self, intercept=None, slope=None, elements=None, inverse=True):
+    def __init__(self, intercept=None, slope=None, elements=None, inverse=True, sum_elements=True):
         """
         Initializes an Affine object with given slopes and intercepts or elements.
         The slopes correspond to elements, which are differentiated from pieces.
 
-        The elements represent the individual curves which are horizontally summed.
-        The pieces are the resulting functions for the piecewise expression describing the aggregate.
+        When sum_elements=True: elements are horizontally summed to create aggregate pieces.
+        When sum_elements=False: elements are kept as separate pieces (for discontinuous functions).
 
         Parameters
         ----------
@@ -684,6 +687,8 @@ class Affine(BaseAffine):
             A list of AffineElements whose horizontal sum defines the Affine object.
         inverse : bool, optional
             When inverse is True, it is assumed that equations are in the form P(Q).
+        sum_elements : bool, optional
+            Whether to sum elements together (True) or keep them as separate pieces (False). Default is True.
 
         Raises
         ------
@@ -691,7 +696,7 @@ class Affine(BaseAffine):
             If the lengths of `slope` and `intercept` do not match.
         """
 
-        super().__init__(intercept, slope, elements, inverse)
+        super().__init__(intercept, slope, elements, inverse, sum_elements)
 
         # Special handling for perfectly elastic curves - they can't be summed
         # so they'll only have one element and don't need horizontal_sum
@@ -703,6 +708,23 @@ class Affine(BaseAffine):
             mids = [self.elements[0].intercept]
             sections = [(0, np.inf)]
             qsections = [(0, np.inf)]
+        elif not self.sum_elements:
+            # Non-summing mode: keep elements as separate pieces
+            pieces = self.elements
+            self.pieces = pieces
+            # Create sections based on element domains
+            sections = []
+            qsections = []
+            cuts = []
+            for element in self.elements:
+                if hasattr(element, '_domain') and element._domain:
+                    domain = element._domain
+                    sections.append((min(domain), max(domain)))
+                    qsections.append((min(domain), max(domain)))
+                    cuts.extend([min(domain), max(domain)])
+            # Remove duplicates and sort cuts
+            cuts = sorted(list(set(cuts))) if cuts else [0, np.inf]
+            mids = [(a + b) / 2 for a, b in sections] if sections else [0]
         else:
             # Normal processing for non-horizontal curves
             pieces, cuts, mids = horizontal_sum(*self.elements)
@@ -755,10 +777,14 @@ class Affine(BaseAffine):
         for piece in [piece for piece in self.pieces if piece]:
             q0, q1 = np.min(piece._domain), np.max(piece._domain)
 
-            # this has to be closed on the right and open on the left
-            # there has to be area to the left when calc surplus
-            if q0 < q <= q1:
-                return piece
+            if not self.sum_elements:
+                # Non-summing mode: use right-continuous convention [a,b)
+                if q0 <= q < q1:
+                    return piece
+            else:
+                # Summing mode: original logic (left-open, right-closed)
+                if q0 < q <= q1:
+                    return piece
         return None
 
     def __call__(self, x):
@@ -785,7 +811,23 @@ class Affine(BaseAffine):
 
     def q(self, p):
         # returns q given p
-        return np.sum([np.max([0,c.q(p)]) for c in self.elements])
+        if not self.sum_elements:
+            # Non-summing mode: find the piece that contains this price using [a,b) convention
+            for piece in self.pieces:
+                if piece and hasattr(piece, '_domain') and piece._domain:
+                    # Use right-continuous convention: [a,b) - left inclusive, right exclusive
+                    domain = piece._domain
+                    a, b = np.min(domain), np.max(domain)
+                    if a <= p < b:
+                        try:
+                            q_val = piece.q(p)
+                            if np.isfinite(q_val) and q_val >= 0:
+                                return q_val
+                        except:
+                            continue
+            return 0
+        else:
+            return np.sum([np.max([0,c.q(p)]) for c in self.elements])
 
     def p(self, q):
         # returns p given q
