@@ -3,7 +3,8 @@ from __future__ import annotations
 """Revenue curve utilities."""
 
 from .quadratic import QuadraticElement, BaseQuadratic
-from .affine import AffineElement, Affine
+from .affine import AffineElement
+
 
 class Revenue(BaseQuadratic):
     """Piecewise quadratic revenue curve.
@@ -24,6 +25,7 @@ class Revenue(BaseQuadratic):
             revenue_element._domain = sorted(piece._domain)
             elements.append(revenue_element)
         return cls(elements=elements)
+
 
 class MarginalRevenue(BaseQuadratic):
     """Piecewise linear marginal revenue curve.
