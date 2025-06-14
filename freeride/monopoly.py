@@ -6,6 +6,7 @@ import numpy as np
 
 from .curves import Demand
 from .costs import Cost
+from .revenue import MarginalRevenue
 
 
 class Monopoly:
@@ -15,6 +16,7 @@ class Monopoly:
         self.demand = demand
         self.total_cost = total_cost
         self._mc = total_cost.marginal_cost()
+        self._mr = MarginalRevenue.from_demand(demand)
 
         self.q = 0.0
         self.p = 0.0
@@ -22,28 +24,27 @@ class Monopoly:
 
         self._solve()
 
-    @staticmethod
-    def _mr_for_piece(piece, q: float) -> float:
-        """Return marginal revenue for ``piece`` at quantity ``q``."""
-        return piece.intercept + 2 * piece.slope * q
-
     def _solve(self):
         candidates = []
-        for piece in [p for p in self.demand.pieces if p]:
+        
+        # Find interior solutions where MR = MC
+        # For each MR piece, solve MR(q) = MC(q)
+        for mr_piece in [p for p in self._mr.pieces if p]:
             mc_coef = list(self._mc.coef)
             if len(mc_coef) < 2:
                 mc_coef += [0] * (2 - len(mc_coef))
             diff = mc_coef.copy()
-            diff[0] -= piece.intercept
-            diff[1] -= 2 * piece.slope
+            diff[0] -= mr_piece.intercept
+            diff[1] -= mr_piece.slope
             poly = np.polynomial.Polynomial(diff)
             for r in poly.roots():
                 if np.isreal(r):
                     q = float(np.real(r))
                     if q <= 0:
                         continue
-                    dom = piece._domain
-                    if dom and not (min(dom) < q <= max(dom)):
+                    # Check if q is in the domain of this MR piece
+                    dom = mr_piece._domain
+                    if dom and not (min(dom) <= q < max(dom)):
                         continue
                     candidates.append(q)
 
