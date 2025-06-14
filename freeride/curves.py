@@ -80,6 +80,12 @@ class Demand(Affine):
 
     def consumer_surplus(self, p, q = None):
         return self.surplus(p, q)
+    
+    def plot_surplus(self, p, q=None, ax=None, color=None, max_q=None, alpha=None):
+        """Plot consumer surplus with default blue color."""
+        if color is None:
+            color = AREA_FILLS[0]  # Blue for consumer surplus
+        return super().plot_surplus(p, q, ax, color, max_q, alpha)
 
     def total_revenue(self):
         
@@ -156,6 +162,12 @@ class Supply(Affine):
 
     def producer_surplus(self, p, q = None):
         return -self.surplus(p, q)
+    
+    def plot_surplus(self, p, q=None, ax=None, color=None, max_q=None, alpha=None):
+        """Plot producer surplus with default orange color."""
+        if color is None:
+            color = AREA_FILLS[1]  # Orange for producer surplus
+        return super().plot_surplus(p, q, ax, color, max_q, alpha)
     
     def __and__(self, other):
         """Create a Market from intersection with Demand using & operator."""

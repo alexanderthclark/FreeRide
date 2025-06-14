@@ -905,10 +905,8 @@ class Affine(BaseAffine):
 
     def plot_surplus(self, p, q=None, ax=None, color=None, max_q=None, alpha=None):
 
-        if (color is None) and isinstance(self, Supply):
-            color = AREA_FILLS[1]
-        elif color is None:
-            color = AREA_FILLS[0]
+        if color is None:
+            color = AREA_FILLS[0]  # Default color
 
         if ax is None:
             ax = self.plot(max_q=max_q)
