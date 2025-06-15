@@ -48,6 +48,43 @@ class Monopoly:
                         continue
                     candidates.append(q)
 
+        # Check discontinuity points where MC might pass through MR gaps
+        # Find boundaries between MR pieces using [a,b) convention
+        boundary_points = set()
+        for piece in self._mr.pieces:
+            if piece and piece._domain:
+                # Right boundary of [a,b) is where discontinuities can occur
+                boundary_points.add(max(piece._domain))
+        
+        for q_boundary in boundary_points:
+            if q_boundary <= 0:
+                continue
+                
+            # Calculate MC at the boundary
+            mc_val = self._mc(q_boundary)
+            
+            # Find MR left limit (from piece ending at this boundary)
+            mr_left = None
+            for piece in self._mr.pieces:
+                if piece and piece._domain and max(piece._domain) == q_boundary:
+                    # This piece ends at the boundary - get left limit
+                    mr_left = piece(q_boundary)
+                    break
+            
+            # Find MR right limit (from piece starting at this boundary) 
+            mr_right = None
+            for piece in self._mr.pieces:
+                if piece and piece._domain and min(piece._domain) == q_boundary:
+                    # This piece starts at the boundary - get right limit
+                    mr_right = piece(q_boundary)
+                    break
+            
+            # If MC passes through the MR gap, this is profit-maximizing
+            if mr_left is not None and mr_right is not None and mr_left != mr_right:
+                # Check if MC is between the left and right limits
+                if (mr_left >= mc_val >= mr_right) or (mr_left <= mc_val <= mr_right):
+                    candidates.append(q_boundary)
+
         if not candidates:
             self.q = 0.0
             self.p = self.demand.p(0)

@@ -67,6 +67,7 @@ class PolyBase(np.polynomial.Polynomial):
         self._domain = domain
 
     def in_domain(self, x):
+        """Test if value is in the domain using [a,b] convention (closed interval)."""
         if self._domain:
             d = sorted(self._domain)
             return d[0] <= x <= d[1]
