@@ -773,17 +773,24 @@ class Affine(BaseAffine):
                 piece._domain_length = np.max(qs) - np.min(qs)
 
     def _get_active_piece(self, q):
-
-        for piece in [piece for piece in self.pieces if piece]:
+        # Filter out any None pieces
+        valid_pieces = [piece for piece in self.pieces if piece]
+        if not valid_pieces:
+            return None
+            
+        # Check if this is the last piece
+        last_piece = valid_pieces[-1]
+        
+        for piece in valid_pieces:
             q0, q1 = np.min(piece._domain), np.max(piece._domain)
-
-            if not self.sum_elements:
-                # Non-summing mode: use right-continuous convention [a,b)
-                if q0 <= q < q1:
+            
+            if piece is last_piece:
+                # Last piece: use [a,b] (closed interval)
+                if q0 <= q <= q1:
                     return piece
             else:
-                # Summing mode: original logic (left-open, right-closed)
-                if q0 < q <= q1:
+                # Not the last piece: use [a,b) (right-open interval)
+                if q0 <= q < q1:
                     return piece
         return None
 
@@ -800,11 +807,21 @@ class Affine(BaseAffine):
         float
         """
 
+        valid_pieces = [piece for piece in self.pieces if piece]
+        if valid_pieces:
+            last_piece = valid_pieces[-1]
+            
         for piece in self.pieces:
             if piece:
                 a, b = piece._domain
-                if (a <= x <= b) or (a >= x >= b):
-                    return piece(x)
+                if piece is last_piece:
+                    # Last piece: use [a,b] convention
+                    if (a <= x <= b) or (a >= x >= b):
+                        return piece(x)
+                else:
+                    # Interior piece: use [a,b) convention  
+                    if (a <= x < b) or (a >= x > b):
+                        return piece(x)
         # might be x out of limits
         return np.nan
         #return np.sum([np.max([0, c(x)]) for c in self.elements])
@@ -812,12 +829,26 @@ class Affine(BaseAffine):
     def q(self, p):
         # returns q given p
         if not self.sum_elements:
-            # Non-summing mode: find the piece that contains this price using [a,b) convention
-            for piece in self.pieces:
-                if piece and hasattr(piece, '_domain') and piece._domain:
-                    # Use right-continuous convention: [a,b) - left inclusive, right exclusive
-                    domain = piece._domain
-                    a, b = np.min(domain), np.max(domain)
+            # Non-summing mode: find the piece that contains this price
+            valid_pieces = [piece for piece in self.pieces if piece and hasattr(piece, '_domain') and piece._domain]
+            if valid_pieces:
+                last_piece = valid_pieces[-1]
+                
+            for piece in valid_pieces:
+                domain = piece._domain
+                a, b = np.min(domain), np.max(domain)
+                
+                if piece is last_piece:
+                    # Last piece: use [a,b] convention
+                    if a <= p <= b:
+                        try:
+                            q_val = piece.q(p)
+                            if np.isfinite(q_val) and q_val >= 0:
+                                return q_val
+                        except:
+                            continue
+                else:
+                    # Interior piece: use [a,b) convention
                     if a <= p < b:
                         try:
                             q_val = piece.q(p)
@@ -859,7 +890,8 @@ class Affine(BaseAffine):
             raise ValueError("Point elasticity is not defined at a kink point."+s)
         else:
             # Get q-domains
-            pc = [p for p in self.pieces if p and (q > np.min(p._domain)) and (q < np.max(p._domain))]
+            # Use [a,b) convention: left inclusive, right exclusive
+            pc = [p for p in self.pieces if p and (np.min(p._domain) <= q < np.max(p._domain))]
             assert len(pc) == 1
             return pc[0].price_elasticity(p)
 
@@ -974,7 +1006,8 @@ class Affine(BaseAffine):
         if q > 0:
 
             # find inframarginal surplus
-            trapezoids = [piece for piece in self.pieces if piece and (np.max(piece._domain) < q)]
+            # Find pieces completely to the left of q (using [a,b) convention)
+            trapezoids = [piece for piece in self.pieces if piece and (np.max(piece._domain) <= q)]
             trap_areas = [piece._domain_length*(np.mean([piece.p(piece._domain[0]),piece.p(piece._domain[1])])-p) for piece in trapezoids]
 
 
