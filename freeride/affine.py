@@ -51,7 +51,8 @@ class AffineElement(PolyBase):
         Initialize an AffineElement with the given intercept and slope.
 
         This method creates an instance of the class with the specified intercept and slope.
-        The parameters can be interpreted as inverse slope and intercept if the `inverse` parameter is True.
+        The parameters can be interpreted as inverse slope and intercept if the
+        `inverse` parameter is True.
 
         Parameters
         --------
@@ -129,8 +130,10 @@ class AffineElement(PolyBase):
         """
         Shift the curve vertically by the given amount.
 
-        This method shifts the supply or demand curve vertically by the specified amount `delta`.
-        A positive `delta` shifts the demand curve to the right, and a negative `delta` shifts the supply curve to the left.
+        This method shifts the supply or demand curve vertically by the specified
+        amount `delta`.
+        A positive `delta` shifts the demand curve to the right. A negative
+        `delta` shifts the supply curve to the left.
 
         Parameters
         --------
@@ -257,10 +260,10 @@ class AffineElement(PolyBase):
         Parameters
         ----------
         ax : matplotlib.axes._axes.Axes, optional
-            The matplotlib axis to use for plotting. If not provided, the current 
+            The matplotlib axis to use for plotting. If not provided, the current
             axes will be used or a new figure will be created.
         textbook_style : bool, optional
-            If True, use textbook-style plot formatting with clean axes and 
+            If True, use textbook-style plot formatting with clean axes and
             appropriate labels. Defaults to True.
         max_q : float, optional
             The maximum quantity value for the plot. If not specified, a sensible
@@ -552,11 +555,13 @@ class BaseAffine:
         slope : float or list of floats, optional
             The slope(s) of the affine transformation. Default is None.
         elements : list of AffineElement, optional
-            List of AffineElement objects. If provided, it will override `intercept` and `slope`. Default is None.
+            List of AffineElement objects. If provided, it overrides
+            `intercept` and `slope`. Default is None.
         inverse : bool, optional
             Indicates if the transformation should be inverted. Default is True.
         sum_elements : bool, optional
-            Whether to sum elements together (True) or keep them as separate pieces (False). Default is True.
+            Whether to sum elements together (True) or keep them as separate
+            pieces (False). Default is True.
 
         Raises
         ------
@@ -688,7 +693,8 @@ class Affine(BaseAffine):
         inverse : bool, optional
             When inverse is True, it is assumed that equations are in the form P(Q).
         sum_elements : bool, optional
-            Whether to sum elements together (True) or keep them as separate pieces (False). Default is True.
+            Whether to sum elements together (True) or keep them as separate
+            pieces (False). Default is True.
 
         Raises
         ------
@@ -756,7 +762,11 @@ class Affine(BaseAffine):
 
         intersections = list()
         if len(pieces):
-            intersections = [intersection(pieces[i], pieces[i+1]) for i in range(len(pieces)-1) if (pieces[i]) and (pieces[i+1])]
+            intersections = [
+                intersection(pieces[i], pieces[i + 1])
+                for i in range(len(pieces) - 1)
+                if pieces[i] and pieces[i + 1]
+            ]
 
         #maxm = np.max([intercept]), np.min([intercept])
         #choke = np.max([])
@@ -777,13 +787,13 @@ class Affine(BaseAffine):
         valid_pieces = [piece for piece in self.pieces if piece]
         if not valid_pieces:
             return None
-            
+
         # Check if this is the last piece
         last_piece = valid_pieces[-1]
-        
+
         for piece in valid_pieces:
             q0, q1 = np.min(piece._domain), np.max(piece._domain)
-            
+
             if piece is last_piece:
                 # Last piece: use [a,b] (closed interval)
                 if q0 <= q <= q1:
@@ -810,7 +820,7 @@ class Affine(BaseAffine):
         valid_pieces = [piece for piece in self.pieces if piece]
         if valid_pieces:
             last_piece = valid_pieces[-1]
-            
+
         for piece in self.pieces:
             if piece:
                 a, b = piece._domain
@@ -819,7 +829,7 @@ class Affine(BaseAffine):
                     if (a <= x <= b) or (a >= x >= b):
                         return piece(x)
                 else:
-                    # Interior piece: use [a,b) convention  
+                    # Interior piece: use [a,b) convention
                     if (a <= x < b) or (a >= x > b):
                         return piece(x)
         # might be x out of limits
@@ -830,14 +840,18 @@ class Affine(BaseAffine):
         # returns q given p
         if not self.sum_elements:
             # Non-summing mode: find the piece that contains this price
-            valid_pieces = [piece for piece in self.pieces if piece and hasattr(piece, '_domain') and piece._domain]
+            valid_pieces = [
+                piece
+                for piece in self.pieces
+                if piece and hasattr(piece, '_domain') and piece._domain
+            ]
             if valid_pieces:
                 last_piece = valid_pieces[-1]
-                
+
             for piece in valid_pieces:
                 domain = piece._domain
                 a, b = np.min(domain), np.max(domain)
-                
+
                 if piece is last_piece:
                     # Last piece: use [a,b] convention
                     if a <= p <= b:
@@ -909,7 +923,7 @@ class Affine(BaseAffine):
     def __mul__(self, scalar):
         elements = [e*scalar for e in self.elements]
         return type(self)(elements=elements)
-    
+
     def __rmul__(self, scalar):
         elements = [e*scalar for e in self.elements]
         return type(self)(elements=elements)
@@ -925,7 +939,8 @@ class Affine(BaseAffine):
         set_lims : bool, optional
             Whether to automatically set the limits for the axes. Default is True.
         max_q : float, optional
-            The maximum quantity to consider for setting the x-axis limit. If None, it will be automatically determined.
+            The maximum quantity to consider for setting the x-axis limit. If
+            None, it will be automatically determined.
         label : bool, optional
             Whether to add curve/axis labels. Default True.
         **kwargs : dict
@@ -1018,9 +1033,6 @@ class Affine(BaseAffine):
             ht1 = last_piece.p(q0) - p
             ht2 = last_piece.p(q) - p
             area = base * 0.5 * (ht1 + ht2)
-
             return area + np.sum(trap_areas)
-
         else:
             return 0
-
