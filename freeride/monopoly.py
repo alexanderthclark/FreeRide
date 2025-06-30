@@ -26,7 +26,7 @@ class Monopoly:
 
     def _solve(self):
         candidates = []
-        
+
         # Find interior solutions where MR = MC
         # For each MR piece, solve MR(q) = MC(q)
         for mr_piece in [p for p in self._mr.pieces if p]:
@@ -55,14 +55,14 @@ class Monopoly:
             if piece and piece._domain:
                 # Right boundary of [a,b) is where discontinuities can occur
                 boundary_points.add(max(piece._domain))
-        
+
         for q_boundary in boundary_points:
             if q_boundary <= 0:
                 continue
-                
+
             # Calculate MC at the boundary
             mc_val = self._mc(q_boundary)
-            
+
             # Find MR left limit (from piece ending at this boundary)
             mr_left = None
             for piece in self._mr.pieces:
@@ -70,15 +70,15 @@ class Monopoly:
                     # This piece ends at the boundary - get left limit
                     mr_left = piece(q_boundary)
                     break
-            
-            # Find MR right limit (from piece starting at this boundary) 
+
+            # Find MR right limit (from piece starting at this boundary)
             mr_right = None
             for piece in self._mr.pieces:
                 if piece and piece._domain and min(piece._domain) == q_boundary:
                     # This piece starts at the boundary - get right limit
                     mr_right = piece(q_boundary)
                     break
-            
+
             # If MC passes through the MR gap, this is profit-maximizing
             if mr_left is not None and mr_right is not None and mr_left != mr_right:
                 # Check if MC is between the left and right limits
