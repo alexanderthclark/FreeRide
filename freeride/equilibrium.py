@@ -68,7 +68,7 @@ class Equilibrium:
                 "due to implementation limitations (not economic theory). "
                 "These curves have indeterminate quantities at the equilibrium price."
             )
-        
+
         self.demand = demand
         self.supply = supply
 

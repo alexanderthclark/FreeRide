@@ -46,7 +46,7 @@ class TestDoubleAuction(unittest.TestCase):
         self.assertEqual(auction.q, 3)
         self.assertEqual(price0, 3)
         self.assertEqual(price1, 4)
-        
+
     def tearDown(self):
         pass
 

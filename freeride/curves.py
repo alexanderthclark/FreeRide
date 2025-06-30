@@ -315,7 +315,7 @@ class Demand(Affine):
         """
         super().__init__(intercept, slope, elements, inverse)
         self._check_slope()
-        
+
         # Warn about perfectly elastic segments
         if self.has_perfectly_elastic_segment:
             warnings.warn(
@@ -330,7 +330,7 @@ class Demand(Affine):
         for slope in self.slope:
             if slope > 0:
                 raise Exception("Upward-sloping demand curve.")
-        
+
         # Check for economically reasonable demand curves
         for intercept in self.intercept:
             if intercept <= 0:
@@ -339,18 +339,18 @@ class Demand(Affine):
                     f"A demand curve represents willingness to pay, so the price intercept "
                     f"should be positive."
                 )
-        
+
         if not self.has_perfectly_elastic_segment:
             if self.q(0) < 0:
                 raise Exception("Negative demand.")
-    
+
     def q(self, p):
         """
         Calculate quantity demanded at price p, handling perfectly elastic segments.
-        
+
         For horizontal demand at price P*:
         - q(P*) = 0 (with warning about indeterminacy)
-        - q(P > P*) = 0 
+        - q(P > P*) = 0
         - q(P < P*) = ∞
         """
         # Check if we have perfectly elastic segments
@@ -369,7 +369,7 @@ class Demand(Affine):
                         return 0
                     else:  # p < p_star
                         return np.inf
-        
+
         # Default behavior for non-horizontal curves
         return super().q(p)
 
@@ -377,13 +377,13 @@ class Demand(Affine):
         return self.surplus(p, q)
 
     def total_revenue(self):
-        
+
         return Revenue.from_demand(self)
 
     def marginal_revenue(self):
-        
+
         return MarginalRevenue.from_demand(self)
-    
+
     def __and__(self, other):
         """Create a Market from intersection with Supply using & operator."""
         from .equilibrium import Market
@@ -401,7 +401,7 @@ class Supply(Affine):
         """
         super().__init__(intercept, slope, elements, inverse)
         self._check_slope()
-        
+
         # Warn about perfectly elastic segments
         if self.has_perfectly_elastic_segment:
             warnings.warn(
@@ -419,14 +419,14 @@ class Supply(Affine):
         if not self.has_perfectly_elastic_segment:
             if self.q(0) < 0:
                 raise Exception("Negative supply.")
-    
+
     def q(self, p):
         """
         Calculate quantity supplied at price p, handling perfectly elastic segments.
-        
+
         For horizontal supply at price P*:
         - q(P*) = 0 (with warning about indeterminacy)
-        - q(P > P*) = ∞ 
+        - q(P > P*) = ∞
         - q(P < P*) = 0
         """
         # Check if we have perfectly elastic segments
@@ -445,13 +445,13 @@ class Supply(Affine):
                         return np.inf
                     else:  # p < p_star
                         return 0
-        
+
         # Default behavior for non-horizontal curves
         return super().q(p)
 
     def producer_surplus(self, p, q = None):
         return -self.surplus(p, q)
-    
+
     def __and__(self, other):
         """Create a Market from intersection with Demand using & operator."""
         from .equilibrium import Market

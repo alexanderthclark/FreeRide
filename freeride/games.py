@@ -148,13 +148,13 @@ class Game:
 
     def nash_equilibria(self) -> List[Tuple[str, str]]:
         """Compute pure strategy Nash equilibria.
-        
+
         Returns
         -------
         list of tuple of str
             List of Nash equilibria as strategy profiles (action name pairs).
             Each equilibrium is a tuple of (player1_action, player2_action).
-            A Nash equilibrium is a strategy profile where no player can 
+            A Nash equilibrium is a strategy profile where no player can
             unilaterally deviate and improve their payoff.
         """
         br1, br2 = self.best_responses()

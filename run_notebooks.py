@@ -9,7 +9,7 @@ def execute_notebooks(notebooks_directory):
     for filename in os.listdir(notebooks_directory):
         if filename.endswith("-out.ipynb"):
             os.remove(os.path.join(notebooks_directory, filename))
-    
+
     # Execute notebooks and save with -out.ipynb suffix
     for filename in os.listdir(notebooks_directory):
         if filename.endswith(".ipynb") and not filename.endswith("-out.ipynb"):
