@@ -15,9 +15,9 @@ class Cost(PolyBase):
     """
     Polynomial cost curve.
 
-    This class represents a polynomial cost curve and extends the PolyBase class. It provides methods
-    for calculating costs, finding the efficient scale, breakeven price, shutdown price, and plotting
-    various cost-related curves.
+    This class represents a polynomial cost curve and extends ``PolyBase``. It
+    provides methods for calculating costs, finding the efficient scale,
+    breakeven price, shutdown price, and plotting various cost-related curves.
 
     Parameters
     ----------
@@ -276,10 +276,12 @@ class Cost(PolyBase):
 
     def shutdown_price(self):
         """
-        Assume perfect competition and find the price at which total revenue equals total variable cost.
+        Assume perfect competition and find the price at which total revenue
+        equals total variable cost.
 
-        This method calculates the price at which a firm should shut down in the short run to minimize losses,
-        assuming perfect competition. It finds the price at which total revenue (TR) equals total variable cost (TVC).
+        This method calculates the price at which a firm should shut down in the
+        short run to minimize losses, assuming perfect competition. It finds the
+        price at which total revenue (TR) equals total variable cost (TVC).
 
         Returns
         ----------
@@ -300,12 +302,14 @@ class Cost(PolyBase):
         """
         Plot the long-run average cost (LRAC) and marginal cost (MC) curves.
 
-        This method plots the long-run average cost (LRAC) curve and the marginal cost (MC) curve on the same graph.
-        It also marks the efficient scale and the breakeven price.
+        This method plots the long-run average cost (LRAC) curve and the
+        marginal cost (MC) curve on the same graph. It also marks the efficient
+        scale and the breakeven price.
 
         Args
         ----------
-            ax (matplotlib.pyplot.axis, optional): The axis on which to plot. If not provided, the current axis is used.
+            ax (matplotlib.pyplot.axis, optional): The axis on which to plot. If
+                not provided, the current axis is used.
 
         Returns
         ----------
@@ -348,14 +352,18 @@ class Cost(PolyBase):
         """
         Plot various cost and profit components at a given price.
 
-        This method plots the average total cost (ATC) and marginal cost (MC) curves, and it marks the given price and
-        quantity on the graph. It can also shade areas to represent total cost (TC), total revenue (TR), and profit (π).
+        This method plots the average total cost (ATC) and marginal cost (MC)
+        curves, and it marks the given price and quantity on the graph. It can
+        also shade areas to represent total cost (TC), total revenue (TR), and
+        profit (π).
 
         Args
         ----------
             p (float): The price at which to evaluate the cost and profit components.
-            ax (matplotlib.pyplot.axis, optional): The axis on which to plot. If not provided, the current axis is used.
-            items (list of str, optional): A list of items to include in the plot. Options are 'tc', 'tr', and 'profit'.
+            ax (matplotlib.pyplot.axis, optional): The axis on which to plot. If
+                not provided, the current axis is used.
+            items (list of str, optional): A list of items to include in the
+                plot. Options are 'tc', 'tr', and 'profit'.
 
         Returns
         ----------
@@ -395,14 +403,38 @@ class Cost(PolyBase):
                 col = 'green'
             else:
                 col = 'red'
-            ax.fill_between([0,q], atc_of_q, p, color = col, alpha = 0.3, label = r"$\pi$", hatch = "\\")
+            ax.fill_between(
+                [0, q],
+                atc_of_q,
+                p,
+                color = col,
+                alpha = 0.3,
+                label = r"$\pi$",
+                hatch = "\\",
+            )
 
         if 'tc' in items:
             # total cost
-            ax.fill_between([0,q], 0, atc_of_q, facecolor = 'yellow', alpha = 0.1, label = 'TC', hatch = "/")
+            ax.fill_between(
+                [0, q],
+                0,
+                atc_of_q,
+                facecolor = 'yellow',
+                alpha = 0.1,
+                label = 'TC',
+                hatch = "/",
+            )
 
         if 'tr' in items:
-            ax.fill_between([0,q], 0, p, facecolor = 'blue', alpha = 0.1, label = 'TR', hatch = '+')
+            ax.fill_between(
+                [0, q],
+                0,
+                p,
+                facecolor = 'blue',
+                alpha = 0.1,
+                label = 'TR',
+                hatch = '+',
+            )
 
         update_axes_limits(ax)
 
@@ -412,8 +444,9 @@ class AverageCost:
     """
     Class representing the average cost curve.
 
-    The average cost (AC) curve is derived from a given cost function's coefficients. It calculates the cost per unit
-    of output (average cost) for different levels of output (quantity).
+    The average cost (AC) curve is derived from a given cost function's
+    coefficients. It calculates the cost per unit of output (average cost) for
+    different levels of output (quantity).
 
     Args
     ----------
@@ -421,8 +454,10 @@ class AverageCost:
 
     Attributes
     ----------
-        poly_coef (array-like): Coefficients of the underlying cost function polynomial excluding the constant term.
-        coef (array-like): Coefficients of the underlying cost function polynomial, including the constant term.
+        poly_coef (array-like): Coefficients of the underlying cost function
+            polynomial excluding the constant term.
+        coef (array-like): Coefficients of the underlying cost function
+            polynomial, including the constant term.
 
     Example
     ----------
@@ -465,7 +500,8 @@ class AverageCost:
         """
         Calculate the average cost at a given quantity.
 
-        This method is equivalent to calling the object as a function with the quantity as the argument.
+        This method is equivalent to calling the object as a function with the
+        quantity as the argument.
 
         Args
         ----------
@@ -486,11 +522,13 @@ class AverageCost:
         """
         Plot the average cost curve.
 
-        This method generates a plot of the average cost (AC) curve over a range of output levels (quantity).
+        This method generates a plot of the average cost (AC) curve over a range
+        of output levels (quantity).
 
         Args
         ----------
-            ax (matplotlib.pyplot.axis, optional): The axis on which to plot. If not provided, the current axis is used.
+            ax (matplotlib.pyplot.axis, optional): The axis on which to plot. If
+                not provided, the current axis is used.
             max_q (float, optional): The maximum quantity to plot up to.
             label (str, optional): Label for the curve on the plot.
 
