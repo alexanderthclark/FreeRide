@@ -89,11 +89,6 @@ A binding price ceiling creates a shortage because quantity demanded exceeds qua
 The plot shows the binding ceiling creating a wedge between quantity supplied and demanded, 
 with the red area representing deadweight loss.
 
-.. image:: price_ceiling_binding.svg
-   :alt: Market with binding price ceiling showing shortage and deadweight loss
-   :align: center
-   :width: 500px
-
 Price Floors
 ------------
 
@@ -131,11 +126,6 @@ A binding price floor creates a surplus because quantity supplied exceeds quanti
 The plot shows the binding floor creating excess supply, with producers unable to sell all 
 they wish at the floor price.
 
-.. image:: price_floor_binding.svg
-   :alt: Market with binding price floor showing surplus and deadweight loss
-   :align: center
-   :width: 500px
-
 Non-Binding Controls
 --------------------
 
@@ -161,55 +151,3 @@ Price controls only affect the market when they're binding:
    Non-binding ceiling at $15: P = $10.00, Q = 10
    Non-binding floor at $7: P = $10.00, Q = 10
    Free market: P = $10.00, Q = 10
-
-Welfare Analysis
-----------------
-
-Price controls reduce total surplus by preventing some mutually beneficial trades:
-
-.. code-block:: python
-
-   # Compare welfare across different scenarios
-   scenarios = [
-       ("Free Market", free_market),
-       ("Price Ceiling ($8)", ceiling_market),
-       ("Price Floor ($12)", floor_market)
-   ]
-   
-   print("Welfare Comparison:")
-   print("-" * 50)
-   for name, market in scenarios:
-       print(f"{name:20} CS: ${market.consumer_surplus:6.2f}  "
-             f"PS: ${market.producer_surplus:6.2f}  "
-             f"Total: ${market.total_surplus:6.2f}")
-   print("-" * 50)
-   print(f"DWL from ceiling: ${ceiling_market.dwl:.2f}")
-   print(f"DWL from floor: ${floor_market.dwl:.2f}")
-
-**Expected Output:**
-
-.. code-block:: text
-
-   Welfare Comparison:
-   --------------------------------------------------
-   Free Market          CS: $ 50.00  PS: $ 75.00  Total: $125.00
-   Price Ceiling ($8)   CS: $ 66.00  PS: $ 51.00  Total: $117.00
-   Price Floor ($12)    CS: $ 32.00  PS: $ 85.00  Total: $117.00
-   --------------------------------------------------
-   DWL from ceiling: $8.00
-   DWL from floor: $8.00
-
-Notice how price controls redistribute surplus between consumers and producers while 
-reducing total welfare.
-
-Try It Yourself
----------------
-
-Click the **"Open in Colab"** button above to run this example interactively! You can:
-
-1. Experiment with different ceiling and floor prices
-2. See how the size of shortage/surplus depends on the control level
-3. Compare deadweight loss from different interventions
-4. Explore how elasticity affects the impact of price controls
-
-**Next:** Learn about taxes and their effects in the market equilibrium tutorial!
