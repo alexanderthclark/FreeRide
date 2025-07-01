@@ -107,4 +107,4 @@ Click the **"Open in Colab"** button above to run this example interactively! Yo
 3. Explore how more/less elastic demands respond differently to supply shocks
 4. Build intuition about price sensitivity
 
-**Next:** Try the Prisoner's Dilemma tutorial at :doc:`prisoners_dilemma`!
+**Next:** Learn about price controls at :doc:`price_controls` or try the Prisoner's Dilemma tutorial at :doc:`prisoners_dilemma`!
