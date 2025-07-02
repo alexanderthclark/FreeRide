@@ -1,3 +1,5 @@
+"""Base class for polynomial functions used in FreeRide."""
+
 import numbers
 from collections.abc import Iterable
 

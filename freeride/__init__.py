@@ -1,3 +1,5 @@
+"""Expose the package version and core FreeRide classes."""
+
 # FreeRide
 __version__ = '0.1.1'
 

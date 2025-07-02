@@ -1,3 +1,5 @@
+"""Define FreeRide-specific exception classes."""
+
 from typing import Optional
 
 
