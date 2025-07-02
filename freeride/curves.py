@@ -673,23 +673,24 @@ class Demand(Affine):
         if len(self.elements) == 1:
             elem = self.elements[0]
             if elem.slope == 0:
-                return f"Demand: P = {elem.intercept}"
+                return f"Demand: P = {elem.intercept:g}"
             elif np.isinf(elem.slope):
-                return f"Demand: Q = {elem.q_intercept}"
+                return f"Demand: Q = {elem.q_intercept:g}"
             else:
-                # Format slope nicely
-                slope_val = -elem.slope
-                if slope_val == 1:
-                    slope_str = "Q"
-                elif slope_val == -1:
-                    slope_str = "-Q"
+                # Format using :+g for automatic sign handling
+                # Note: demand slopes are negative, so we negate to show positive in P = a - bQ form
+                if elem.slope == -1:
+                    slope_part = "-Q"
+                elif elem.slope == 1:
+                    slope_part = "+Q"
                 else:
-                    slope_str = f"{slope_val}Q"
+                    slope_part = f"{elem.slope:+g}Q"
                 
                 if elem.intercept == 0:
-                    return f"Demand: P = {slope_str}"
+                    # Remove leading + for cleaner display when no intercept
+                    return f"Demand: P = {slope_part.lstrip('+')}"
                 else:
-                    return f"Demand: P = {elem.intercept} - {slope_str}"
+                    return f"Demand: P = {elem.intercept:g}{slope_part}"
         else:
             return f"Demand: {len(self.elements)}-piece piecewise function"
 
@@ -758,25 +759,23 @@ class Supply(Affine):
         if len(self.elements) == 1:
             elem = self.elements[0]
             if elem.slope == 0:
-                return f"Supply: P = {elem.intercept}"
+                return f"Supply: P = {elem.intercept:g}"
             elif np.isinf(elem.slope):
-                return f"Supply: Q = {elem.q_intercept}"
+                return f"Supply: Q = {elem.q_intercept:g}"
             else:
-                # Format slope nicely  
-                slope_val = elem.slope
-                if slope_val == 1:
-                    slope_str = "Q"
-                elif slope_val == -1:
-                    slope_str = "-Q"
+                # Format using :+g to handle signs automatically
+                if elem.slope == 1:
+                    slope_part = "+Q"
+                elif elem.slope == -1:
+                    slope_part = "-Q"
                 else:
-                    slope_str = f"{slope_val}Q"
+                    slope_part = f"{elem.slope:+g}Q"
                 
                 if elem.intercept == 0:
-                    return f"Supply: P = {slope_str}"
-                elif elem.intercept > 0:
-                    return f"Supply: P = {elem.intercept} + {slope_str}"
+                    # Remove leading + for cleaner display when no intercept
+                    return f"Supply: P = {slope_part.lstrip('+')}"
                 else:
-                    return f"Supply: P = {elem.intercept} + {slope_str}"
+                    return f"Supply: P = {elem.intercept:g}{slope_part}"
         else:
             return f"Supply: {len(self.elements)}-piece piecewise function"
 
@@ -840,11 +839,18 @@ class PPF(BaseAffine):
         """Text representation for terminal/console."""
         if len(self.pieces) == 1:
             piece = self.pieces[0]
+            # PPF slopes are negative, so we negate to show as y = a - bx
             if piece.slope == -1:
-                slope_str = "x"
+                slope_part = "-x"
+            elif piece.slope == 1:
+                slope_part = "+x" 
             else:
-                slope_str = f"{-piece.slope}x"
-            return f"PPF: y = {piece.intercept} - {slope_str}"
+                slope_part = f"{piece.slope:+g}x"
+            
+            if piece.intercept == 0:
+                return f"PPF: y = {slope_part.lstrip('+')}"
+            else:
+                return f"PPF: y = {piece.intercept:g}{slope_part}"
         else:
             return f"PPF: {len(self.pieces)}-piece frontier"
     
