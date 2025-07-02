@@ -300,6 +300,32 @@ class Demand(Affine):
     def total_revenue(self):
 
         return Revenue.from_demand(self)
+    
+    def __repr__(self):
+        """Text representation for terminal/console."""
+        if len(self.elements) == 1:
+            elem = self.elements[0]
+            if elem.slope == 0:
+                return f"Demand: P = {elem.intercept:g}"
+            elif np.isinf(elem.slope):
+                return f"Demand: Q = {elem.q_intercept:g}"
+            else:
+                # Format using :+g for automatic sign handling
+                # Note: demand slopes are negative, so we negate to show positive in P = a - bQ form
+                if elem.slope == -1:
+                    slope_part = "-Q"
+                elif elem.slope == 1:
+                    slope_part = "+Q"
+                else:
+                    slope_part = f"{elem.slope:+g}Q"
+                
+                if elem.intercept == 0:
+                    # Remove leading + for cleaner display when no intercept
+                    return f"Demand: P = {slope_part.lstrip('+')}"
+                else:
+                    return f"Demand: P = {elem.intercept:g}{slope_part}"
+        else:
+            return f"Demand: {len(self.elements)}-piece piecewise function"
 
     def marginal_revenue(self):
 
@@ -379,6 +405,31 @@ class Supply(Affine):
 
     def producer_surplus(self, p, q=None):
         return -self.surplus(p, q)
+    
+    def __repr__(self):
+        """Text representation for terminal/console."""
+        if len(self.elements) == 1:
+            elem = self.elements[0]
+            if elem.slope == 0:
+                return f"Supply: P = {elem.intercept:g}"
+            elif np.isinf(elem.slope):
+                return f"Supply: Q = {elem.q_intercept:g}"
+            else:
+                # Format using :+g to handle signs automatically
+                if elem.slope == 1:
+                    slope_part = "+Q"
+                elif elem.slope == -1:
+                    slope_part = "-Q"
+                else:
+                    slope_part = f"{elem.slope:+g}Q"
+                
+                if elem.intercept == 0:
+                    # Remove leading + for cleaner display when no intercept
+                    return f"Supply: P = {slope_part.lstrip('+')}"
+                else:
+                    return f"Supply: P = {elem.intercept:g}{slope_part}"
+        else:
+            return f"Supply: {len(self.elements)}-piece piecewise function"
 
     def __and__(self, other):
         """Create a Market from intersection with Demand using & operator."""
@@ -455,6 +506,59 @@ class PPF(BaseAffine):
     def __add__(self, other):
         elements = self.elements + other.elements
         return type(self)(elements=elements)
+    
+    def __repr__(self):
+        """Text representation for terminal/console."""
+        if len(self.pieces) == 1:
+            piece = self.pieces[0]
+            # PPF slopes are negative, so we negate to show as y = a - bx
+            if piece.slope == -1:
+                slope_part = "-x"
+            elif piece.slope == 1:
+                slope_part = "+x" 
+            else:
+                slope_part = f"{piece.slope:+g}x"
+            
+            if piece.intercept == 0:
+                return f"PPF: y = {slope_part.lstrip('+')}"
+            else:
+                return f"PPF: y = {piece.intercept:g}{slope_part}"
+        else:
+            return f"PPF: {len(self.pieces)}-piece frontier"
+    
+    def _repr_latex_(self):
+        """LaTeX representation for Jupyter notebooks."""
+        if len(self.pieces) == 1:
+            piece = self.pieces[0]
+            if piece.slope == -1:
+                slope_str = "x"
+            else:
+                slope_str = f"{-piece.slope}x"
+            return f"$y = {piece.intercept} - {slope_str}$"
+        else:
+            # Piecewise representation
+            cases = []
+            for piece in self.pieces:
+                x0, x1 = piece._domain
+                if piece.slope == -1:
+                    slope_str = "x"
+                else:
+                    slope_str = f"{-piece.slope}x"
+                expr = f"{piece.intercept} - {slope_str}"
+                
+                if x0 == 0 and np.isinf(x1):
+                    condition = f"x \\geq 0"
+                elif x0 == 0:
+                    condition = f"0 \\leq x \\leq {x1}"
+                elif np.isinf(x1):
+                    condition = f"x \\geq {x0}"
+                else:
+                    condition = f"{x0} \\leq x \\leq {x1}"
+                
+                cases.append(f"{expr} & \\text{{if }} {condition}")
+            
+            cases_str = " \\\\".join(cases)
+            return f"$y = \\begin{{cases}} {cases_str} \\end{{cases}}$"
 
     def __call__(self, x):
         """Return the quantity of the second good for ``x`` units of the
