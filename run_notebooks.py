@@ -1,3 +1,5 @@
+"""Execute notebooks in the project directory."""
+
 import papermill as pm
 import os
 
