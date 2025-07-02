@@ -87,7 +87,7 @@ class QuadraticElement(PolyBase):
         if textbook_style:
             textbook_axes(ax)
 
-        if label == True:
+        if label:
             # ax.set_ylabel("Price")
             ax.set_xlabel("Quantity")
 

@@ -288,7 +288,7 @@ class AffineElement(PolyBase):
             >>> demand_curve = AffineElement(10.0, -2.0)
             >>> demand_curve.plot()
         """
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         # core plot
@@ -319,7 +319,7 @@ class AffineElement(PolyBase):
         if textbook_style:
             textbook_axes(ax)
 
-        if label == True:
+        if label:
 
             # Label Curves
             # if type(self).__name__ == 'Demand':
