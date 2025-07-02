@@ -57,7 +57,7 @@ class PolyBase(np.polynomial.Polynomial):
         """
         self.set_symbols(symbols)
         self.is_undefined = coef == ([],)  # helpful in sum functions
-        if self.is_undefined == False:
+        if not self.is_undefined:
             coef = np.squeeze(np.array(coef, ndmin=1))
             super().__init__(coef, domain=None, symbol=self._symbol)
         else:
