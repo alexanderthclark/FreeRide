@@ -3,147 +3,19 @@ import matplotlib.pyplot as plt
 import warnings
 from freeride.plotting import textbook_axes, AREA_FILLS, update_axes_limits
 from freeride.formula import _formula
-from freeride.affine import AffineElement, Affine
+from freeride.affine import (
+    AffineElement,
+    Affine,
+    intersection,
+    blind_sum,
+    horizontal_sum,
+)
 from freeride.quadratic import QuadraticElement, BaseQuadratic
 from freeride.revenue import Revenue, MarginalRevenue
 from IPython.display import Latex, display
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource
 from freeride.exceptions import PPFError
-
-
-
-def intersection(element1, element2):
-    """Return the intersection of two affine elements.
-
-    The result is a 1D array ``[p, q]`` giving the price and quantity at the
-    intersection.  When either line is perfectly vertical (``slope == np.inf``)
-    or perfectly horizontal (``slope == 0``) the intersection is computed
-    directly.  If both lines are vertical or both horizontal, a
-    ``LinAlgError`` is raised.
-
-    Parameters
-    ----------
-    element1, element2 : :class:`AffineElement`
-        Lines for which to compute the intersection.
-
-    Returns
-    -------
-    numpy.ndarray
-        ``[p, q]`` of the intersection point.
-
-    Raises
-    ------
-    numpy.linalg.LinAlgError
-        If the lines are parallel.
-
-    Examples
-    --------
-    >>> line1 = AffineElement(intercept=12, slope=-1)
-    >>> line2 = AffineElement(intercept=0, slope=2)
-    >>> intersection(line1, line2)
-    array([8., 4.])
-    """
-
-    # Parallel vertical or horizontal lines
-    if (element1.slope == np.inf and element2.slope == np.inf) or (
-        element1.slope == 0 and element2.slope == 0
-    ):
-        raise np.linalg.LinAlgError("Lines are parallel")
-
-    # Handle a vertical line (perfectly inelastic)
-    if element1.slope == np.inf:
-        q = element1.q_intercept
-        p = element2(q)
-        return np.array([p, q])
-    if element2.slope == np.inf:
-        q = element2.q_intercept
-        p = element1(q)
-        return np.array([p, q])
-
-    # Handle a horizontal line (perfectly elastic)
-    if element1.slope == 0:
-        p = element1.intercept
-        q = element2.q(p)
-        return np.array([p, q])
-    if element2.slope == 0:
-        p = element2.intercept
-        q = element1.q(p)
-        return np.array([p, q])
-
-    # Generic case
-    A = np.array([[1, -element1.slope], [1, -element2.slope]])
-    b = np.array([[element1.intercept], [element2.intercept]])
-    yx = np.matmul(np.linalg.inv(A), b)
-    return np.squeeze(yx)
-
-
-def blind_sum(*curves):
-    '''
-    Computes the horizontal summation of AffineElement objects.
-
-    Parameters
-    ----------
-    *curves : AffineElement
-        The objects to be summed.
-
-    Returns
-    -------
-    AffineElement
-        The horizontal summation of the input curves represented as an AffineElement object.
-        Returns None if no curves are provided.
-    '''
-    if len(curves) == 0:
-        return None
-    elastic_curves = [c for c in curves if c.slope == 0]
-    inelastic_curves = [c for c in curves if c.slope == np.inf]
-    regular_curves = [c for c in curves if c not in elastic_curves + inelastic_curves]
-
-    if not elastic_curves and not inelastic_curves:
-        qintercept = np.sum([-c.intercept/c.slope for c in curves])
-        qslope = np.sum([1/c.slope for c in curves])
-        return AffineElement(qintercept, qslope, inverse = False)
-    else:
-        raise Exception("Perfectly Elastic and Inelastic curves not supported")
-
-
-def horizontal_sum(*curves):
-    """
-    Compute active curves at different price midpoints based on the p-intercepts of input curves.
-
-    Parameters
-    ----------
-    *curves : sequence of AffineElements
-        Variable-length argument list of Affine curve objects for which
-        the active curves are to be found.
-
-    Returns
-    -------
-    tuple
-        A tuple containing three elements:
-        - active_curves (list): List of AffineElement objects representing
-          the active curves at each price midpoint.
-        - cutoffs (list): List of unique p-intercepts sorted in ascending order.
-        - midpoints (list): List of midpoints computed based on the cutoffs.
-    """
-    elastic_curves = [c for c in curves if c.slope == 0]
-    inelastic_curves = [c for c in curves if c.slope == np.inf]
-    regular_curves = [c for c in curves if c not in elastic_curves + inelastic_curves]
-
-    intercepts = [0] + [c.intercept for c in regular_curves + elastic_curves]
-    cutoffs = sorted(list(set(intercepts)))
-
-    # remove negative intercepts
-    cutoffs = [c for c in cutoffs if c>=0]
-
-    # get a point in each region
-    midpoints = [(a + b) / 2 for a, b in zip(cutoffs[:-1], cutoffs[1:])] + [cutoffs[-1]+1]
-
-    # get curves with positive quantity for each region
-    active_curves = [blind_sum(*[c for c in curves if c.q(price)>0]) for price in midpoints]
-
-    return active_curves, cutoffs, midpoints
-
 
 def ppf_sum(*curves, comparative_advantage=True):
     """Combine production possibilities frontiers.
