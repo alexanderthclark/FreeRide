@@ -859,7 +859,7 @@ class Affine(BaseAffine):
                             q_val = piece.q(p)
                             if np.isfinite(q_val) and q_val >= 0:
                                 return q_val
-                        except:
+                        except Exception:
                             continue
                 else:
                     # Interior piece: use [a,b) convention
@@ -868,7 +868,7 @@ class Affine(BaseAffine):
                             q_val = piece.q(p)
                             if np.isfinite(q_val) and q_val >= 0:
                                 return q_val
-                        except:
+                        except Exception:
                             continue
             return 0
         else:
@@ -959,7 +959,7 @@ class Affine(BaseAffine):
                     return val
                 else:
                     return np.nan
-            except:
+            except Exception:
                 return np.nan
 
         if ax is None:
