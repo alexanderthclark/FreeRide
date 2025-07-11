@@ -154,6 +154,42 @@ class Cost(PolyBase):
 
         return rf"$q \mapsto {body}$"
 
+    def __repr__(self):
+        """Text representation for terminal/console."""
+        # Format polynomial coefficients nicely
+        terms = []
+        for i, coef in enumerate(self.coef):
+            if coef == 0:
+                continue
+            if i == 0:
+                terms.append(f"{coef:g}")
+            elif i == 1:
+                if coef == 1:
+                    terms.append("q")
+                elif coef == -1:
+                    terms.append("-q")
+                else:
+                    terms.append(f"{coef:g}q")
+            else:
+                if coef == 1:
+                    terms.append(f"q^{i}")
+                elif coef == -1:
+                    terms.append(f"-q^{i}")
+                else:
+                    terms.append(f"{coef:g}q^{i}")
+        
+        # Join terms with proper signs
+        if not terms:
+            cost_str = "0"
+        else:
+            cost_str = terms[0]
+            for term in terms[1:]:
+                if term.startswith("-"):
+                    cost_str += f" {term}"
+                else:
+                    cost_str += f" + {term}"
+        
+        return f"Cost: C(q) = {cost_str}"
 
     def cost(self, q):
         """
@@ -551,3 +587,57 @@ class AverageCost:
         update_axes_limits(ax)
 
         return ax
+    
+    def __repr__(self):
+        """Text representation for terminal/console."""
+        # Format average cost function
+        terms = []
+        for i, coef in enumerate(self.coef):
+            if coef == 0:
+                continue
+            if i == 0:
+                # Constant term becomes coef/q
+                if coef == 1:
+                    terms.append("1/q")
+                elif coef == -1:
+                    terms.append("-1/q")
+                else:
+                    terms.append(f"{coef:g}/q")
+            elif i == 1:
+                # Linear term becomes constant
+                if coef == 1:
+                    terms.append("1")
+                elif coef == -1:
+                    terms.append("-1")
+                else:
+                    terms.append(f"{coef:g}")
+            else:
+                # Higher order terms become q^(i-1)
+                power = i - 1
+                if power == 1:
+                    if coef == 1:
+                        terms.append("q")
+                    elif coef == -1:
+                        terms.append("-q")
+                    else:
+                        terms.append(f"{coef:g}q")
+                else:
+                    if coef == 1:
+                        terms.append(f"q^{power}")
+                    elif coef == -1:
+                        terms.append(f"-q^{power}")
+                    else:
+                        terms.append(f"{coef:g}q^{power}")
+        
+        # Join terms with proper signs
+        if not terms:
+            ac_str = "0"
+        else:
+            ac_str = terms[0]
+            for term in terms[1:]:
+                if term.startswith("-"):
+                    ac_str += f" {term}"
+                else:
+                    ac_str += f" + {term}"
+                    
+        return f"AverageCost: AC(q) = {ac_str}"
