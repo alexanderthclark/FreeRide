@@ -8,54 +8,45 @@ import numpy as np
 
 from freeride.plotting import textbook_axes, update_axes_limits
 
-class PolyBase(np.polynomial.Polynomial):
-    """
-    A base class for polynomial functions with added methods.
-    The independent variable is q instead of x to align with typical price-quantity axes.
-    The dependent variable is is explicitly named as p instead of y.
 
-    This class extends NumPy's polynomial class and provides additional methods for
-    working with polynomial functions.
+class PolyBase(np.polynomial.Polynomial):
+    """Polynomial base class using ``q`` and ``p`` as variables.
+
+    Extends :class:`numpy.polynomial.Polynomial` with economics-oriented
+    helpers.
 
     .. math::
 
-       p = \\sum_{k=0}^n c_k q^k
+       p = \sum_{k=0}^n c_k q^k
 
     Parameters
     ----------
     *coef : array-like or scalar
-        Coefficients of the polynomial. Can be specified as a list, tuple, or individual numerical arguments.
+        Polynomial coefficients.
 
     Attributes
     ----------
-        coef (ndarray): Coefficients of the polynomial.
+    coef : ndarray
+        Stored coefficients.
 
-    Example:
-        To create a polynomial and use its methods:
-
-        >>> poly = PolyBase([1, -2, 1])  # Represents x^2 - 2x + 1
-        >>> poly.p(2.0)  # Calculate the price at q=2.0
-        1.0
+    Examples
+    --------
+    >>> poly = PolyBase([1, -2, 1])  # x^2 - 2x + 1
+    >>> poly.p(2.0)
+    1.0
     """
 
     def __init__(self, *coef, symbols=None, domain=None):
-        """
-        Initialize a PolyBase object with the given coefficients.
-        The coefficients determine the polynomial represented by the object.
+        """Initialize the polynomial.
 
         Parameters
         ----------
         *coef : array-like or scalar
-            Coefficients of the polynomial. Can be specified as a list, tuple, or individual numerical arguments.
-
-        Returns
-        ----------
-            None
-
-        Examples
-        --------
-            >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2q + 3q^2
-            >>> poly = PolyBase(1, -2, 3)  # Equivalent to the above
+            Polynomial coefficients.
+        symbols : tuple[str, str] | str | None, optional
+            Variable names. Defaults to ``("q", "p")``.
+        domain : tuple[float, float] | None, optional
+            Closed interval for evaluation.
         """
         self.set_symbols(symbols)
         self.is_undefined = coef == ([],)  # helpful in sum functions
@@ -107,42 +98,32 @@ class PolyBase(np.polynomial.Polynomial):
         self._symbol = self.x
 
     def p(self, q: float):
-        """
-        Calculate the price given a quantity value q.
+        """Return price at quantity ``q``.
 
         Parameters
-        --------
-            q (float): The quantity value.
+        ----------
+        q : float
+            Quantity value.
 
         Returns
-        --------
-            float: The corresponding price.
-
-        Example
-        --------
-            >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2x + 3x^2
-            >>> poly.p(2.0)
-            9.0
+        -------
+        float
+            Price.
         """
         return self.__call__(q)
 
     def q(self, p):
-        """
-        Calculate the quantity given a price value p.
+        """Return the quantity at price ``p``.
 
         Parameters
-        --------
-            p (float): The price value.
+        ----------
+        p : float
+            Price value.
 
         Returns
-        --------
-            float or ndarray: The corresponding quantity or array of quantities.
-
-        Example
-        --------
-            >>> poly = PolyBase([1, -2, 1])  # Represents x^2 - 2x + 1
-            >>> poly.q(1.0)
-            1.0
+        -------
+        float | ndarray
+            Quantity or array of quantities.
         """
         # Perfectly Inelastic
         if self.slope == np.inf:
@@ -159,25 +140,20 @@ class PolyBase(np.polynomial.Polynomial):
     def plot(
         self, ax=None, label=None, max_q=100, min_plotted_q=0, textbook_style=True
     ):
-        """
-        Plot the polynomial.
+        """Plot the polynomial.
 
         Parameters
-        --------
-            ax (matplotlib.axes._axes.Axes, optional): The matplotlib Axes to use for plotting.
-                If not provided, the current Axes will be used.
-            max_q (float, optional): The maximum x-value for the plot. Defaults to 100.
-            label (str, optional): The label for the plot. Defaults to None.
-            min_plotted_q (float, optional): The minimum quantity value to plot.
-
-        Returns
-        --------
-            None
-
-        Example
-        --------
-            >>> poly = PolyBase([1, -2, 1])  # Represents x^2 - 2x + 1
-            >>> poly.plot()
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Target axes. Defaults to ``matplotlib.pyplot.gca()``.
+        label : str, optional
+            Legend label.
+        max_q : float, optional
+            Upper bound on quantity (default ``100``).
+        min_plotted_q : float, optional
+            Minimum quantity to plot.
+        textbook_style : bool, optional
+            Apply textbook-style axis formatting.
         """
         if ax is None:
             ax = plt.gca()
@@ -195,19 +171,7 @@ class PolyBase(np.polynomial.Polynomial):
 
     # Similar to numpy ABCPolyBase
     def _repr_latex_(self):
-        """
-        Generate LaTeX representation of the polynomial.
-
-        Returns
-        --------
-            str: LaTeX representation of the polynomial.
-
-        Example
-        --------
-            >>> poly = PolyBase([1, -2, 3])  # Represents 1 - 2x + 3x%2
-            >>> poly._repr_latex_()
-            '$p = 1 - 2q + 3q^2$'
-        """
+        """Return a LaTeX representation of the polynomial."""
         # overwrite ABCPolyBase Method to use p/q instead of x\mapsto
         # get the scaled argument string to the basis functions
         if hasattr(self, "is_undefined") and self.is_undefined:
@@ -285,6 +249,3 @@ class PolyBase(np.polynomial.Polynomial):
             new_coef = self.coef
             new_coef[0] += delta
             return self.__class__(*new_coef, symbols=self.symbols)
-
-
-
