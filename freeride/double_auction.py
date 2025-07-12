@@ -133,6 +133,11 @@ class DoubleAuction:
         supplies = sorted(supplies, key=_sort_key)
         self.supply = supplies
 
+        if not demands:
+            raise IndexError("Auction requires at least one buyer")
+        if not supplies:
+            raise IndexError("Auction requires at least one seller")
+
         price_range, n_trades = self.clear()
         self.price_range = price_range
         self.p = price_range
