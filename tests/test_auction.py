@@ -72,11 +72,15 @@ class TestDoubleAuctionAdditional(unittest.TestCase):
 
     def test_empty_demand_raises(self):
         """An auction with no demand should raise ``IndexError``."""
-        pass
+        sellers = [UnitSupply(5), UnitSupply(4)]
+        with self.assertRaises(IndexError):
+            DoubleAuction(*sellers)
 
     def test_empty_supply_raises(self):
         """An auction with no supply should raise ``IndexError``."""
-        pass
+        buyers = [UnitDemand(8), UnitDemand(7)]
+        with self.assertRaises(IndexError):
+            DoubleAuction(*buyers)
 
     def test_plot_returns_axes(self):
         """The ``plot`` method should return a Matplotlib ``Axes`` object."""
