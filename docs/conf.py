@@ -48,7 +48,7 @@ autodoc_default_options = {
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-autodoc_mock_imports = ['IPython', 'pandas', 'numpy', 'matplotlib', 'papermill', 'bokeh']
+autodoc_mock_imports = ['IPython', 'pandas', 'numpy', 'matplotlib', 'bokeh']
 
 # -- Options for HTML output -------------------------------------------------
 
