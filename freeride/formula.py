@@ -3,8 +3,43 @@ Formula module using sympy
 """
 
 import re
+import ast
 
 from freeride.exceptions import FormulaParseError
+
+
+def _eval_ast_node(node, allowed_names, values):
+    """Recursively evaluate an AST node with restricted operations."""
+    if isinstance(node, ast.Expression):
+        return _eval_ast_node(node.body, allowed_names, values)
+    
+    if isinstance(node, ast.BinOp):
+        if isinstance(node.op, (ast.Add, ast.Sub, ast.Mult)):
+            left = _eval_ast_node(node.left, allowed_names, values)
+            right = _eval_ast_node(node.right, allowed_names, values)
+            if isinstance(node.op, ast.Add):
+                return left + right
+            if isinstance(node.op, ast.Sub):
+                return left - right
+            if isinstance(node.op, ast.Mult):
+                return left * right
+    
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+        operand = _eval_ast_node(node.operand, allowed_names, values)
+        return operand if isinstance(node.op, ast.UAdd) else -operand
+    
+    if isinstance(node, ast.Num):  # Python <3.8 compatibility
+        return node.n
+    
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return node.value
+    
+    if isinstance(node, ast.Name):
+        if node.id not in allowed_names:
+            raise FormulaParseError(f"Invalid variable '{node.id}' in equation")
+        return values.get(node.id, 0.0)
+    
+    raise FormulaParseError("Invalid syntax in equation")
 
 
 def _formula(equation: str):
@@ -67,9 +102,18 @@ def _formula(equation: str):
     lhs, rhs = equation.split("=")
 
     def _safe_eval(expr: str, **values: float) -> float:
+        """Safely evaluate arithmetic expressions for x and y."""
         if not re.fullmatch(r"[0-9xy+\-*.()]+", expr):
             raise FormulaParseError("Invalid characters in equation")
-        return eval(expr, {"__builtins__": {}}, values)
+
+        try:
+            ast_tree = ast.parse(expr, mode="eval")
+        except SyntaxError as exc:
+            raise FormulaParseError("Invalid syntax in equation") from exc
+
+        allowed_names = {"x", "y"}
+        result = _eval_ast_node(ast_tree, allowed_names, values)
+        return float(result)
 
     # If equation is given explicitly as y = f(x)
     if lhs == "y" or rhs == "y":
