@@ -96,7 +96,3 @@ class TestHorizontalCurves(unittest.TestCase):
 
             self.assertIn("perfectly elastic", str(cm.exception))
             self.assertIn("demand", str(cm.exception).lower())
-
-
-if __name__ == "__main__":
-    unittest.main()

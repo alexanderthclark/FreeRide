@@ -244,4 +244,3 @@ class TestBaseQuadraticRegression(unittest.TestCase):
         for q in [-1, 0, 1, 2]:
             expected = 1 + 2 * q + 3 * q**2
             self.assertAlmostEqual(curve(q), expected)
-

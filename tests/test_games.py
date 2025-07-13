@@ -247,7 +247,3 @@ class TestGame(unittest.TestCase):
             rps.action_names,
             (("Rock", "Paper", "Scissors"), ("Rock", "Paper", "Scissors")),
         )
-
-
-if __name__ == '__main__':
-    unittest.main()

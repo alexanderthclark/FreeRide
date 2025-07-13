@@ -156,7 +156,3 @@ class TestMonopoly(unittest.TestCase):
         # Verify we found the optimum
         self.assertGreater(m.profit, 0.99 * max_profit_grid)
         self.assertAlmostEqual(m.q, best_q_grid, delta=0.1)
-
-
-if __name__ == "__main__":
-    unittest.main()

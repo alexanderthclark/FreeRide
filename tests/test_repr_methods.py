@@ -121,7 +121,3 @@ class TestReprMethods(unittest.TestCase):
         # Very large numbers
         s1 = Supply(1000000, 1000)
         self.assertEqual(repr(s1), "Supply: P = 1e+06+1000Q")
-
-
-if __name__ == '__main__':
-    unittest.main()

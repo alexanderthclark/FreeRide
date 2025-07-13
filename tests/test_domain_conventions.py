@@ -82,7 +82,3 @@ class TestDomainConventions(unittest.TestCase):
         self.assertTrue(elem.in_domain(0))
         self.assertTrue(elem.in_domain(10))
         self.assertFalse(elem.in_domain(11))
-
-
-if __name__ == "__main__":
-    unittest.main()
