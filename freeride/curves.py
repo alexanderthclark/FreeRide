@@ -248,12 +248,12 @@ class Demand(Affine):
     def _check_slope(self):
         for slope in self.slope:
             if slope > 0:
-                raise Exception("Upward-sloping demand curve.")
+                raise ValueError("Upward-sloping demand curve.")
 
         # Check for economically reasonable demand curves
         for intercept in self.intercept:
             if intercept <= 0:
-                raise Exception(
+                raise ValueError(
                     "Demand curve intercept must be positive "
                     f"(got {intercept}). "
                     "A demand curve represents willingness to pay, so "
@@ -262,7 +262,7 @@ class Demand(Affine):
 
         if not self.has_perfectly_elastic_segment:
             if self.q(0) < 0:
-                raise Exception("Negative demand.")
+                raise ValueError("Negative demand.")
 
     def q(self, p):
         """
@@ -368,10 +368,10 @@ class Supply(Affine):
     def _check_slope(self):
         for slope in self.slope:
             if slope < 0:
-                raise Exception("Downward-sloping supply curve.")
+                raise ValueError("Downward-sloping supply curve.")
         if not self.has_perfectly_elastic_segment:
             if self.q(0) < 0:
-                raise Exception("Negative supply.")
+                raise ValueError("Negative supply.")
 
     def q(self, p):
         """

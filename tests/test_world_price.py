@@ -27,5 +27,5 @@ class TestWorldPrice(unittest.TestCase):
         self.assertAlmostEqual(eq.govt_revenue, 4.0)
 
     def test_tariff_requires_world_price(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             Equilibrium(self.demand, self.supply, tariff=1)

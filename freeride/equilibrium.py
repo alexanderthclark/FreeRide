@@ -102,12 +102,12 @@ class Equilibrium:
         if self.__world_price is not None:
             interventions.append("world_price")
         if len(interventions) > 1:
-            raise Exception(
+            raise ValueError(
                 f"Multiple interventions not supported: {interventions}"
             )
 
         if self.__tariff != 0 and self.__world_price is None:
-            raise Exception(
+            raise ValueError(
                 "A nonzero tariff requires a 'world_price' to be set."
             )
 
@@ -496,7 +496,7 @@ class Equilibrium:
             self.__floor is not None,
             self.__world_price is not None
         ]):
-            raise Exception("Multiple interventions not supported.")
+            raise ValueError("Multiple interventions not supported.")
         self.__tax = val
         self._verify_single_intervention()
         self._compute()
@@ -512,7 +512,7 @@ class Equilibrium:
             self.__floor is not None,
             self.__world_price is not None
         ]):
-            raise Exception("Multiple interventions not supported.")
+            raise ValueError("Multiple interventions not supported.")
         self.__tax = -val
         self._verify_single_intervention()
         self._compute()
@@ -528,7 +528,7 @@ class Equilibrium:
             self.__floor is not None,
             self.__world_price is not None
         ]):
-            raise Exception("Multiple interventions not supported.")
+            raise ValueError("Multiple interventions not supported.")
         self.__ceiling = val
         self._verify_single_intervention()
         self._compute()
@@ -544,7 +544,7 @@ class Equilibrium:
             self.__ceiling is not None,
             self.__world_price is not None
         ]):
-            raise Exception("Multiple interventions not supported.")
+            raise ValueError("Multiple interventions not supported.")
         self.__floor = val
         self._verify_single_intervention()
         self._compute()
@@ -560,7 +560,7 @@ class Equilibrium:
             self.__ceiling is not None,
             self.__floor is not None
         ]):
-            raise Exception("Multiple interventions not supported.")
+            raise ValueError("Multiple interventions not supported.")
         self.__world_price = val
         self._verify_single_intervention()
         self._compute()
@@ -579,9 +579,9 @@ class Equilibrium:
     @tariff.setter
     def tariff(self, val):
         if val != 0 and self.__world_price is None:
-            raise Exception("A nonzero tariff requires a 'world_price'.")
+            raise ValueError("A nonzero tariff requires a 'world_price'.")
         if val < 0:
-            raise Exception(
+            raise ValueError(
                 "Import subsidies (negative tariffs) are not supported."
             )
         self.__tariff = val

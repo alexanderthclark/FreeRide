@@ -149,21 +149,21 @@ class TestCurveEdgeCases(unittest.TestCase):
     """Edge case tests for curve utilities."""
 
     def test_upward_sloping_demand_raises(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             Demand(5, 1)
 
     def test_downward_sloping_supply_raises(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             Supply(0, -1)
 
     def test_blind_sum_rejects_elastic(self):
         elastic = AffineElement(5, 0)  # perfectly elastic
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             blind_sum(elastic)
 
     def test_horizontal_sum_rejects_inelastic(self):
         inelastic = AffineElement(5, 0, inverse=False)  # perfectly inelastic
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             horizontal_sum(inelastic)
 
     def test_upward_sloping_ppf_raises(self):
