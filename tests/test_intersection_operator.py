@@ -59,7 +59,3 @@ class TestIntersectionOperator(unittest.TestCase):
         self.assertIsInstance(market, Market)
         self.assertAlmostEqual(market.p, 10.0, places=2)
         self.assertAlmostEqual(market.q, 5.0, places=2)
-
-
-if __name__ == '__main__':
-    unittest.main()

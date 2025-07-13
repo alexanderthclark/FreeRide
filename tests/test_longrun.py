@@ -17,7 +17,3 @@ class TestLongRunCompetitiveEquilibrium(unittest.TestCase):
         self.assertAlmostEqual(lr.firm_q, 1.0)
         self.assertAlmostEqual(lr.market_q, 8.0)
         self.assertAlmostEqual(lr.n_firms, 8.0)
-
-
-if __name__ == "__main__":
-    unittest.main()

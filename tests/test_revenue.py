@@ -144,7 +144,3 @@ class TestKinkedDemandMarginalRevenue(unittest.TestCase):
         # Should have a significant jump (discontinuity)
         gap = abs(mr_after - mr_before)
         self.assertGreater(gap, 2, "MR should be discontinuous at the kink")
-
-
-if __name__ == '__main__':
-    unittest.main()

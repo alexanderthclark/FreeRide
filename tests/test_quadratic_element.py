@@ -20,6 +20,3 @@ class TestQuadraticElementVerticalShift(unittest.TestCase):
         # original should remain unchanged
         self.assertEqual(q.intercept, 1)
         self.assertEqual(q(0), 1)
-
-if __name__ == '__main__':
-    unittest.main()

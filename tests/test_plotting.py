@@ -73,4 +73,3 @@ class TestPlotting(unittest.TestCase):
         result = update_axes_limits()
 
         self.assertIs(result, ax)
-

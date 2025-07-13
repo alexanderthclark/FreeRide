@@ -103,5 +103,3 @@ class TestDoubleAuctionAdditional(unittest.TestCase):
         auction = DoubleAuction(*agents)
         self.assertEqual(auction.q, 2)
         self.assertEqual(auction.p, (6, 9))
-
-
