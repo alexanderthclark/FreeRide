@@ -73,7 +73,6 @@ html_theme_options = {
     "path_to_docs": "docs",
     "home_page_in_toc": True,
     "show_navbar_depth": 2,
-    "show_toc_level": 2,
     "logo": {
         "image_light": "_static/logo.svg",
         "image_dark": "_static/logo.svg",
