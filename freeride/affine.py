@@ -113,7 +113,9 @@ class AffineElement(PolyBase):
 
     def __call__(self, x):
         if self.slope == np.inf:
-            raise Exception(f"Undefined (perfectly inelastic at {self.q_intercept})")
+            raise ValueError(
+                f"Undefined (perfectly inelastic at {self.q_intercept})"
+            )
         else:
             return self.intercept + self.slope * x
 
@@ -466,7 +468,7 @@ def blind_sum(*curves):
         qslope = np.sum([1/c.slope for c in curves])
         return AffineElement(qintercept, qslope, inverse = False)
     else:
-        raise Exception("Perfectly Elastic and Inelastic curves not supported")
+        raise ValueError("Perfectly Elastic and Inelastic curves not supported")
 
 
 def horizontal_sum(*curves):

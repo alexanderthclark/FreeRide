@@ -92,7 +92,7 @@ class PolyBase(np.polynomial.Polynomial):
         elif len(symbols) == 2:
             x, y = symbols
         else:
-            raise Exception("symbols not properly set")
+            raise ValueError("symbols not properly set")
         self.x, self.y = x, y
         self.symbols = self.x, self.y
         self._symbol = self.x
