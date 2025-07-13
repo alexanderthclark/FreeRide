@@ -17,7 +17,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url='https://github.com/alexanderthclark/FreeRide',
     author='Alexander Clark',
-    install_requires=['matplotlib', 'numpy', 'papermill', 'IPython', 'bokeh'],
+    install_requires=['matplotlib', 'numpy', 'IPython', 'bokeh'],
     author_email='',
     packages=setuptools.find_packages(),
     python_requires='>=3.8',
