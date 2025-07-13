@@ -302,7 +302,7 @@ class Demand(Affine):
     def total_revenue(self):
 
         return Revenue.from_demand(self)
-    
+
     def __repr__(self):
         """Text representation for terminal/console."""
         if len(self.elements) == 1:
@@ -320,7 +320,7 @@ class Demand(Affine):
                     slope_part = "+Q"
                 else:
                     slope_part = f"{elem.slope:+g}Q"
-                
+
                 if elem.intercept == 0:
                     # Remove leading + for cleaner display when no intercept
                     return f"Demand: P = {slope_part.lstrip('+')}"
@@ -407,7 +407,7 @@ class Supply(Affine):
 
     def producer_surplus(self, p, q=None):
         return -self.surplus(p, q)
-    
+
     def __repr__(self):
         """Text representation for terminal/console."""
         if len(self.elements) == 1:
@@ -424,7 +424,7 @@ class Supply(Affine):
                     slope_part = "-Q"
                 else:
                     slope_part = f"{elem.slope:+g}Q"
-                
+
                 if elem.intercept == 0:
                     # Remove leading + for cleaner display when no intercept
                     return f"Supply: P = {slope_part.lstrip('+')}"
@@ -508,7 +508,7 @@ class PPF(BaseAffine):
     def __add__(self, other):
         elements = self.elements + other.elements
         return type(self)(elements=elements)
-    
+
     def __repr__(self):
         """Text representation for terminal/console."""
         if len(self.pieces) == 1:
@@ -517,17 +517,17 @@ class PPF(BaseAffine):
             if piece.slope == -1:
                 slope_part = "-x"
             elif piece.slope == 1:
-                slope_part = "+x" 
+                slope_part = "+x"
             else:
                 slope_part = f"{piece.slope:+g}x"
-            
+
             if piece.intercept == 0:
                 return f"PPF: y = {slope_part.lstrip('+')}"
             else:
                 return f"PPF: y = {piece.intercept:g}{slope_part}"
         else:
             return f"PPF: {len(self.pieces)}-piece frontier"
-    
+
     def _repr_latex_(self):
         """LaTeX representation for Jupyter notebooks."""
         if len(self.pieces) == 1:
@@ -547,7 +547,7 @@ class PPF(BaseAffine):
                 else:
                     slope_str = f"{-piece.slope}x"
                 expr = f"{piece.intercept} - {slope_str}"
-                
+
                 if x0 == 0 and np.isinf(x1):
                     condition = f"x \\geq 0"
                 elif x0 == 0:
@@ -556,9 +556,9 @@ class PPF(BaseAffine):
                     condition = f"x \\geq {x0}"
                 else:
                     condition = f"{x0} \\leq x \\leq {x1}"
-                
+
                 cases.append(f"{expr} & \\text{{if }} {condition}")
-            
+
             cases_str = " \\\\".join(cases)
             return f"$y = \\begin{{cases}} {cases_str} \\end{{cases}}$"
 
