@@ -1,6 +1,8 @@
 import unittest
 import numpy as np
 from freeride.curves import Demand, Supply, PPF
+from freeride.costs import Cost
+from freeride.monopoly import Monopoly
 
 
 class TestReprMethods(unittest.TestCase):
@@ -121,3 +123,9 @@ class TestReprMethods(unittest.TestCase):
         # Very large numbers
         s1 = Supply(1000000, 1000)
         self.assertEqual(repr(s1), "Supply: P = 1e+06+1000Q")
+
+    def test_monopoly_repr(self):
+        """Monopoly representation should summarize outcome."""
+        m = Monopoly(Demand(10, -1), Cost(0, 2))
+        self.assertEqual(repr(m), "Price: 6.0\nQuantity: 4.0\nProfit: 16.0")
+        self.assertEqual(m._repr_latex_(), "$P^* = 6,\\ Q^* = 4,\\ \\Pi = 16$")
