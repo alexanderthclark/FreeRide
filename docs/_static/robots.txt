@@ -1,0 +1,32 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://alexanderthclark.github.io/FreeRide/sitemap.xml
+
+# Disallow crawling of internal Sphinx files
+Disallow: /_sources/
+Disallow: /_static/
+Disallow: /searchindex.js
+Disallow: /objects.inv
+
+# Allow important static assets
+Allow: /_static/*.css
+Allow: /_static/*.js
+Allow: /_static/*.png
+Allow: /_static/*.svg
+Allow: /_static/*.jpg
+Allow: /_static/*.jpeg
+
+# Crawl delay to be respectful
+Crawl-delay: 1
+
+# Specific instructions for Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Specific instructions for Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1

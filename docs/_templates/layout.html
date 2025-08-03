@@ -1,0 +1,107 @@
+{% extends "!layout.html" %}
+
+{%- block extrahead %}
+{{ super() }}
+
+<!-- Schema.org structured data for search engines -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "FreeRide",
+  "alternateName": "FreeRide Economics Package",
+  "description": "Python package for introductory microeconomics education featuring supply/demand curves, market equilibrium analysis, game theory, and policy interventions.",
+  "url": "https://alexanderthclark.github.io/FreeRide/",
+  "downloadUrl": "https://pypi.org/project/freeride/",
+  "softwareVersion": "{{ release }}",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Cross-platform",
+  "programmingLanguage": "Python",
+  "license": "https://opensource.org/licenses/MIT",
+  "author": {
+    "@type": "Person",
+    "name": "Alexander Clark"
+  },
+  "creator": {
+    "@type": "Person",
+    "name": "Alexander Clark"
+  },
+  "maintainer": {
+    "@type": "Person", 
+    "name": "Alexander Clark"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Alexander Clark"
+  },
+  "keywords": ["microeconomics", "economics education", "python package", "supply and demand", "market equilibrium", "game theory", "monopoly analysis", "policy analysis", "undergraduate economics", "Econ 101", "economic modeling", "educational software"],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": ["Students", "Educators", "Researchers"]
+  },
+  "educationalLevel": "Undergraduate",
+  "learningResourceType": "Software",
+  "inLanguage": "en",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "codeRepository": "https://github.com/alexanderthclark/FreeRide",
+  "softwareRequirements": "Python 3.8+, NumPy, Matplotlib, IPython",
+  "featureList": [
+    "Supply and demand curve creation",
+    "Market equilibrium analysis", 
+    "Consumer and producer surplus calculation",
+    "Policy intervention modeling (taxes, subsidies, price controls)",
+    "Game theory and Nash equilibrium computation",
+    "Monopoly analysis and profit maximization",
+    "Beautiful economic visualizations",
+    "LaTeX math rendering in Jupyter notebooks"
+  ],
+  "screenshot": "https://alexanderthclark.github.io/FreeRide/_static/freeride-banner.png",
+  "thumbnailUrl": "https://alexanderthclark.github.io/FreeRide/_static/logo.svg"
+}
+</script>
+
+<!-- Additional microdata for educational content -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "FreeRide Documentation - Microeconomics with Python",
+  "description": "Comprehensive tutorials and documentation for learning microeconomics concepts through Python programming using the FreeRide package.",
+  "provider": {
+    "@type": "Person",
+    "name": "Alexander Clark"
+  },
+  "url": "https://alexanderthclark.github.io/FreeRide/",
+  "courseCode": "Economics-Python",
+  "educationalLevel": "Undergraduate",
+  "inLanguage": "en",
+  "teaches": [
+    "Supply and demand analysis",
+    "Market equilibrium computation", 
+    "Consumer and producer surplus",
+    "Policy intervention effects",
+    "Game theory basics",
+    "Monopoly analysis",
+    "Economic data visualization"
+  ],
+  "audience": {
+    "@type": "EducationalAudience", 
+    "educationalRole": "student"
+  }
+}
+</script>
+
+<!-- Preconnect to external domains for performance -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+<!-- DNS prefetch for external resources -->
+<link rel="dns-prefetch" href="//github.com">
+<link rel="dns-prefetch" href="//pypi.org">
+
+{%- endblock extrahead %}
