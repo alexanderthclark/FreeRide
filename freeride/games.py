@@ -1,9 +1,10 @@
 """Game theory utilities."""
 
-import numpy as np
-import matplotlib.pyplot as plt
 import random
 from typing import List, Tuple, Optional, Sequence
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def _convex_hull(points: np.ndarray) -> np.ndarray:

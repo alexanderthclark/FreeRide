@@ -2,10 +2,11 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from IPython.display import Latex, display
+
 from .base import PolyBase
 from .plotting import textbook_axes, AREA_FILLS, update_axes_limits
 from freeride.formula import _formula
-from IPython.display import Latex, display
 
 
 class AffineElement(PolyBase):

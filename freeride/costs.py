@@ -1,8 +1,9 @@
 """Cost curve utilities and classes."""
 
+import numbers
+
 import numpy as np
 import matplotlib.pyplot as plt
-import numbers
 
 from freeride.base import PolyBase
 from freeride.plotting import textbook_axes, update_axes_limits

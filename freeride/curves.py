@@ -1,8 +1,12 @@
 """Implement demand, supply and related curves."""
 
+import warnings
+
 import numpy as np
 import matplotlib.pyplot as plt
-import warnings
+from bokeh.plotting import figure
+from bokeh.models import HoverTool, ColumnDataSource
+
 from freeride.plotting import update_axes_limits
 from freeride.formula import _formula
 from freeride.affine import (
@@ -12,10 +16,7 @@ from freeride.affine import (
     blind_sum,
     horizontal_sum,
 )
-
 from freeride.revenue import Revenue, MarginalRevenue
-from bokeh.plotting import figure
-from bokeh.models import HoverTool, ColumnDataSource
 from freeride.exceptions import PPFError
 
 __all__ = [
