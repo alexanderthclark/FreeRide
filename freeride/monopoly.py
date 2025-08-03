@@ -103,3 +103,15 @@ class Monopoly:
         self.q = best_q
         self.p = self.demand.p(best_q)
         self.profit = best_profit
+
+    def __repr__(self) -> str:
+        """Human readable summary of the monopoly outcome."""
+        return (
+            f"Price: {self.p}\n" f"Quantity: {self.q}\n" f"Profit: {self.profit}"
+        )
+
+    def _repr_latex_(self) -> str:
+        """LaTeX representation for Jupyter notebooks."""
+        return (
+            f"$P^* = {self.p:g},\\ Q^* = {self.q:g},\\ \\Pi = {self.profit:g}$"
+        )
