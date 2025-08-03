@@ -33,7 +33,12 @@ extensions = [
     'sphinx.ext.autodoc',  # Generate docs from docstrings
     'sphinx.ext.napoleon',  # Support for NumPy and Google style docstrings
     'sphinx.ext.mathjax',
-    'myst_parser'
+    'myst_parser',
+    'sphinx.ext.viewcode',  # Add source code links
+    'sphinx.ext.githubpages',  # GitHub Pages optimization
+    'sphinx_sitemap',  # Generate sitemap.xml for SEO
+    'sphinxext.opengraph',  # OpenGraph meta tags for social sharing
+    'sphinx_copybutton',  # Copy button for code blocks (UX improvement)
 ]
 
 source_suffix = ['.rst', '.md']
@@ -102,3 +107,43 @@ html_title = "FreeRide"
 
 # Favicon
 html_favicon = "_static/favicon.svg"
+
+# -- SEO Configuration -------------------------------------------------------
+
+# Sitemap configuration
+sitemap_url_scheme = "{link}"
+html_baseurl = "https://alexanderthclark.github.io/FreeRide/"
+
+# OpenGraph configuration for social media sharing
+ogp_site_url = "https://alexanderthclark.github.io/FreeRide/"
+ogp_site_name = "FreeRide - Python Package for Microeconomics Education"
+ogp_description_length = 160
+ogp_type = "website"
+ogp_image = "https://alexanderthclark.github.io/FreeRide/_static/freeride-banner.png"
+ogp_image_alt = "FreeRide Economics Package Banner"
+
+# Additional HTML meta tags for SEO
+html_meta = {
+    'description': 'FreeRide: Python package for introductory microeconomics education. Create supply/demand curves, analyze market equilibrium, model game theory, and visualize economic concepts.',
+    'keywords': 'microeconomics, economics education, python package, supply and demand, market equilibrium, game theory, monopoly analysis, policy analysis, economics python, undergraduate economics, Econ 101, economic modeling, educational software',
+    'author': 'Alexander Clark',
+    'robots': 'index, follow',
+    'googlebot': 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+    'viewport': 'width=device-width, initial-scale=1.0',
+    'theme-color': '#1a2332',
+    'msapplication-TileColor': '#1a2332',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+}
+
+# Copy button configuration
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
+copybutton_remove_prompts = True
+
+# Language and locale for better SEO
+language = 'en'
+html_search_language = 'en'
+
+# Last updated information
+html_last_updated_fmt = '%Y-%m-%d'
