@@ -54,11 +54,11 @@ def ppf_sum(*curves, comparative_advantage=True):
         aggregate frontier.
     """
 
-    slope_and_curves = sorted(
-        [(s.slope, s) for s in curves],
+    curves = sorted(
+        curves,
+        key=lambda s: s.slope,
         reverse=comparative_advantage,
     )
-    curves = [t[1] for t in slope_and_curves]
     x_intercepts = [c.q_intercept for c in curves]
     y_intercepts = [c.intercept for c in curves]
 
