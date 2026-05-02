@@ -899,12 +899,22 @@ class Affine(BaseAffine):
             latex_str += r"\end{cases}"
             return f"${latex_str}$"
 
-    def price_elasticity(self, p, delta=.000001):
+    def price_elasticity(self, p, delta=.000001, atol=1e-12, rtol=1e-9):
         q = self.q(p)
         pt = np.array([p,q])
-        if self.intersections and np.any(pt == self.intersections, axis=1).max():
-            below = self.price_elasticity(p - delta)
-            above = self.price_elasticity(p + delta)
+        intersections = np.asarray(self.intersections)
+        is_kink = (
+            intersections.size > 0
+            and intersections.ndim == 2
+            and intersections.shape[1] == 2
+            and np.any(
+                np.isclose(pt[0], intersections[:, 0], atol=atol, rtol=rtol)
+                & np.isclose(pt[1], intersections[:, 1], atol=atol, rtol=rtol)
+            )
+        )
+        if is_kink:
+            below = self.price_elasticity(p - delta, delta=delta, atol=atol, rtol=rtol)
+            above = self.price_elasticity(p + delta, delta=delta, atol=atol, rtol=rtol)
             s = f"\nElasticity is {below:+.3f} below P={p} and {above:+.3f} above."
             raise ValueError("Point elasticity is not defined at a kink point."+s)
         else:
