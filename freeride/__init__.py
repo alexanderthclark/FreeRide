@@ -1,7 +1,7 @@
 """Expose the package version and core FreeRide classes."""
 
 # FreeRide
-__version__ = '0.1.2'
+__version__ = '0.1.1'
 
 from .curves import Demand, Supply
 from .equilibrium import Equilibrium, Market
