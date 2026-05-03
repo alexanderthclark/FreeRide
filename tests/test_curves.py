@@ -236,6 +236,31 @@ class TestPPF(unittest.TestCase):
         p2 = PPF(5, -0.5)
         self.assertAlmostEqual((p1 + p2)(7), (p2 + p1)(7))
 
+    def test_addition_with_equal_slopes(self):
+        """Test PPF addition when both curves have the same slope."""
+        ppf1 = PPF.from_formula('x = 10 - y')
+        ppf2 = PPF.from_formula('x = 8 - y')
+        # Both have slope -1, which previously caused a TypeError
+        joint = ppf1 + ppf2
+        self.assertIsInstance(joint, PPF)
+        # The combined PPF should have x-intercept of 18 (10 + 8)
+        self.assertAlmostEqual(joint(0), 18.0)
+        # At x=10, we should have y=8 (using the second PPF segment)
+        self.assertAlmostEqual(joint(10), 8.0)
+        # At x=18, we should have y=0
+        self.assertAlmostEqual(joint(18), 0.0)
+
+    def test_addition_multiple_equal_slopes(self):
+        """Test PPF addition with more than two curves with equal slopes."""
+        ppf1 = PPF(10, -1)
+        ppf2 = PPF(8, -1)
+        ppf3 = PPF(6, -1)
+        joint = ppf1 + ppf2 + ppf3
+        self.assertIsInstance(joint, PPF)
+        # Combined x-intercept should be 10 + 8 + 6 = 24
+        self.assertAlmostEqual(joint(0), 24.0)
+        self.assertAlmostEqual(joint(24), 0.0)
+
 
 class TestBaseQuadraticRegression(unittest.TestCase):
 
