@@ -210,6 +210,19 @@ class TestGame(unittest.TestCase):
         # Test nash equilibrium with proper action names
         self.assertEqual(set(bos.nash_equilibria()), {('Opera', 'Opera'), ('Boxing Match', 'Boxing Match')})
 
+        bos_alt = Game.bach_or_stravinsky()
+        self.assertEqual(bos_alt.payoffs1.tolist(), [[2, 0], [0, 1]])
+        self.assertEqual(bos_alt.payoffs2.tolist(), [[1, 0], [0, 2]])
+        self.assertEqual(bos_alt.player_names, ("Anna", "Boris"))
+        self.assertEqual(
+            bos_alt.action_names,
+            (("Bach", "Stravinsky"), ("Bach", "Stravinsky")),
+        )
+        self.assertEqual(
+            set(bos_alt.nash_equilibria()),
+            {("Bach", "Bach"), ("Stravinsky", "Stravinsky")},
+        )
+
         sh = Game.stag_hunt()
         self.assertEqual(sh.payoffs1.tolist(), [[2, 0], [1, 1]])
         self.assertEqual(sh.payoffs2.tolist(), [[2, 1], [0, 1]])
