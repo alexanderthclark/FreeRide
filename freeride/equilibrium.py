@@ -217,6 +217,30 @@ class Equilibrium:
     def excess_demand(self, p):
         return self.demand.q(p) - self.supply.q(p)
 
+    @property
+    def quantity_demanded(self):
+        return self.demand.q(self.__p_consumer)
+
+    @property
+    def quantity_supplied(self):
+        return self.supply.q(self.__p_producer)
+
+    @property
+    def shortage(self):
+        return max(self.quantity_demanded - self.quantity_supplied, 0)
+
+    @property
+    def surplus(self):
+        return max(self.quantity_supplied - self.quantity_demanded, 0)
+
+    @property
+    def excess_demand_quantity(self):
+        return self.shortage
+
+    @property
+    def excess_supply(self):
+        return self.surplus
+
     # ================== Surplus ==================#
     @property
     def consumer_surplus(self):
