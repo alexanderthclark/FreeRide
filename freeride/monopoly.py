@@ -103,3 +103,11 @@ class Monopoly:
         self.q = best_q
         self.p = self.demand.p(best_q)
         self.profit = best_profit
+
+    def __repr__(self) -> str:
+        """Return a concise text summary of the monopoly outcome."""
+        return f"Monopoly: Q = {self.q:g}, P = {self.p:g}, Profit = {self.profit:g}"
+
+    def _repr_latex_(self) -> str:
+        """Return a LaTeX summary for notebook display."""
+        return f"$Q^* = {self.q:g},\\ P^* = {self.p:g},\\ \\Pi = {self.profit:g}$"
