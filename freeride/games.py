@@ -529,6 +529,22 @@ class Game:
         )
 
     @classmethod
+    def bach_or_stravinsky(cls) -> "Game":
+        """Return the Bach or Stravinsky coordination game."""
+
+        p1 = [[2, 0], [0, 1]]
+        p2 = [[1, 0], [0, 2]]
+        return cls(
+            p1,
+            p2,
+            player_names=("Anna", "Boris"),
+            action_names=(
+                ("Bach", "Stravinsky"),
+                ("Bach", "Stravinsky"),
+            ),
+        )
+
+    @classmethod
     def pure_coordination(cls) -> "Game":
         """Return a simple pure coordination game."""
 
@@ -584,4 +600,3 @@ class Game:
 
 # Backwards compatibility
 NormalFormGame = Game
-
