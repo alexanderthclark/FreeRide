@@ -14,6 +14,15 @@ class TestMonopoly(unittest.TestCase):
         self.assertAlmostEqual(m.p, 6.0)
         self.assertAlmostEqual(m.profit, 16.0)
 
+    def test_repr_methods(self):
+        """Monopoly representations should summarize the solved outcome."""
+        monopoly = Monopoly(Demand(10, -1), Cost(0, 2))
+        self.assertEqual(repr(monopoly), "Monopoly: Q = 4, P = 6, Profit = 16")
+        self.assertEqual(
+            monopoly._repr_latex_(),
+            "$Q^* = 4,\\ P^* = 6,\\ \\Pi = 16$",
+        )
+
     def test_piecewise_demand_zero_cost(self):
         """Profit maximization with piecewise demand and zero cost."""
         demand = Demand([10, 5], [-1, -1])
