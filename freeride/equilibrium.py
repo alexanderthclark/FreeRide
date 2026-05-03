@@ -248,6 +248,38 @@ class Equilibrium:
         return -self.govt_revenue
 
     @property
+    def tax_wedge(self):
+        return self.__p_consumer - self.__p_producer
+
+    @property
+    def consumer_tax_burden(self):
+        if self.__tax == 0:
+            return 0.0
+        return self.__p_consumer - self._free_market_price()
+
+    @property
+    def producer_tax_burden(self):
+        if self.__tax == 0:
+            return 0.0
+        return self._free_market_price() - self.__p_producer
+
+    @property
+    def consumer_tax_share(self):
+        if self.__tax == 0:
+            return 0.0
+        return self.consumer_tax_burden / self.__tax
+
+    @property
+    def producer_tax_share(self):
+        if self.__tax == 0:
+            return 0.0
+        return self.producer_tax_burden / self.__tax
+
+    def _free_market_price(self):
+        p_star, _ = self._find_intersection(self.demand, self.supply)
+        return p_star
+
+    @property
     def total_surplus(self):
         return (
             self.consumer_surplus
