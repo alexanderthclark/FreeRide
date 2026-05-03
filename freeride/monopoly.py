@@ -9,7 +9,7 @@ from .costs import Cost
 from .revenue import MarginalRevenue
 
 
-class Monopoly:
+class Monopoly:  # pylint: disable=invalid-name,too-few-public-methods
     """Simple monopoly model given a demand curve and a total cost function."""
 
     def __init__(self, demand: Demand, total_cost: Cost):
@@ -25,84 +25,122 @@ class Monopoly:
         self._solve()
 
     def _solve(self):
+        candidates = self._candidate_quantities()
+
+        if not candidates:
+            self._set_zero_output()
+            return
+
+        best_q, best_profit = self._best_candidate(candidates)
+        self._set_output(best_q, best_profit)
+
+    def _candidate_quantities(self):
+        return (
+            self._interior_candidate_quantities()
+            + self._boundary_candidate_quantities()
+        )
+
+    def _interior_candidate_quantities(self):
         candidates = []
 
-        # Find interior solutions where MR = MC
-        # For each MR piece, solve MR(q) = MC(q)
-        for mr_piece in [p for p in self._mr.pieces if p]:
-            mc_coef = list(self._mc.coef)
-            if len(mc_coef) < 2:
-                mc_coef += [0] * (2 - len(mc_coef))
-            diff = mc_coef.copy()
-            diff[0] -= mr_piece.intercept
-            diff[1] -= mr_piece.slope
-            poly = np.polynomial.Polynomial(diff)
-            for r in poly.roots():
-                if np.isreal(r):
-                    q = float(np.real(r))
-                    if q <= 0:
-                        continue
-                    # Check if q is in the domain of this MR piece
-                    dom = mr_piece._domain
-                    if dom and not (min(dom) <= q < max(dom)):
-                        continue
+        for mr_piece in self._mr_pieces():
+            poly = np.polynomial.Polynomial(self._mc_minus_mr_coefficients(mr_piece))
+            for root in poly.roots():
+                if not np.isreal(root):
+                    continue
+
+                q = float(np.real(root))
+                if q > 0 and self._quantity_in_piece_domain(q, mr_piece):
                     candidates.append(q)
 
-        # Check discontinuity points where MC might pass through MR gaps
-        # Find boundaries between MR pieces using [a,b) convention
-        boundary_points = set()
-        for piece in self._mr.pieces:
-            if piece and piece._domain:
-                # Right boundary of [a,b) is where discontinuities can occur
-                boundary_points.add(max(piece._domain))
+        return candidates
 
-        for q_boundary in boundary_points:
+    def _boundary_candidate_quantities(self):
+        candidates = []
+
+        for q_boundary in self._mr_boundary_points():
             if q_boundary <= 0:
                 continue
 
-            # Calculate MC at the boundary
-            mc_val = self._mc(q_boundary)
+            mr_left = self._mr_limit_ending_at(q_boundary)
+            mr_right = self._mr_limit_starting_at(q_boundary)
+            if self._mc_passes_through_mr_gap(q_boundary, mr_left, mr_right):
+                candidates.append(q_boundary)
 
-            # Find MR left limit (from piece ending at this boundary)
-            mr_left = None
-            for piece in self._mr.pieces:
-                if piece and piece._domain and max(piece._domain) == q_boundary:
-                    # This piece ends at the boundary - get left limit
-                    mr_left = piece(q_boundary)
-                    break
+        return candidates
 
-            # Find MR right limit (from piece starting at this boundary)
-            mr_right = None
-            for piece in self._mr.pieces:
-                if piece and piece._domain and min(piece._domain) == q_boundary:
-                    # This piece starts at the boundary - get right limit
-                    mr_right = piece(q_boundary)
-                    break
+    def _mr_pieces(self):
+        return [piece for piece in self._mr.pieces if piece]
 
-            # If MC passes through the MR gap, this is profit-maximizing
-            if mr_left is not None and mr_right is not None and mr_left != mr_right:
-                # Check if MC is between the left and right limits
-                if (mr_left >= mc_val >= mr_right) or (mr_left <= mc_val <= mr_right):
-                    candidates.append(q_boundary)
+    def _mc_minus_mr_coefficients(self, mr_piece):
+        mc_coef = list(self._mc.coef)
+        if len(mc_coef) < 2:
+            mc_coef += [0] * (2 - len(mc_coef))
 
-        if not candidates:
-            self.q = 0.0
-            self.p = self.demand.p(0)
-            self.profit = -self.total_cost.cost(0)
-            return
+        diff = mc_coef.copy()
+        diff[0] -= mr_piece.intercept
+        diff[1] -= mr_piece.slope
+        return diff
 
+    def _quantity_in_piece_domain(self, q, piece):
+        dom = self._piece_domain(piece)
+        return not dom or min(dom) <= q < max(dom)
+
+    def _mr_boundary_points(self):
+        boundary_points = set()
+        for piece in self._mr.pieces:
+            dom = self._piece_domain(piece) if piece else None
+            if dom:
+                boundary_points.add(max(dom))
+        return boundary_points
+
+    def _mr_limit_ending_at(self, q_boundary):
+        for piece in self._mr.pieces:
+            dom = self._piece_domain(piece) if piece else None
+            if dom and max(dom) == q_boundary:
+                return piece(q_boundary)
+        return None
+
+    def _mr_limit_starting_at(self, q_boundary):
+        for piece in self._mr.pieces:
+            dom = self._piece_domain(piece) if piece else None
+            if dom and min(dom) == q_boundary:
+                return piece(q_boundary)
+        return None
+
+    @staticmethod
+    def _piece_domain(piece):
+        return piece._domain  # pylint: disable=protected-access
+
+    def _mc_passes_through_mr_gap(self, q_boundary, mr_left, mr_right):
+        if mr_left is None or mr_right is None or mr_left == mr_right:
+            return False
+
+        mc_val = self._mc(q_boundary)
+        return (mr_left >= mc_val >= mr_right) or (mr_left <= mc_val <= mr_right)
+
+    def _best_candidate(self, candidates):
         best_q = None
         best_profit = -np.inf
         for q in candidates:
-            p = self.demand.p(q)
-            profit = p * q - self.total_cost.cost(q)
+            profit = self._profit_at(q)
             if profit > best_profit:
                 best_profit = profit
                 best_q = q
+        return best_q, best_profit
 
-        self.q = best_q
-        self.p = self.demand.p(best_q)
-        self.profit = best_profit
+    def _profit_at(self, q):
+        return self.demand.p(q) * q - self.total_cost.cost(q)
+
+    def _set_output(self, q, profit):
+        self.q = q
+        self.p = self.demand.p(q)
+        self.profit = profit
+
+    def _set_zero_output(self):
+        self.q = 0.0
+        self.p = self.demand.p(0)
+        self.profit = -self.total_cost.cost(0)
 
     def __repr__(self) -> str:
         """Return a concise text summary of the monopoly outcome."""
