@@ -255,6 +255,35 @@ class Equilibrium:
             + self.govt_revenue
         )
 
+    # ================== Market diagnostics ==================#
+    @property
+    def quantity_demanded(self):
+        """Quantity consumers wish to buy at the price they pay.
+
+        This can differ from the quantity actually traded when a price
+        control binds or when the economy trades at a world price.
+        """
+        return self.demand.q(self.__p_consumer)
+
+    @property
+    def quantity_supplied(self):
+        """Quantity producers wish to sell at the price they receive."""
+        return self.supply.q(self.__p_producer)
+
+    @property
+    def shortage(self):
+        """Unmet demand under a binding price ceiling, otherwise zero."""
+        if self.__ceiling is None:
+            return 0
+        return max(self.quantity_demanded - self.quantity_supplied, 0)
+
+    @property
+    def excess_supply(self):
+        """Unsold supply under a binding price floor, otherwise zero."""
+        if self.__floor is None:
+            return 0
+        return max(self.quantity_supplied - self.quantity_demanded, 0)
+
     # ================== Plot ==================#
     def plot(self, ax=None, surplus=False):
         if ax is None:

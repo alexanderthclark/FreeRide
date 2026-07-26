@@ -37,6 +37,16 @@ print(e.p, e.q)
 e.plot()
 ```
 
+Markets also expose Econ 101 price-control diagnostics directly. Binding
+controls report ``quantity_demanded``, ``quantity_supplied``, ``shortage``, and
+``excess_supply``:
+
+```python
+controlled = Equilibrium(d, s, ceiling=4)
+print(controlled.quantity_demanded, controlled.quantity_supplied)
+print(controlled.shortage)
+```
+
 Use matplotlib to customize plots further. 
 
 ```
@@ -69,4 +79,3 @@ plt.show()
 ```
 
 ![equilibrium.svg](equilibrium.svg)
-

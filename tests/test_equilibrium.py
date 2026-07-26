@@ -32,3 +32,37 @@ class TestEquilibrium(unittest.TestCase):
         self.assertEqual(eq_floor.q, self.equilibrium.q)
         if hasattr(eq_floor, "excess_supply"):
             self.assertEqual(eq_floor.excess_supply, 0)
+
+    def test_binding_ceiling_reports_shortage(self):
+        market = Equilibrium(self.demand_curve, self.supply_curve, ceiling=5)
+        self.assertEqual(market.quantity_demanded, 10)
+        self.assertEqual(market.quantity_supplied, 6)
+        self.assertEqual(market.shortage, 4)
+        self.assertEqual(market.excess_supply, 0)
+
+    def test_binding_floor_reports_excess_supply(self):
+        market = Equilibrium(self.demand_curve, self.supply_curve, floor=7)
+        self.assertEqual(market.quantity_demanded, 6)
+        self.assertEqual(market.quantity_supplied, 10)
+        self.assertEqual(market.shortage, 0)
+        self.assertEqual(market.excess_supply, 4)
+
+    def test_nonbinding_price_control_has_no_shortage(self):
+        market = Equilibrium(self.demand_curve, self.supply_curve, ceiling=8)
+        self.assertEqual(market.shortage, 0)
+
+    def test_control_at_equilibrium_has_no_imbalance(self):
+        ceiling = Equilibrium(self.demand_curve, self.supply_curve, ceiling=6)
+        floor = Equilibrium(self.demand_curve, self.supply_curve, floor=6)
+        self.assertEqual(ceiling.shortage, 0)
+        self.assertEqual(floor.excess_supply, 0)
+
+    def test_trade_imbalance_is_not_a_shortage(self):
+        market = Equilibrium(
+            self.demand_curve,
+            self.supply_curve,
+            world_price=5,
+        )
+        self.assertGreater(market.imports, 0)
+        self.assertEqual(market.shortage, 0)
+        self.assertEqual(market.excess_supply, 0)
