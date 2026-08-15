@@ -1,3 +1,4 @@
+import ast
 import unittest
 from freeride.formula import _formula, _quadratic_formula
 from freeride.exceptions import FormulaParseError
@@ -63,6 +64,15 @@ class TestFormula(unittest.TestCase):
         """Equations that do not match the expected forms should error."""
         with self.assertRaises(FormulaParseError):
             _formula("y = x*y")
+
+    def test_numeric_literals_without_legacy_ast_num(self):
+        """Numeric literals parse when the deprecated ``ast.Num`` is absent."""
+        legacy_num = ast.__dict__.pop("Num", None)
+        try:
+            self.assertEqual(_formula("y = 3 + 2*x"), (3.0, 2.0))
+        finally:
+            if legacy_num is not None:
+                ast.Num = legacy_num
 
     def tearDown(self):
         pass
