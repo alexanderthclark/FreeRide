@@ -30,6 +30,10 @@ from freeride.affine import intersection
 from freeride.plotting import update_axes_limits
 
 
+_QUANTITY_RTOL = 1e-12
+_QUANTITY_ATOL = 1e-12
+
+
 class Equilibrium:
     """
     Equilibrium with exactly one possible intervention
@@ -114,16 +118,6 @@ class Equilibrium:
                 "A nonzero tariff requires a 'world_price' to be set."
             )
 
-    @staticmethod
-    def _quantities_differ(quantity_demanded, quantity_supplied):
-        """Return whether a market gap is larger than floating-point noise."""
-        return not np.isclose(
-            quantity_demanded,
-            quantity_supplied,
-            rtol=1e-12,
-            atol=1e-12,
-        )
-
     def _compute(self):
         """
         Compute the equilibrium for whichever single intervention is set.
@@ -139,9 +133,11 @@ class Equilibrium:
             quantity_supplied = self.supply.q(self.__ceiling)
             if (
                 quantity_demanded > quantity_supplied
-                and self._quantities_differ(
+                and not np.isclose(
                     quantity_demanded,
                     quantity_supplied,
+                    rtol=_QUANTITY_RTOL,
+                    atol=_QUANTITY_ATOL,
                 )
             ):
                 p_star = self.__ceiling
@@ -158,9 +154,11 @@ class Equilibrium:
             quantity_supplied = self.supply.q(self.__floor)
             if (
                 quantity_supplied > quantity_demanded
-                and self._quantities_differ(
+                and not np.isclose(
                     quantity_demanded,
                     quantity_supplied,
+                    rtol=_QUANTITY_RTOL,
+                    atol=_QUANTITY_ATOL,
                 )
             ):
                 p_star = self.__floor
