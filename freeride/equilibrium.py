@@ -88,6 +88,9 @@ class Equilibrium:
         self._importer = None
         self._net_imports = 0
 
+        # Track whether a price control actually constrains this market.
+        self._binding_price_control = None
+
         self._verify_single_intervention()
         self._compute()
 
@@ -111,32 +114,62 @@ class Equilibrium:
                 "A nonzero tariff requires a 'world_price' to be set."
             )
 
+    @staticmethod
+    def _quantities_differ(quantity_demanded, quantity_supplied):
+        """Return whether a market gap is larger than floating-point noise."""
+        return not np.isclose(
+            quantity_demanded,
+            quantity_supplied,
+            rtol=1e-12,
+            atol=1e-12,
+        )
+
     def _compute(self):
         """
         Compute the equilibrium for whichever single intervention is set.
         """
+        self._binding_price_control = None
+
         if self.__world_price is not None:
             self._compute_small_open()
             return
 
         if self.__ceiling is not None:
-            if self.excess_demand(self.__ceiling) > 0:
+            quantity_demanded = self.demand.q(self.__ceiling)
+            quantity_supplied = self.supply.q(self.__ceiling)
+            if (
+                quantity_demanded > quantity_supplied
+                and self._quantities_differ(
+                    quantity_demanded,
+                    quantity_supplied,
+                )
+            ):
                 p_star = self.__ceiling
-                q_star = self.supply.q(p_star)
+                q_star = quantity_supplied
                 self.q = q_star
                 self.p = p_star
                 self.__p_consumer = p_star
                 self.__p_producer = p_star
+                self._binding_price_control = "ceiling"
                 return
 
         if self.__floor is not None:
-            if self.excess_demand(self.__floor) < 0:
+            quantity_demanded = self.demand.q(self.__floor)
+            quantity_supplied = self.supply.q(self.__floor)
+            if (
+                quantity_supplied > quantity_demanded
+                and self._quantities_differ(
+                    quantity_demanded,
+                    quantity_supplied,
+                )
+            ):
                 p_star = self.__floor
-                q_star = self.demand.q(p_star)
+                q_star = quantity_demanded
                 self.q = q_star
                 self.p = p_star
                 self.__p_consumer = p_star
                 self.__p_producer = p_star
+                self._binding_price_control = "floor"
                 return
 
         if self.__tax != 0:
@@ -267,20 +300,32 @@ class Equilibrium:
 
     @property
     def quantity_supplied(self):
-        """Quantity producers wish to sell at the price they receive."""
+        """Quantity producers wish to sell at the price they receive.
+
+        This can differ from the quantity actually traded when a price
+        control binds or when the economy trades at a world price.
+        """
         return self.supply.q(self.__p_producer)
 
     @property
     def shortage(self):
-        """Unmet demand under a binding price ceiling, otherwise zero."""
-        if self.__ceiling is None:
+        """Unmet demand under a binding price ceiling, otherwise zero.
+
+        A domestic demand-supply gap under a world price represents imports,
+        not unmet demand, and therefore returns zero here.
+        """
+        if self._binding_price_control != "ceiling":
             return 0
         return max(self.quantity_demanded - self.quantity_supplied, 0)
 
     @property
     def excess_supply(self):
-        """Unsold supply under a binding price floor, otherwise zero."""
-        if self.__floor is None:
+        """Unsold supply under a binding price floor, otherwise zero.
+
+        A domestic supply-demand gap under a world price represents exports,
+        not unsold supply, and therefore returns zero here.
+        """
+        if self._binding_price_control != "floor":
             return 0
         return max(self.quantity_supplied - self.quantity_demanded, 0)
 

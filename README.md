@@ -37,12 +37,13 @@ print(e.p, e.q)
 e.plot()
 ```
 
-Markets also expose Econ 101 price-control diagnostics directly. Binding
-controls report ``quantity_demanded``, ``quantity_supplied``, ``shortage``, and
-``excess_supply``:
+Markets also expose Econ 101 market diagnostics directly. The
+`quantity_demanded` and `quantity_supplied` properties report desired domestic
+quantities, while binding controls can produce a `shortage` or
+`excess_supply`:
 
 ```python
-controlled = Equilibrium(d, s, ceiling=4)
+controlled = Equilibrium(d, s, ceiling=3)
 print(controlled.quantity_demanded, controlled.quantity_supplied)
 print(controlled.shortage)
 ```
