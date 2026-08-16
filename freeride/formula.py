@@ -28,9 +28,6 @@ def _eval_ast_node(node, allowed_names, values):
         operand = _eval_ast_node(node.operand, allowed_names, values)
         return operand if isinstance(node.op, ast.UAdd) else -operand
     
-    if isinstance(node, ast.Num):  # Python <3.8 compatibility
-        return node.n
-    
     if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
         return node.value
     
