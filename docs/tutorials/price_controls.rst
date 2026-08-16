@@ -52,6 +52,11 @@ Let's explore how price controls affect market outcomes:
    Free Market Equilibrium: P = $10.00, Q = 10
    Total Surplus: $125.00
 
+For a signed domestic market gap at any price, use
+``excess_demand(price) = quantity demanded - quantity supplied``. Positive
+values indicate excess demand, while negative values indicate excess supply.
+The price-control properties below report nonnegative outcome quantities.
+
 Price Ceilings
 --------------
 
@@ -97,7 +102,7 @@ A binding price floor creates a surplus because quantity supplied exceeds quanti
    print(f"With Price Floor at $12:")
    print(f"  Quantity Demanded: {floor_market.quantity_demanded:.0f}")
    print(f"  Quantity Supplied: {floor_market.quantity_supplied:.0f}")
-   print(f"  Surplus: {floor_market.excess_supply:.0f} units")
+   print(f"  Surplus: {floor_market.surplus_quantity:.0f} units")
    print(f"  Deadweight Loss: ${floor_market.dwl:.2f}")
    
    # Visualize the market with floor

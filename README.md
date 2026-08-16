@@ -39,8 +39,10 @@ e.plot()
 
 Markets also expose Econ 101 market diagnostics directly. The
 `quantity_demanded` and `quantity_supplied` properties report desired domestic
-quantities, while binding controls can produce a `shortage` or
-`excess_supply`:
+quantities, while binding controls can produce a nonnegative `shortage` or
+`surplus_quantity`. For a signed domestic market gap at any price, use
+`excess_demand(price)`: positive values indicate excess demand and negative
+values indicate excess supply.
 
 ```python
 controlled = Equilibrium(d, s, ceiling=3)

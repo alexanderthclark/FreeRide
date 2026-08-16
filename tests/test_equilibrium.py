@@ -19,8 +19,9 @@ class TestEquilibrium(unittest.TestCase):
     def test_free_market_diagnostics(self):
         self.assertEqual(self.equilibrium.quantity_demanded, self.equilibrium.q)
         self.assertEqual(self.equilibrium.quantity_supplied, self.equilibrium.q)
+        self.assertEqual(self.equilibrium.excess_demand(self.equilibrium.p), 0)
         self.assertEqual(self.equilibrium.shortage, 0)
-        self.assertEqual(self.equilibrium.excess_supply, 0)
+        self.assertEqual(self.equilibrium.surplus_quantity, 0)
 
     def test_binding_ceiling_diagnostics(self):
         market = Equilibrium(self.demand_curve, self.supply_curve, ceiling=5)
@@ -31,7 +32,8 @@ class TestEquilibrium(unittest.TestCase):
             market.shortage,
             market.quantity_demanded - market.q,
         )
-        self.assertEqual(market.excess_supply, 0)
+        self.assertEqual(market.excess_demand(market.p), 4)
+        self.assertEqual(market.surplus_quantity, 0)
 
     def test_binding_floor_diagnostics(self):
         market = Equilibrium(self.demand_curve, self.supply_curve, floor=7)
@@ -40,8 +42,12 @@ class TestEquilibrium(unittest.TestCase):
         self.assertEqual(market.q, market.quantity_demanded)
         self.assertEqual(market.shortage, 0)
         self.assertEqual(
-            market.excess_supply,
+            market.surplus_quantity,
             market.quantity_supplied - market.q,
+        )
+        self.assertEqual(
+            market.excess_demand(market.p),
+            -4,
         )
 
     def test_nonbinding_floor_diagnostics(self):
@@ -51,7 +57,7 @@ class TestEquilibrium(unittest.TestCase):
         self.assertEqual(market.quantity_demanded, market.q)
         self.assertEqual(market.quantity_supplied, market.q)
         self.assertEqual(market.shortage, 0)
-        self.assertEqual(market.excess_supply, 0)
+        self.assertEqual(market.surplus_quantity, 0)
 
     def test_nonbinding_ceiling_diagnostics(self):
         market = Equilibrium(self.demand_curve, self.supply_curve, ceiling=8)
@@ -60,7 +66,7 @@ class TestEquilibrium(unittest.TestCase):
         self.assertEqual(market.quantity_demanded, market.q)
         self.assertEqual(market.quantity_supplied, market.q)
         self.assertEqual(market.shortage, 0)
-        self.assertEqual(market.excess_supply, 0)
+        self.assertEqual(market.surplus_quantity, 0)
 
     def test_nonbinding_ceiling_ignores_floating_point_residual(self):
         demand = (
@@ -77,7 +83,7 @@ class TestEquilibrium(unittest.TestCase):
         self.assertGreater(market.ceiling, market.p)
         self.assertAlmostEqual(raw_gap, 0, places=12)
         self.assertEqual(market.shortage, 0)
-        self.assertEqual(market.excess_supply, 0)
+        self.assertEqual(market.surplus_quantity, 0)
 
     def test_binding_state_updates_when_ceiling_changes(self):
         market = Equilibrium(self.demand_curve, self.supply_curve, ceiling=5)
@@ -86,13 +92,13 @@ class TestEquilibrium(unittest.TestCase):
         market.ceiling = 8
 
         self.assertEqual(market.shortage, 0)
-        self.assertEqual(market.excess_supply, 0)
+        self.assertEqual(market.surplus_quantity, 0)
 
     def test_control_at_equilibrium_has_no_imbalance(self):
         ceiling = Equilibrium(self.demand_curve, self.supply_curve, ceiling=6)
         floor = Equilibrium(self.demand_curve, self.supply_curve, floor=6)
         self.assertEqual(ceiling.shortage, 0)
-        self.assertEqual(floor.excess_supply, 0)
+        self.assertEqual(floor.surplus_quantity, 0)
 
     def test_tax_uses_consumer_and_producer_prices(self):
         market = Equilibrium(
@@ -104,7 +110,7 @@ class TestEquilibrium(unittest.TestCase):
         self.assertEqual(market.quantity_demanded, market.q)
         self.assertEqual(market.quantity_supplied, market.q)
         self.assertEqual(market.shortage, 0)
-        self.assertEqual(market.excess_supply, 0)
+        self.assertEqual(market.surplus_quantity, 0)
 
     def test_imports_are_not_a_shortage(self):
         market = Equilibrium(
@@ -116,10 +122,11 @@ class TestEquilibrium(unittest.TestCase):
             market.imports,
             market.quantity_demanded - market.quantity_supplied,
         )
+        self.assertEqual(market.excess_demand(market.p), market.imports)
         self.assertEqual(market.shortage, 0)
-        self.assertEqual(market.excess_supply, 0)
+        self.assertEqual(market.surplus_quantity, 0)
 
-    def test_exports_are_not_excess_supply(self):
+    def test_exports_are_not_a_price_floor_surplus(self):
         market = Equilibrium(
             self.demand_curve,
             self.supply_curve,
@@ -129,5 +136,6 @@ class TestEquilibrium(unittest.TestCase):
             market.exports,
             market.quantity_supplied - market.quantity_demanded,
         )
+        self.assertEqual(market.excess_demand(market.p), -market.exports)
         self.assertEqual(market.shortage, 0)
-        self.assertEqual(market.excess_supply, 0)
+        self.assertEqual(market.surplus_quantity, 0)

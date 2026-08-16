@@ -248,6 +248,11 @@ class Equilibrium:
         return True
 
     def excess_demand(self, p):
+        """Return signed excess demand, ``Q_d(p) - Q_s(p)``.
+
+        Positive values indicate excess demand; negative values indicate
+        excess supply; zero indicates market clearing.
+        """
         return self.demand.q(p) - self.supply.q(p)
 
     # ================== Surplus ==================#
@@ -311,23 +316,31 @@ class Equilibrium:
     def shortage(self):
         """Unmet demand under a binding price ceiling, otherwise zero.
 
+        This is a nonnegative outcome quantity. For the signed market gap at
+        any price, use :meth:`excess_demand`.
+
         A domestic demand-supply gap under a world price represents imports,
         not unmet demand, and therefore returns zero here.
         """
         if self._binding_price_control != "ceiling":
             return 0
-        return max(self.quantity_demanded - self.quantity_supplied, 0)
+        return max(self.quantity_demanded - self.q, 0)
 
     @property
-    def excess_supply(self):
-        """Unsold supply under a binding price floor, otherwise zero.
+    def surplus_quantity(self):
+        """Quantity offered but not sold under a binding floor, otherwise zero.
+
+        This is the nonnegative quantity supplied minus quantity demanded,
+        distinct from welfare measures such as :attr:`total_surplus`. For the
+        signed market gap at any price, use :meth:`excess_demand`; negative
+        values of that function indicate excess supply.
 
         A domestic supply-demand gap under a world price represents exports,
-        not unsold supply, and therefore returns zero here.
+        not a price-floor surplus, and therefore returns zero here.
         """
         if self._binding_price_control != "floor":
             return 0
-        return max(self.quantity_supplied - self.quantity_demanded, 0)
+        return max(self.quantity_supplied - self.q, 0)
 
     # ================== Plot ==================#
     def plot(self, ax=None, surplus=False):
