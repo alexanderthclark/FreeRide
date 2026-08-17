@@ -73,11 +73,13 @@ class UnitSupply(UnitAgent):
     ----------
     *willingness_to_sell : float or Sequence[float]
         Valuations representing the minimum prices the agent is willing to
-        accept for successive units.
+        accept for successive units. The number of normalized valuations
+        determines the seller's endowment.
     """
 
     def __init__(self, *willingness_to_sell):
-        super().__init__(*willingness_to_sell, endowment=len(willingness_to_sell))
+        super().__init__(*willingness_to_sell, endowment=0)
+        self.endowment = len(self.valuations)
 
 
 def _sort_key(item):

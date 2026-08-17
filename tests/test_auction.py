@@ -2,6 +2,7 @@ import unittest
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 
 from freeride.double_auction import UnitAgent, UnitDemand, UnitSupply, DoubleAuction
 
@@ -37,6 +38,26 @@ class TestDoubleAuction(unittest.TestCase):
         self.assertEqual(auction.q, 2)
         self.assertEqual(price0, 5)
         self.assertEqual(price1, 6)
+
+    def test_multi_unit_sequence_inputs_match_positional_inputs(self):
+        sequence_inputs = (
+            ([4, 5], [7, 6]),
+            ((4, 5), (7, 6)),
+            (np.array([4, 5]), np.array([7, 6])),
+        )
+
+        for supply_values, demand_values in sequence_inputs:
+            with self.subTest(input_type=type(supply_values).__name__):
+                seller = UnitSupply(supply_values)
+                buyer = UnitDemand(demand_values)
+                auction = DoubleAuction(seller, buyer)
+
+                self.assertEqual(seller.valuations, [4.0, 5.0])
+                self.assertEqual(seller.endowment, 2)
+                self.assertEqual(buyer.valuations, [7.0, 6.0])
+                self.assertEqual(buyer.endowment, 0)
+                self.assertEqual(auction.q, 2)
+                self.assertEqual(auction.p, (5.0, 6.0))
 
     def test_multi_unit_multiple_agents(self):
         sellers = (UnitSupply(1, 2), UnitSupply(3, 4))
