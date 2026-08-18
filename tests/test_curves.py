@@ -126,6 +126,29 @@ class TestCurveHelpers(unittest.TestCase):
         self.assertIsNone(active[2])
 
 
+class TestAffinePriceElasticityKinks(unittest.TestCase):
+    def setUp(self):
+        d1 = Demand(12, -1)
+        d2 = Demand(6, -0.5)
+        self.kinked_demand = d1 + d2
+        self.kink_p = self.kinked_demand.intersections[0][0]
+
+    def test_exact_kink_input_raises(self):
+        with self.assertRaisesRegex(ValueError, "kink point"):
+            self.kinked_demand.price_elasticity(self.kink_p)
+
+    def test_near_kink_input_does_not_raise(self):
+        elasticity = self.kinked_demand.price_elasticity(self.kink_p + 1e-7)
+        self.assertTrue(np.isfinite(elasticity))
+
+    def test_floating_point_kink_representation_raises(self):
+        # 0.1 + 0.2 is not exactly representable; scaled here it lands
+        # extremely close to the true kink price of 6.
+        p_with_fp_noise = (0.1 + 0.2) * 20
+        with self.assertRaisesRegex(ValueError, "kink point"):
+            self.kinked_demand.price_elasticity(p_with_fp_noise)
+
+
 class TestSurplusAndRevenue(unittest.TestCase):
 
     def setUp(self):
