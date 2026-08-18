@@ -14,6 +14,22 @@ class TestMonopoly(unittest.TestCase):
         self.assertAlmostEqual(m.p, 6.0)
         self.assertAlmostEqual(m.profit, 16.0)
 
+    def test_no_candidate_defaults_to_zero_output(self):
+        demand = Demand(10, -1)
+        cost = Cost(0, 20)
+        m = Monopoly(demand, cost)
+        self.assertAlmostEqual(m.q, 0.0)
+        self.assertAlmostEqual(m.p, 10.0)
+        self.assertAlmostEqual(m.profit, 0.0)
+
+    def test_fixed_cost_does_not_create_shutdown_comparison(self):
+        demand = Demand(10, -1)
+        cost = Cost(100, 2)
+        m = Monopoly(demand, cost)
+        self.assertAlmostEqual(m.q, 4.0)
+        self.assertAlmostEqual(m.p, 6.0)
+        self.assertAlmostEqual(m.profit, -84.0)
+
     def test_repr_methods(self):
         """Monopoly representations should summarize the solved outcome."""
         monopoly = Monopoly(Demand(10, -1), Cost(0, 2))
