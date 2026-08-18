@@ -52,6 +52,11 @@ Let's explore how price controls affect market outcomes:
    Free Market Equilibrium: P = $10.00, Q = 10
    Total Surplus: $125.00
 
+For a signed domestic market gap at any price, use
+``excess_demand(price) = quantity demanded - quantity supplied``. Positive
+values indicate excess demand, while negative values indicate excess supply.
+The price-control properties below report nonnegative outcome quantities.
+
 Price Ceilings
 --------------
 
@@ -62,15 +67,10 @@ A binding price ceiling creates a shortage because quantity demanded exceeds qua
    # Apply a binding price ceiling at $8
    ceiling_market = Market(demand, supply, ceiling=8)
    
-   # Calculate shortage
-   q_demanded = demand.q(8)
-   q_supplied = supply.q(8)
-   shortage = q_demanded - q_supplied
-   
    print(f"With Price Ceiling at $8:")
-   print(f"  Quantity Supplied: {q_supplied:.0f}")
-   print(f"  Quantity Demanded: {q_demanded:.0f}")
-   print(f"  Shortage: {shortage:.0f} units")
+   print(f"  Quantity Supplied: {ceiling_market.quantity_supplied:.0f}")
+   print(f"  Quantity Demanded: {ceiling_market.quantity_demanded:.0f}")
+   print(f"  Shortage: {ceiling_market.shortage:.0f} units")
    print(f"  Deadweight Loss: ${ceiling_market.dwl:.2f}")
    
    # Visualize the market with ceiling
@@ -99,15 +99,10 @@ A binding price floor creates a surplus because quantity supplied exceeds quanti
    # Apply a binding price floor at $12
    floor_market = Market(demand, supply, floor=12)
    
-   # Calculate surplus
-   q_demanded = demand.q(12)
-   q_supplied = supply.q(12)
-   surplus = q_supplied - q_demanded
-   
    print(f"With Price Floor at $12:")
-   print(f"  Quantity Demanded: {q_demanded:.0f}")
-   print(f"  Quantity Supplied: {q_supplied:.0f}")
-   print(f"  Surplus: {surplus:.0f} units")
+   print(f"  Quantity Demanded: {floor_market.quantity_demanded:.0f}")
+   print(f"  Quantity Supplied: {floor_market.quantity_supplied:.0f}")
+   print(f"  Surplus: {floor_market.surplus_quantity:.0f} units")
    print(f"  Deadweight Loss: ${floor_market.dwl:.2f}")
    
    # Visualize the market with floor

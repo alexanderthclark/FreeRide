@@ -30,6 +30,10 @@ from freeride.affine import intersection
 from freeride.plotting import update_axes_limits
 
 
+_QUANTITY_RTOL = 1e-12
+_QUANTITY_ATOL = 1e-12
+
+
 class Equilibrium:
     """
     Equilibrium with exactly one possible intervention
@@ -88,6 +92,9 @@ class Equilibrium:
         self._importer = None
         self._net_imports = 0
 
+        # Track whether a price control actually constrains this market.
+        self._binding_price_control = None
+
         self._verify_single_intervention()
         self._compute()
 
@@ -115,28 +122,52 @@ class Equilibrium:
         """
         Compute the equilibrium for whichever single intervention is set.
         """
+        self._binding_price_control = None
+
         if self.__world_price is not None:
             self._compute_small_open()
             return
 
         if self.__ceiling is not None:
-            if self.excess_demand(self.__ceiling) > 0:
+            quantity_demanded = self.demand.q(self.__ceiling)
+            quantity_supplied = self.supply.q(self.__ceiling)
+            if (
+                quantity_demanded > quantity_supplied
+                and not np.isclose(
+                    quantity_demanded,
+                    quantity_supplied,
+                    rtol=_QUANTITY_RTOL,
+                    atol=_QUANTITY_ATOL,
+                )
+            ):
                 p_star = self.__ceiling
-                q_star = self.supply.q(p_star)
+                q_star = quantity_supplied
                 self.q = q_star
                 self.p = p_star
                 self.__p_consumer = p_star
                 self.__p_producer = p_star
+                self._binding_price_control = "ceiling"
                 return
 
         if self.__floor is not None:
-            if self.excess_demand(self.__floor) < 0:
+            quantity_demanded = self.demand.q(self.__floor)
+            quantity_supplied = self.supply.q(self.__floor)
+            if (
+                quantity_supplied > quantity_demanded
+                and not np.isclose(
+                    quantity_demanded,
+                    quantity_supplied,
+                    rtol=_QUANTITY_RTOL,
+                    atol=_QUANTITY_ATOL,
+                )
+            ):
                 p_star = self.__floor
-                q_star = self.demand.q(p_star)
+                q_star = quantity_demanded
                 self.q = q_star
                 self.p = p_star
                 self.__p_consumer = p_star
                 self.__p_producer = p_star
+                self._binding_price_control = "floor"
                 return
 
         if self.__tax != 0:
@@ -215,6 +246,11 @@ class Equilibrium:
         return True
 
     def excess_demand(self, p):
+        """Return signed excess demand, ``Q_d(p) - Q_s(p)``.
+
+        Positive values indicate excess demand; negative values indicate
+        excess supply; zero indicates market clearing.
+        """
         return self.demand.q(p) - self.supply.q(p)
 
     # ================== Surplus ==================#
@@ -254,6 +290,55 @@ class Equilibrium:
             + self.producer_surplus
             + self.govt_revenue
         )
+
+    # ================== Market diagnostics ==================#
+    @property
+    def quantity_demanded(self):
+        """Quantity consumers wish to buy at the price they pay.
+
+        This can differ from the quantity actually traded when a price
+        control binds or when the economy trades at a world price.
+        """
+        return self.demand.q(self.__p_consumer)
+
+    @property
+    def quantity_supplied(self):
+        """Quantity producers wish to sell at the price they receive.
+
+        This can differ from the quantity actually traded when a price
+        control binds or when the economy trades at a world price.
+        """
+        return self.supply.q(self.__p_producer)
+
+    @property
+    def shortage(self):
+        """Unmet demand under a binding price ceiling, otherwise zero.
+
+        This is a nonnegative outcome quantity. For the signed market gap at
+        any price, use :meth:`excess_demand`.
+
+        A domestic demand-supply gap under a world price represents imports,
+        not unmet demand, and therefore returns zero here.
+        """
+        if self._binding_price_control != "ceiling":
+            return 0
+        return max(self.quantity_demanded - self.q, 0)
+
+    @property
+    def surplus_quantity(self):
+        """Quantity offered but not sold under a binding floor, otherwise zero.
+
+        This is the nonnegative quantity supplied minus quantity demanded,
+        distinct from welfare measures such as :attr:`total_surplus`. For the
+        signed market gap at any price, use :meth:`excess_demand`; negative
+        values of that function indicate excess supply.
+
+        A domestic supply-demand gap under a world price represents exports,
+        not a price-floor surplus, and therefore returns zero here.
+        """
+        if self._binding_price_control != "floor":
+            return 0
+        return max(self.quantity_supplied - self.q, 0)
 
     # ================== Plot ==================#
     def plot(self, ax=None, surplus=False):
