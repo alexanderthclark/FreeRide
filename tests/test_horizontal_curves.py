@@ -71,28 +71,39 @@ class TestHorizontalCurves(unittest.TestCase):
             # Below P=10, should return inf
             self.assertTrue(np.isinf(d.q(9)))
 
-    def test_equilibrium_blocks_horizontal_supply(self):
-        """Test that Equilibrium blocks horizontal supply curves."""
+    def test_equilibrium_allows_horizontal_supply_with_regular_demand(self):
+        """Horizontal supply with regular demand should produce a unique point."""
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             s = Supply(5, 0)  # Horizontal supply
             d = Demand(10, -1)  # Normal demand
 
-            with self.assertRaises(ValueError) as cm:
-                eq = Equilibrium(d, s)
+            eq = Equilibrium(d, s)
+            self.assertEqual(eq.p, 5)
+            self.assertEqual(eq.q, 5)
 
-            self.assertIn("perfectly elastic", str(cm.exception))
-            self.assertIn("supply", str(cm.exception).lower())
-
-    def test_equilibrium_blocks_horizontal_demand(self):
-        """Test that Equilibrium blocks horizontal demand curves."""
+    def test_equilibrium_allows_horizontal_demand_with_regular_supply(self):
+        """Horizontal demand with regular supply should produce a unique point."""
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             d = Demand(8, 0)  # Horizontal demand
             s = Supply(2, 1)  # Normal supply
 
-            with self.assertRaises(ValueError) as cm:
-                eq = Equilibrium(d, s)
+            eq = Equilibrium(d, s)
+            self.assertEqual(eq.p, 8)
+            self.assertEqual(eq.q, 6)
 
-            self.assertIn("perfectly elastic", str(cm.exception))
-            self.assertIn("demand", str(cm.exception).lower())
+    def test_equilibrium_horizontal_horizontal_is_indeterminate(self):
+        """Equal fixed-price demand and supply should raise an indeterminate error."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            d = Demand(8, 0)
+            s = Supply(8, 0)
+
+            with self.assertRaises(ValueError) as cm:
+                Equilibrium(d, s)
+
+            self.assertIn(
+                "economically indeterminate quantity at fixed price",
+                str(cm.exception),
+            )

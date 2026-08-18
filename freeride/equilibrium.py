@@ -55,20 +55,6 @@ class Equilibrium:
             world_price=None,
             tariff=0
     ):
-        # Check for perfectly elastic or inelastic curves
-        if demand.has_perfect_segment:
-            raise ValueError(
-                "Equilibrium does not currently support perfectly elastic or inelastic demand curves "
-                "due to implementation limitations (not economic theory). "
-                "These curves have indeterminate quantities at the equilibrium price."
-            )
-        if supply.has_perfect_segment:
-            raise ValueError(
-                "Equilibrium does not currently support perfectly elastic or inelastic supply curves "
-                "due to implementation limitations (not economic theory). "
-                "These curves have indeterminate quantities at the equilibrium price."
-            )
-
         self.demand = demand
         self.supply = supply
 
@@ -188,10 +174,20 @@ class Equilibrium:
         self._net_imports = Qd - Qs
 
     def _find_intersection(self, dcurve, scurve):
+        if dcurve.has_perfect_segment or scurve.has_perfect_segment:
+            perfect_solution = self._solve_with_perfect_segments(
+                dcurve, scurve
+            )
+            if perfect_solution is not None:
+                return perfect_solution
+
         for dpiece in dcurve.pieces:
             for spiece in scurve.pieces:
                 if dpiece and spiece:
-                    p_temp, q_temp = intersection(dpiece, spiece)
+                    try:
+                        p_temp, q_temp = intersection(dpiece, spiece)
+                    except np.linalg.LinAlgError:
+                        continue
                     if self._valid_in_domain(dpiece, spiece, q_temp):
                         return p_temp, q_temp
 
@@ -203,14 +199,89 @@ class Equilibrium:
         p = 0.5*(p_max+p_min)
         return p, 0
 
+    def _solve_with_perfect_segments(self, dcurve, scurve):
+        candidates = []
+        has_unsupported = False
+        has_fixed_price_indeterminacy = False
+
+        for dpiece in dcurve.pieces:
+            for spiece in scurve.pieces:
+                if not (dpiece and spiece):
+                    continue
+
+                d_horizontal = dpiece.slope == 0
+                s_horizontal = spiece.slope == 0
+                d_vertical = np.isinf(dpiece.slope)
+                s_vertical = np.isinf(spiece.slope)
+                d_regular = not (d_horizontal or d_vertical)
+                s_regular = not (s_horizontal or s_vertical)
+
+                # Horizontal demand/supply against regular opposite curve.
+                if (d_horizontal and s_regular) or (d_regular and s_horizontal):
+                    p_temp, q_temp = intersection(dpiece, spiece)
+                    if self._valid_in_domain(dpiece, spiece, q_temp):
+                        candidates.append((p_temp, q_temp))
+                    continue
+
+                # Vertical demand/supply against regular opposite curve.
+                if (d_vertical and s_regular) or (d_regular and s_vertical):
+                    p_temp, q_temp = intersection(dpiece, spiece)
+                    if self._valid_in_domain(dpiece, spiece, q_temp):
+                        candidates.append((p_temp, q_temp))
+                    continue
+
+                # Horizontal vs vertical gives a single point if domains allow.
+                if (d_horizontal and s_vertical) or (d_vertical and s_horizontal):
+                    p_temp, q_temp = intersection(dpiece, spiece)
+                    if self._valid_in_domain(dpiece, spiece, q_temp):
+                        candidates.append((p_temp, q_temp))
+                    continue
+
+                # Horizontal vs horizontal can pin a price but not quantity.
+                if d_horizontal and s_horizontal:
+                    if np.isclose(dpiece.intercept, spiece.intercept):
+                        has_fixed_price_indeterminacy = True
+                    else:
+                        has_unsupported = True
+                    continue
+
+                # Vertical vs vertical is not handled by this equilibrium model.
+                if d_vertical and s_vertical:
+                    has_unsupported = True
+
+        if len(candidates) == 1:
+            p_star, q_star = candidates[0]
+            return float(p_star), float(q_star)
+
+        if len(candidates) > 1:
+            unique_candidates = {
+                (round(float(p), 12), round(float(q), 12))
+                for p, q in candidates
+            }
+            if len(unique_candidates) == 1:
+                return tuple(unique_candidates.pop())
+            raise ValueError(
+                "unsupported combination: multiple distinct perfect-segment intersections"
+            )
+
+        if has_fixed_price_indeterminacy:
+            raise ValueError(
+                "economically indeterminate quantity at fixed price"
+            )
+        if has_unsupported:
+            raise ValueError(
+                "unsupported combination: perfect-segment pairing not implemented"
+            )
+        return None
+
     def _valid_in_domain(self, dpiece, spiece, q_val):
         d_dom = dpiece._domain
         s_dom = spiece._domain
         if d_dom:
-            if not (d_dom[1] <= q_val <= d_dom[0]):
+            if not (min(d_dom) <= q_val <= max(d_dom)):
                 return False
         if s_dom:
-            if not (s_dom[0] <= q_val <= s_dom[1]):
+            if not (min(s_dom) <= q_val <= max(s_dom)):
                 return False
         return True
 
