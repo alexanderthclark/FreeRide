@@ -94,10 +94,14 @@ We can easily add a tax to the market and visualize its effects.
 
    # Apply a $2.50 tax
    market.tax = 2.5
+   print(f"Consumer burden: ${market.consumer_tax_burden:.2f}")
+   print(f"Producer burden: ${market.producer_tax_burden:.2f}")
+   print(f"Consumer share: {market.consumer_tax_share:.0%}")
    market.plot(surplus=True)
 
 This plot shows the higher price paid by consumers, the lower price
-received by producers, and the shaded tax revenue rectangle.
+received by producers, and the shaded tax revenue rectangle. The burden
+properties show how much of the tax is borne by each side of the market.
 
 .. image:: _static/tax_example_plot.svg
    :alt: Market plot with tax revenue shaded
