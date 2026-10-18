@@ -1,243 +1,162 @@
-"""
-Formula module using sympy
-"""
+"""Parse the small affine and quadratic formulas used by FreeRide."""
 
-import re
 import ast
+import math
+import re
 
 from freeride.exceptions import FormulaParseError
 
 
-def _eval_ast_node(node, allowed_names, values):
-    """Recursively evaluate an AST node with restricted operations."""
-    if isinstance(node, ast.Expression):
-        return _eval_ast_node(node.body, allowed_names, values)
-    
-    if isinstance(node, ast.BinOp):
-        if isinstance(node.op, (ast.Add, ast.Sub, ast.Mult)):
-            left = _eval_ast_node(node.left, allowed_names, values)
-            right = _eval_ast_node(node.right, allowed_names, values)
-            if isinstance(node.op, ast.Add):
-                return left + right
-            if isinstance(node.op, ast.Sub):
-                return left - right
-            if isinstance(node.op, ast.Mult):
-                return left * right
-    
-    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
-        operand = _eval_ast_node(node.operand, allowed_names, values)
-        return operand if isinstance(node.op, ast.UAdd) else -operand
-    
-    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
-        return node.value
-    
-    if isinstance(node, ast.Name):
-        if node.id not in allowed_names:
-            raise FormulaParseError(f"Invalid variable '{node.id}' in equation")
-        return values.get(node.id, 0.0)
-    
-    raise FormulaParseError("Invalid syntax in equation")
+def _equation_sides(equation):
+    """Normalize notation without discarding any part of the equation."""
+    if not isinstance(equation, str):
+        raise FormulaParseError("Equation must be a string")
+    if "/" in equation:
+        raise FormulaParseError(
+            "Unexpected character '/'. Use decimals and not fractions."
+        )
+    equation = equation.lower().translate(str.maketrans({"p": "y", "q": "x"}))
+    if not re.fullmatch(r"[0-9xy+\-*().^²=\s]+", equation):
+        raise FormulaParseError("Invalid characters in equation")
+    if equation.count("=") != 1:
+        raise FormulaParseError("Equation must contain exactly one '=' sign")
+
+    equation = re.sub(r"\s+", " ", equation)
+    equation = equation.replace("^", "**").replace("²", "**2")
+    # A coefficient may be written as 2x, 2*x, x2, or x*2.
+    equation = re.sub(r"(?<=[0-9.])\s*(?=[xy])", "*", equation)
+    equation = re.sub(r"(?<=[xy])\s*(?=[0-9.])", "*", equation)
+    return tuple(side.strip() for side in equation.split("="))
+
+
+def _polynomial_coefficients(expression, max_degree, variables):
+    """Read coefficients directly; keys are the powers of x and y."""
+    def multiply(left, right):
+        product = {}
+        for (lx, ly), a in left.items():
+            for (rx, ry), b in right.items():
+                if a == 0 or b == 0:
+                    continue
+                powers = (lx + rx, ly + ry)
+                if sum(powers) > max_degree:
+                    raise FormulaParseError(
+                        f"Equation must have degree at most {max_degree}"
+                    )
+                product[powers] = product.get(powers, 0.0) + a * b
+        return product
+
+    def coefficients(node):
+        if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+            try:
+                result = {(0, 0): float(node.value)}
+            except OverflowError as exc:
+                raise FormulaParseError("Coefficients must be finite") from exc
+        elif isinstance(node, ast.Name) and node.id in variables:
+            result = {(1, 0) if node.id == "x" else (0, 1): 1.0}
+        elif isinstance(node, ast.UnaryOp) and isinstance(
+            node.op, (ast.UAdd, ast.USub)
+        ):
+            sign = -1 if isinstance(node.op, ast.USub) else 1
+            result = {
+                powers: sign * value
+                for powers, value in coefficients(node.operand).items()
+            }
+        elif isinstance(node, ast.BinOp):
+            left = coefficients(node.left)
+            if isinstance(node.op, ast.Pow):
+                exponent = node.right
+                if (
+                    not isinstance(exponent, ast.Constant)
+                    or type(exponent.value) is not int
+                    or not 0 <= exponent.value <= max_degree
+                ):
+                    raise FormulaParseError(
+                        f"Powers must be whole numbers from 0 to {max_degree}"
+                    )
+                result = {(0, 0): 1.0}
+                for _ in range(exponent.value):
+                    result = multiply(result, left)
+            else:
+                right = coefficients(node.right)
+                if isinstance(node.op, ast.Mult):
+                    result = multiply(left, right)
+                elif isinstance(node.op, (ast.Add, ast.Sub)):
+                    sign = -1 if isinstance(node.op, ast.Sub) else 1
+                    result = left.copy()
+                    for powers, value in right.items():
+                        result[powers] = result.get(powers, 0.0) + sign * value
+                else:
+                    raise FormulaParseError("Invalid operation in equation")
+        else:
+            raise FormulaParseError("Invalid syntax or variable in equation")
+        if not all(math.isfinite(value) for value in result.values()):
+            raise FormulaParseError("Coefficients must be finite")
+        return result
+
+    try:
+        tree = ast.parse(expression, mode="eval")
+    except (SyntaxError, ValueError) as exc:
+        raise FormulaParseError("Invalid syntax in equation") from exc
+    return coefficients(tree.body)
 
 
 def _formula(equation: str):
-    """
-    Parse a linear equation string and return an Affine object.
+    """Return ``(intercept, slope)`` for an affine equation.
 
-    Accepts linear equations in a variety of notations including
-    ``y = mx + b``, ``x = my + b`` and the implicit form
-    ``ax + by = c``. Coefficients may appear with or without an
-    explicit ``*`` (e.g. ``2x`` or ``2*x``) and variables may also be
-    written as ``p``/``q``.  Whitespaces are ignored.
-
-    Parameters
-    ----------
-    equation : str
-        A string representing a linear equation.
-
-    Returns
-    -------
-    tuple
-        A tuple (intercept, slope) derived from the equation.
-
-    Raises
-    ------
-    FormulaParseError
-        If the equation is not valid or contains fractions.
+    Accepts ``y = mx + b``, ``x = my + b``, and implicit equations such as
+    ``2x + 3y = 6``. Variables may also be ``p``/``q`` in either case.
+    Coefficients may use optional multiplication signs, and parentheses,
+    addition, subtraction, and multiplication by constants are supported.
+    The equation must define y as a function of x. Fractions, nonlinear
+    terms, and nonfinite coefficients raise :class:`FormulaParseError`.
 
     Examples
     --------
     >>> _formula('y = 10 - 2x')
     (10.0, -2.0)
-    >>> _formula('y = 10 - 2*x')
+    >>> _formula('y = 10 - x*2')
     (10.0, -2.0)
-    >>> _formula('P=3+0.5Q')
-    (3.0, 0.5)
+    >>> _formula('2x + 3y = 6')
+    (2.0, -0.6666666666666666)
     """
-    # Normalize string: remove whitespace, convert to lowercase and unify
-    # variable names so both ``p``/``q`` and ``y``/``x`` are accepted.
-    equation = (
-        equation.lower().replace("p", "y").replace("q", "x").replace(" ", "")
-    )
-
-    if "/" in equation:
-        raise FormulaParseError(
-            "Unexpected character '/'. Use decimals and not fractions."
-        )
-
-    # Insert missing multiplication symbols so ``2x`` becomes ``2*x`` and
-    # ``x*2`` becomes ``2*x`` for easier evaluation.
-    equation = re.sub(r"(?<=\d)(?=[xy])", "*", equation)
-    equation = re.sub(r"([xy])(?=\d)", r"\1*", equation)
-    equation = re.sub(r"([xy])\*([-+]?\d*\.?\d+)", r"\2*\1", equation)
-
-    if any(t in equation for t in ("x*y", "y*x", "x*x", "y*y", "**")):
-        raise FormulaParseError("Equation must be affine")
-
-    if equation.count("=") != 1:
-        raise FormulaParseError("Equation must contain exactly one '=' sign")
-
-    lhs, rhs = equation.split("=")
-
-    def _safe_eval(expr: str, **values: float) -> float:
-        """Safely evaluate arithmetic expressions for x and y."""
-        if not re.fullmatch(r"[0-9xy+\-*.()]+", expr):
-            raise FormulaParseError("Invalid characters in equation")
-
-        try:
-            ast_tree = ast.parse(expr, mode="eval")
-        except SyntaxError as exc:
-            raise FormulaParseError("Invalid syntax in equation") from exc
-
-        allowed_names = {"x", "y"}
-        result = _eval_ast_node(ast_tree, allowed_names, values)
-        return float(result)
-
-    # If equation is given explicitly as y = f(x)
-    if lhs == "y" or rhs == "y":
-        expr = rhs if lhs == "y" else lhs
-        if "y" in expr:
-            raise FormulaParseError("y must be expressed solely in terms of x")
-        intercept = _safe_eval(expr, x=0, y=0)
-        y1 = _safe_eval(expr, x=1, y=0)
-        slope = y1 - intercept
-        return float(intercept), float(slope)
-
-    # x = f(y)
-    if lhs == "x" or rhs == "x":
-        expr = rhs if lhs == "x" else lhs
-        if "x" in expr:
-            raise FormulaParseError("x must be expressed solely in terms of y")
-        b = _safe_eval(expr, x=0, y=0)
-        x1 = _safe_eval(expr, x=0, y=1)
-        m = x1 - b
-        if m == 0:
-            raise FormulaParseError("Zero slope invalid for x=f(y)")
-        intercept = -b / m
-        slope = 1 / m
-        return float(intercept), float(slope)
-
-    # General form ax + by = c
-    expr = f"{lhs}-({rhs})"
-    base = _safe_eval(expr, x=0, y=0)
-    a = _safe_eval(expr, x=1, y=0) - base
-    b = _safe_eval(expr, x=0, y=1) - base
-    c = -base
-    if b == 0:
+    left, right = _equation_sides(equation)
+    terms = _polynomial_coefficients(f"({left}) - ({right})", 1, {"x", "y"})
+    y_coefficient = terms.get((0, 1), 0.0)
+    if y_coefficient == 0:
         raise FormulaParseError("Equation does not define y as a function of x")
-    intercept = c / b
-    slope = -a / b
+    intercept = -terms.get((0, 0), 0.0) / y_coefficient
+    slope = -terms.get((1, 0), 0.0) / y_coefficient
+    if not all(math.isfinite(value) for value in (intercept, slope)):
+        raise FormulaParseError("Coefficients must be finite")
     return float(intercept), float(slope)
 
 
 def _quadratic_formula(equation: str):
-    """
-    Parse a quadratic equation string and return the coefficients a, b, and c.
-    Accepts equations in the form 'y = ax^2 + bx + c' or 'ax^2 + bx + c = y'.
-    Variables 'y' and 'x' can be 'p', 'P', 'q', or 'Q'. Handles optional
-    whitespaces, signs for coefficients, and decimal coefficients.
+    """Return ``(a, b, c)`` for ``y = ax² + bx + c``.
 
-    Parameters
-    ----------
-    equation : str
-        A string representing a quadratic equation.
-
-    Returns
-    -------
-    tuple
-        A tuple (a, b, c) representing the coefficients of the
-        quadratic equation.
-
-    Raises
-    ------
-    FormulaParseError
-        If the equation is not a valid quadratic equation or
-        contains fractions.
+    Accepts the reversed equation ``ax² + bx + c = y``, optional ``*`` in
+    coefficients, and the square notations ``x^2``, ``x**2``, and ``x²``.
+    Variables may also be ``p``/``q`` in either case. Repeated terms are
+    added together. Fractions, unknown syntax, and terms above degree two
+    raise :class:`FormulaParseError`.
 
     Examples
     --------
     >>> _quadratic_formula('y = 2x^2 + 3x - 1')
     (2.0, 3.0, -1.0)
-    >>> _quadratic_formula('P = -0.5Q^2 + 2Q + 4')
+    >>> _quadratic_formula('P = -0.5Q**2 + 2Q + 4')
     (-0.5, 2.0, 4.0)
-    >>> _quadratic_formula('y = -x^2 + 1')
+    >>> _quadratic_formula('y = -x² + 1')
     (-1.0, 0.0, 1.0)
     """
-    # Remove whitespaces and equate p with y and q with x
-    equation = (
-        equation.lower()
-        .replace("p", "y")
-        .replace("q", "x")
-        .replace(" ", "")
-        .replace("^2", "²")
-        .replace("**2", "²")
-    )  # Replace ^2 with ² for easier parsing
-
-    if "/" in equation:
-        raise FormulaParseError(
-            "Unexpected character '/'. Use decimals and not fractions."
-        )
-
-    # Ensure the equation is in the form ax²+bx+c=y
-    if "y=" in equation:
-        equation = equation.replace("y=", "") + "=y"
-
-    # Split the equation into left and right sides
-    try:
-        left_side, right_side = equation.split("=")
-    except ValueError as exc:
-        raise FormulaParseError(
-            "Equation must contain exactly one '=' sign"
-        ) from exc
-
-    if right_side != "y":
+    left, right = _equation_sides(equation)
+    if left == "y":
+        expression = right
+    elif right == "y":
+        expression = left
+    else:
         raise FormulaParseError(
             "Equation must be in the form 'y = ...' or '... = y'"
         )
-
-    # Use regex to find terms
-    terms = re.findall(
-        (r"([+-]?(?:\d*\.)?\d*x²|[+-]?(?:\d*\.)?\d*x|" r"[+-]?(?:\d*\.)?\d+)"),
-        left_side,
-    )
-
-    a, b, c = 0, 0, 0
-
-    for term in terms:
-        if "x²" in term:
-            coef = term.replace("x²", "")
-            a = (
-                float(coef)
-                if coef and coef not in ("+", "-")
-                else (1 if coef in ("", "+") else -1)
-            )
-        elif "x" in term:
-            coef = term.replace("x", "")
-            b = (
-                float(coef)
-                if coef and coef not in ("+", "-")
-                else (1 if coef in ("", "+") else -1)
-            )
-        elif term:
-            c += float(term)
-
-    return a, b, c
+    terms = _polynomial_coefficients(expression, 2, {"x"})
+    return tuple(terms.get(powers, 0.0) for powers in ((2, 0), (1, 0), (0, 0)))
