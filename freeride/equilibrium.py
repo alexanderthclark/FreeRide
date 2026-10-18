@@ -404,33 +404,19 @@ class Equilibrium:
         if q_new == q_star:
             return
 
+        q0, q1 = sorted((q_new, q_star))
         red = (1, 0.5, 0.5)
         for piece in self.demand.pieces + self.supply.pieces:
             if piece:
                 minq, maxq = np.min(piece._domain), np.max(piece._domain)
-                if q_new < q_star:
-                    # Q is reduced
-                    if (q_new > maxq) or (q_star < minq):
-                        continue
-                    dropped = (q_new <= minq)
-                    if dropped:
-                        piece.plot_area(p=p_star, color=red, ax=ax)
-                    else:
-                        piece.plot_area(
-                            p=p_star,
-                            q=[q_new, maxq],
-                            color=red,
-                            ax=ax
-                        )
-                else:
-                    # Q is increased
-                    if (q_star > maxq) or (q_new < minq):
-                        continue
+                left, right = max(q0, minq), min(q1, maxq)
+                if left < right:
                     piece.plot_area(
                         p=p_star,
-                        q=[max(q_star, minq), min(q_new, maxq)],
+                        q=[left, right],
                         color=red,
-                        ax=ax
+                        ax=ax,
+                        force=True,
                     )
 
     def _plot_tariff_dwl(self, ax):
