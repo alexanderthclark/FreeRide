@@ -8,7 +8,7 @@ This is a package for introductory microeconomics topics. Find additional code, 
 
 # Example Usage
 
-`Demand` and `Supply` objects can be created in several ways, but most naturally with the `from_formula` class method. The method requires an explicit slope, so `"P=12-1*Q"` or `"P=12-1Q"` must be used instead of `"P=12-Q"`.
+`Demand` and `Supply` objects can be created in several ways, but most naturally with the `from_formula` class method. Equivalent forms such as `"P=12-Q"`, `"P=12-1*Q"`, and `"P+Q=12"` are accepted. Use decimals for fractional coefficients, such as `"P=12-0.5Q"`.
 
 ```
 from freeride.curves import Demand, Supply

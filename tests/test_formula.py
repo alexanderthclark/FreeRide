@@ -1,7 +1,9 @@
 import ast
 import unittest
+from unittest.mock import patch
 from freeride.formula import _formula, _quadratic_formula
 from freeride.exceptions import FormulaParseError
+from freeride.quadratic import QuadraticElement
 
 class TestFormula(unittest.TestCase):
 
@@ -68,11 +70,67 @@ class TestFormula(unittest.TestCase):
     def test_numeric_literals_without_legacy_ast_num(self):
         """Numeric literals parse when the deprecated ``ast.Num`` is absent."""
         legacy_num = ast.__dict__.pop("Num", None)
+        original_getattr = getattr(ast, "__getattr__", None)
+
+        def without_num(name):
+            if name == "Num" or original_getattr is None:
+                raise AttributeError(name)
+            return original_getattr(name)
+
         try:
-            self.assertEqual(_formula("y = 3 + 2*x"), (3.0, 2.0))
+            with patch.object(ast, "__getattr__", without_num, create=True):
+                self.assertFalse(hasattr(ast, "Num"))
+                self.assertEqual(_formula("y = 3 + 2*x"), (3.0, 2.0))
+                self.assertEqual(_quadratic_formula("y = 2*x**2 + 3"), (2.0, 0.0, 3.0))
         finally:
             if legacy_num is not None:
                 ast.Num = legacy_num
+
+    def test_equivalent_affine_forms(self):
+        for equation in (
+            "P = 10 - 2Q", "10 - Q*2 = P", "P + 2Q = 10",
+            "2P + 4Q = 20", "Q = 5 - 0.5P",
+            "P = 2*(5 - Q)", "P = 10 - Q - Q",
+        ):
+            with self.subTest(equation=equation):
+                self.assertEqual(_formula(equation), (10.0, -2.0))
+
+    def test_hidden_nonlinear_terms_are_rejected(self):
+        for equation in (
+            "y = (x+1)*(x+2)", "y = x**2", "y = x^2",
+            "x*(y+1) = 2", "y = (x*x) + 1", "x*x + y = 3",
+        ):
+            with self.subTest(equation=equation):
+                with self.assertRaises(FormulaParseError):
+                    _formula(equation)
+
+    def test_large_intercept_does_not_erase_the_slope(self):
+        self.assertEqual(_formula("y = 10000000000000000 + x"), (1e16, 1.0))
+
+    def test_malformed_affine_equations_are_rejected(self):
+        for equation in (
+            "y = x + garbage", "y = x; 2", "y = x(2)",
+            "y = x//2", "y = x[0]", "y = x = 2", "y =",
+            "x = 2", "y = 1 0 + x", "y = 2(x+1)",
+        ):
+            with self.subTest(equation=equation):
+                with self.assertRaises(FormulaParseError):
+                    _formula(equation)
+
+    def test_nonfinite_coefficients_are_rejected(self):
+        huge_decimal = "9" * 400 + ".0"
+        expressions = (
+            huge_decimal,
+            "9" * 400,
+            "(" + "9" * 200 + ".0)*" + "9" * 200 + ".0",
+            "nan",
+            "inf",
+        )
+        for parser in (_formula, _quadratic_formula):
+            for expression in expressions:
+                with self.subTest(parser=parser.__name__, expression=expression):
+                    with self.assertRaises(FormulaParseError):
+                        parser("y = " + expression + " + x")
 
     def tearDown(self):
         pass
@@ -141,6 +199,34 @@ class TestQuadraticParser(unittest.TestCase):
         """Equations with extra '=' signs should error."""
         with self.assertRaises(FormulaParseError):
             _quadratic_formula('y = x^2 + x + 1 = z')
+
+    def test_equivalent_square_and_coefficient_forms(self):
+        for equation in (
+            "y = 2x^2 + 3x + 4", "y = 2*x**2 + 3*x + 4",
+            "4 + x*3 + x²*2 = y", "P = 2Q² + 3Q + 4",
+            "y = x² + x² + x + 2x + 4", "y = 2*(x*x) + 3*x + 4",
+        ):
+            with self.subTest(equation=equation):
+                self.assertEqual(_quadratic_formula(equation), (2.0, 3.0, 4.0))
+
+    def test_formula_builds_the_requested_quadratic(self):
+        curve = QuadraticElement.from_formula("y = 2*x**2 + 3*x + 4")
+        self.assertEqual(curve(2), 18)
+
+    def test_parenthesized_polynomial_keeps_its_coefficients(self):
+        self.assertEqual(_quadratic_formula("y = (x+1)*(x+2)"), (1.0, 3.0, 2.0))
+
+    def test_unmatched_or_nonlinear_syntax_is_rejected(self):
+        for equation in (
+            "y = x^2 + garbage", "y = x^2 + 3x + 1junk",
+            "y = x^3 + 2", "y = x**4", "y = x*x*x", "y = x**2*y",
+            "y = x² + y", "y = x**2 + 1/2", "y = x^2; 3",
+            "y = x^2 +", "y = x**-2", "y = x**0.5", "y = x(2)",
+            "y = x**2 + 1 0", "2y = x**2", "y = 2(x**2)",
+        ):
+            with self.subTest(equation=equation):
+                with self.assertRaises(FormulaParseError):
+                    _quadratic_formula(equation)
 
     def tearDown(self):
         pass
