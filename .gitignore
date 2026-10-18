@@ -2,6 +2,7 @@
 # Build directories
 build/
 docs/_build/
+docs/_static/market_gallery/*.png
 dist/
 *.egg-info/
 

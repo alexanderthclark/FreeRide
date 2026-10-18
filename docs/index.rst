@@ -37,16 +37,6 @@ Install FreeRide using pip:
 
    pip install freeride
 
-**Where to run this:**
-
-- **Mac**: Open Terminal (found in Applications → Utilities)
-- **Windows**: Open Command Prompt (search "cmd" in Start menu)
-- **Both**: Or use Anaconda Prompt if you have Anaconda installed
-
-**New to Python?** We recommend starting with `Google Colab <https://colab.research.google.com/>`_, 
-which provides a free Python environment in your browser. No installation required - just run 
-``!pip install freeride`` in a code cell.
-
 Quick Example
 -------------
 
@@ -65,17 +55,17 @@ Quick Example
    market.plot(surplus=True)
 
    # Inspect the equilibrium
-   print(market)  # shows price and quantity
-   print(market.consumer_surplus)
-   print(market.producer_surplus)
+   print(f"Price: {market.p:.2f}, quantity: {market.q:.2f}")
+   print(f"Consumer surplus: {market.consumer_surplus:.2f}")
+   print(f"Producer surplus: {market.producer_surplus:.2f}")
 
 **Output:**
 
 .. code-block:: text
 
-   Market(price=5.0, quantity=10.0)
-   25.0
-   37.5
+   Price: 5.00, quantity: 10.00
+   Consumer surplus: 25.00
+   Producer surplus: 16.67
 
 The plot shows the supply and demand curves with the equilibrium point clearly marked, 
 and the consumer and producer surplus areas shaded:
@@ -122,6 +112,7 @@ received by producers, and the shaded tax revenue rectangle.
 
    tutorials/double_auction
    tutorials/market_equilibrium
+   tutorials/market_gallery
    tutorials/price_controls
    tutorials/prisoners_dilemma
 
@@ -132,4 +123,5 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`search`
+
 .. * :ref:`modindex`

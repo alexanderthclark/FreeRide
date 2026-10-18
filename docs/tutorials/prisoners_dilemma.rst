@@ -1,16 +1,7 @@
 The Prisoner's Dilemma
 ======================
 
-.. raw:: html
-
-   <div style="margin-bottom: 1rem;">
-     <a href="https://colab.research.google.com/github/alexanderthclark/FreeRide/blob/main/docs/notebooks/prisoners_dilemma.ipynb" target="_blank">
-       <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" style="margin-right: 10px;"/>
-     </a>
-     <a href="../notebooks/prisoners_dilemma.ipynb" download>
-       <img src="https://img.shields.io/badge/Download-Notebook-blue?style=flat&logo=jupyter" alt="Download Notebook"/>
-     </a>
-   </div>
+:download:`Download the notebook <../notebooks/prisoners_dilemma.ipynb>`
 
 The Prisoner's Dilemma is one of the most famous games. It illustrates how two 
 players might not cooperate even when it would be in their collective interest to do so.
@@ -61,7 +52,7 @@ strategy profile with action names.
 Try It Yourself
 ---------------
 
-Click the **"Open in Colab"** button above to run this example interactively! You can:
+Download the notebook above to explore the example in your preferred environment. You can:
 
 1. Modify the payoff values to see how they affect the equilibrium
 2. Try different scenarios (what if cooperation paid more?)

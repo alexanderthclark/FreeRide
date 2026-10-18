@@ -1,16 +1,7 @@
 Double Auction
 ==============
 
-.. raw:: html
-
-   <div style="margin-bottom: 1rem;">
-     <a href="https://colab.research.google.com/github/alexanderthclark/FreeRide/blob/main/docs/notebooks/double_auction.ipynb" target="_blank">
-       <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" style="margin-right: 10px;"/>
-     </a>
-     <a href="../notebooks/double_auction.ipynb" download>
-       <img src="https://img.shields.io/badge/Download-Notebook-blue?style=flat&logo=jupyter" alt="Download Notebook"/>
-     </a>
-   </div>
+:download:`Download the notebook <../notebooks/double_auction.ipynb>`
 
 UnitDemand and UnitSupply
 -------------------------
