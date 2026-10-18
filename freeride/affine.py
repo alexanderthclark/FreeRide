@@ -221,10 +221,14 @@ class AffineElement(PolyBase):
 
         if p < 0:
             raise ValueError("Negative price.")
-        if p > self.intercept:
+        if self.slope < 0 and p > self.intercept:
             raise ValueError("Price above choke price.")
 
         q = self.q(p)
+        if q < 0:
+            raise ValueError("Price implies a negative quantity.")
+        if p == 0 and self.intercept == 0 and 0 < self.slope < np.inf:
+            return 1.0
         e = (1 / self.slope) * (p / q)
         return e
 
@@ -252,7 +256,7 @@ class AffineElement(PolyBase):
 
         if (p1 < 0) or (p2 < 0):
             raise ValueError("Negative price.")
-        if (p1 > self.intercept) or (p2 > self.intercept):
+        if self.slope < 0 and ((p1 > self.intercept) or (p2 > self.intercept)):
             raise ValueError("Price above choke price.")
 
         mean_p = 0.5 * p1 + 0.5 * p2
@@ -354,25 +358,19 @@ class AffineElement(PolyBase):
             ax = self.plot()
 
         if q is None:
-            q0 = np.min(self._domain)
-            q1 = np.max(self._domain)
-            q = q0, q1
-        else:
-            q0, q1 = q
-
+            q = self._domain if self._domain is not None else (0, self.q(p))
+        q0, q1 = sorted(q)
+        if self._domain is not None:
+            q0 = max(q0, min(self._domain))
+            q1 = min(q1, max(self._domain))
         if not force:
-            qstar = self.q(p)
+            q1 = min(q1, self.q(p))
+        if q1 <= q0:
+            return ax
 
-            if q0 < qstar <= q1:
-                q = q0, qstar
-            elif q1 < qstar:
-                q = q0, q1
-            elif qstar < q0:  # plot nothing if no surplus in region
-                return ax
-
-        p01 = self.p(q[0]), self.p(q[1])
-
-        ax.fill_between(q, p01, p, zorder=zorder, color=color, alpha=alpha)
+        quantities = q0, q1
+        prices = self.p(q0), self.p(q1)
+        ax.fill_between(quantities, prices, p, zorder=zorder, color=color, alpha=alpha)
 
         update_axes_limits(ax)
 
@@ -486,9 +484,11 @@ def horizontal_sum(*curves):
     -------
     tuple
         A tuple containing three elements:
+
         - active_curves (list): List of AffineElement objects representing
           the active curves at each price midpoint.
-        - cutoffs (list): List of unique p-intercepts sorted in ascending order.
+        - cutoffs (list): List of unique p-intercepts sorted in ascending
+          order.
         - midpoints (list): List of midpoints computed based on the cutoffs.
     """
     elastic_curves = [c for c in curves if c.slope == 0]
@@ -788,25 +788,15 @@ class Affine(BaseAffine):
                 piece._domain_length = np.max(qs) - np.min(qs)
 
     def _get_active_piece(self, q):
-        # Filter out any None pieces
+        """Select by quantity using [a,b), including the final quantity endpoint."""
         valid_pieces = [piece for piece in self.pieces if piece]
         if not valid_pieces:
             return None
-
-        # Check if this is the last piece
-        last_piece = valid_pieces[-1]
-
+        max_q = max(max(piece._domain) for piece in valid_pieces)
         for piece in valid_pieces:
-            q0, q1 = np.min(piece._domain), np.max(piece._domain)
-
-            if piece is last_piece:
-                # Last piece: use [a,b] (closed interval)
-                if q0 <= q <= q1:
-                    return piece
-            else:
-                # Not the last piece: use [a,b) (right-open interval)
-                if q0 <= q < q1:
-                    return piece
+            q0, q1 = sorted(piece._domain)
+            if q0 <= q < q1 or (q == q1 == max_q):
+                return piece
         return None
 
     def __call__(self, x):
@@ -822,59 +812,32 @@ class Affine(BaseAffine):
         float
         """
 
-        valid_pieces = [piece for piece in self.pieces if piece]
-        if valid_pieces:
-            last_piece = valid_pieces[-1]
-
-        for piece in self.pieces:
-            if piece:
-                a, b = piece._domain
-                if piece is last_piece:
-                    # Last piece: use [a,b] convention
-                    if (a <= x <= b) or (a >= x >= b):
-                        return piece(x)
-                else:
-                    # Interior piece: use [a,b) convention
-                    if (a <= x < b) or (a >= x > b):
-                        return piece(x)
-        # might be x out of limits
-        return np.nan
-        #return np.sum([np.max([0, c(x)]) for c in self.elements])
+        piece = self._get_active_piece(x)
+        return piece(x) if piece is not None else np.nan
 
     def q(self, p):
         # returns q given p
         if not self.sum_elements:
-            # Non-summing mode: find the piece that contains this price
-            valid_pieces = [
-                piece
-                for piece in self.pieces
-                if piece and hasattr(piece, '_domain') and piece._domain
-            ]
-            if valid_pieces:
-                last_piece = valid_pieces[-1]
-
-            for piece in valid_pieces:
-                domain = piece._domain
-                a, b = np.min(domain), np.max(domain)
-
-                if piece is last_piece:
-                    # Last piece: use [a,b] convention
-                    if a <= p <= b:
-                        try:
-                            q_val = piece.q(p)
-                            if np.isfinite(q_val) and q_val >= 0:
-                                return q_val
-                        except:
-                            continue
-                else:
-                    # Interior piece: use [a,b) convention
-                    if a <= p < b:
-                        try:
-                            q_val = piece.q(p)
-                            if np.isfinite(q_val) and q_val >= 0:
-                                return q_val
-                        except:
-                            continue
+            # Piece domains contain quantities, so check the inverted quantity.
+            for piece in self.pieces:
+                if piece:
+                    quantity = piece.q(p)
+                    if not np.isfinite(quantity):
+                        continue
+                    q0, q1 = sorted(piece._domain)
+                    # Clamp only arithmetic roundoff just outside an endpoint.
+                    roundoff = 8 * np.finfo(float).eps * max(
+                        abs(quantity), abs(piece.q_intercept)
+                    )
+                    if q0 - roundoff <= quantity < q0:
+                        quantity = q0
+                    elif q1 < quantity <= q1 + roundoff:
+                        quantity = q1
+                    if (
+                        quantity >= 0
+                        and self._get_active_piece(quantity) is piece
+                    ):
+                        return quantity
             return 0
         else:
             return np.sum([np.max([0,c.q(p)]) for c in self.elements])
@@ -899,20 +862,27 @@ class Affine(BaseAffine):
             latex_str += r"\end{cases}"
             return f"${latex_str}$"
 
-    def price_elasticity(self, p, delta=.000001):
+    def price_elasticity(self, p, delta=.000001, atol=1e-12, rtol=1e-9):
+        """Return point elasticity, rejecting kinks and negative prices.
+
+        ``atol`` and ``rtol`` allow floating-point representations of a kink
+        to be recognized. ``delta`` is retained for compatibility with earlier
+        versions, which sampled nearby prices when reporting a kink.
+        """
+        if p < 0:
+            raise ValueError("Negative price.")
+        if delta <= 0:
+            raise ValueError("delta must be positive.")
         q = self.q(p)
-        pt = np.array([p,q])
-        if self.intersections and np.any(pt == self.intersections, axis=1).max():
-            below = self.price_elasticity(p - delta)
-            above = self.price_elasticity(p + delta)
-            s = f"\nElasticity is {below:+.3f} below P={p} and {above:+.3f} above."
-            raise ValueError("Point elasticity is not defined at a kink point."+s)
-        else:
-            # Get q-domains
-            # Use [a,b) convention: left inclusive, right exclusive
-            pc = [p for p in self.pieces if p and (np.min(p._domain) <= q < np.max(p._domain))]
-            assert len(pc) == 1
-            return pc[0].price_elasticity(p)
+        if any(
+            np.allclose((p, q), point, atol=atol, rtol=rtol)
+            for point in self.intersections
+        ):
+            raise ValueError("Point elasticity is not defined at a kink point.")
+        piece = self._get_active_piece(q)
+        if piece is None:
+            raise ValueError("Price elasticity is undefined outside the curve's domain.")
+        return piece.price_elasticity(p)
 
     def _repr_latex_(self):
         return self.equation(inverse=False)
@@ -1023,21 +993,13 @@ class Affine(BaseAffine):
         if q is None:
             q = self.q(p)
 
-        if q > 0:
-
-            # find inframarginal surplus
-            # Find pieces completely to the left of q (using [a,b) convention)
-            trapezoids = [piece for piece in self.pieces if piece and (np.max(piece._domain) <= q)]
-            trap_areas = [piece._domain_length*(np.mean([piece.p(piece._domain[0]),piece.p(piece._domain[1])])-p) for piece in trapezoids]
-
-
-            # find the last unit demanded and get surplus from that curve
-            last_piece = self._get_active_piece(q)
-            q0 = np.min(last_piece._domain)
-            base = q - q0
-            ht1 = last_piece.p(q0) - p
-            ht2 = last_piece.p(q) - p
-            area = base * 0.5 * (ht1 + ht2)
-            return area + np.sum(trap_areas)
-        else:
+        if q <= 0:
             return 0
+        area = 0.0
+        for piece in self.pieces:
+            if piece:
+                q0 = max(0, min(piece._domain))
+                q1 = min(q, max(piece._domain))
+                if q1 > q0:
+                    area += (q1 - q0) * (piece(q0) + piece(q1) - 2 * p) / 2
+        return area
