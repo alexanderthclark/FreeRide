@@ -27,7 +27,11 @@ import matplotlib.pyplot as plt
 
 from freeride.curves import Demand, Supply
 from freeride.affine import intersection
-from freeride.plotting import update_axes_limits
+from freeride.plotting import (
+    update_axes_limits, textbook_axes, _visible_curve_pieces,
+    DEMAND_COLOR, SUPPLY_COLOR, CONSUMER_FILL, PRODUCER_FILL,
+    REVENUE_FILL, DWL_FILL,
+)
 
 
 class Equilibrium:
@@ -257,43 +261,96 @@ class Equilibrium:
 
     # ================== Plot ==================#
     def plot(self, ax=None, surplus=False):
+        """Draw the market and its realized outcome; return the supplied axes.
+
+        Automatic limits focus on nonnegative prices and quantities around the
+        outcome. Explicit axes limits, titles and labels are retained. Demand
+        and supply use distinct colors, also used by their surplus areas.
+        """
         if ax is None:
-            fig, ax = plt.subplots()
-
-        # eq lines
-        x = self.q
-        y = self.__p_consumer
-        style = dict(lw=0.5, ls='dotted', color='gray')
-
-        ax.plot([x, x], [0, y], **style)
-        ax.plot([0, x], [y, y], **style)
-        ax.plot([x], [y], marker='.', markersize=14, color='black')
-
-        # If it's a tax => p is (p_consumer, p_producer)
-        if isinstance(self.p, tuple):
-            y_p = self.__p_producer
-            ax.plot([x, x], [0, y_p], **style)
-            ax.plot([0, x], [y_p, y_p], **style)
-            ax.plot([x], [y_p], marker='.', markersize=14, color='black')
-
-        # If world_price => dashdot line
-        if self.__world_price is not None:
-            ax.axhline(self.__world_price, color='black', linestyle='dashdot')
-
-        # Plot demand, supply
-        q_int = max(
-            [dp.q_intercept for dp in self.demand.pieces if dp],
-            default=10
-        )
-        self.demand.plot(ax=ax, max_q=q_int)
-        self.supply.plot(ax=ax, max_q=q_int)
+            _, ax = plt.subplots()
+        x_limits, y_limits = ax.get_xlim(), ax.get_ylim()
+        auto_x, auto_y = ax.get_autoscalex_on(), ax.get_autoscaley_on()
+        q_max, p_max = self._plot_extent()
+        if not auto_x:
+            q_max = max(x_limits)
+        if not auto_y:
+            p_max = max(y_limits)
 
         if surplus:
             self.plot_surplus(ax)
 
-        update_axes_limits(ax)
+        # Draw only the visible economic segments, rather than stretching the
+        # price scale to supply evaluated at a distant demand intercept.
+        for curve, color, name in ((self.demand, DEMAND_COLOR, "D"),
+                                   (self.supply, SUPPLY_COLOR, "S")):
+            segments = list(_visible_curve_pieces(curve, q_max, p_max))
+            for index, (quantities, prices) in enumerate(segments):
+                ax.plot(quantities, prices, color=color, lw=2,
+                        label=name if index == 0 else "_nolegend_", zorder=3)
+            if segments:
+                quantities, prices = max(segments, key=lambda segment: segment[0][-1])
+                ax.annotate(name, (quantities[-1], prices[-1]),
+                            xytext=(5, 4), textcoords="offset points",
+                            color=color, weight="bold", annotation_clip=True)
 
+        x = self.q
+        prices = [(self.__p_consumer, "$P_c$")]
+        if self.__p_consumer != self.__p_producer:
+            prices.append((self.__p_producer, "$P_p$"))
+        else:
+            prices = [(self.__p_consumer, "")]
+        guide = dict(lw=0.8, ls=(0, (3, 3)), color="0.55", zorder=1)
+        ax.plot([x, x], [0, max(price for price, _ in prices)], **guide)
+        for price, name in prices:
+            ax.plot([0, x], [price, price], **guide)
+            ax.plot([x], [price], marker="o", markersize=5.5, color="0.18",
+                    markeredgecolor="white", markeredgewidth=0.8, zorder=5)
+            if name:
+                above = name == "$P_c$"
+                ax.annotate(name, (x, price), xytext=(7, 5 if above else -5),
+                            textcoords="offset points",
+                            va="bottom" if above else "top", color="0.25")
+
+        if self.__world_price is not None:
+            ax.axhline(self.__world_price, color="0.45", lw=0.9,
+                       linestyle="dashdot", zorder=1)
+        for price, name in ((self.__ceiling, "Ceiling"), (self.__floor, "Floor")):
+            if price is not None and 0 <= price <= p_max:
+                ax.axhline(price, color="0.45", lw=0.9, linestyle="--", zorder=1)
+                ax.annotate(name, (q_max * 0.98, price), xytext=(0, 5),
+                            textcoords="offset points", ha="right", color="0.35")
+
+        textbook_axes(ax)
+        if not ax.get_xlabel():
+            ax.set_xlabel("Quantity")
+        if not ax.get_ylabel():
+            ax.set_ylabel("Price")
+        ax.set_xlim((0, q_max * 1.08) if auto_x else x_limits)
+        ax.set_ylim((0, p_max * 1.08) if auto_y else y_limits)
         return ax
+
+    def _plot_extent(self):
+        """Choose finite market scales without forcing distant intercepts into view."""
+        def extent(anchors, intercepts):
+            anchors = [float(v) for v in anchors if np.isfinite(v) and v > 0]
+            intercepts = [float(v) for v in intercepts if np.isfinite(v) and v > 0]
+            anchor = max(anchors, default=max(intercepts, default=1))
+            nearby = [v for v in intercepts if v <= 2.5 * anchor]
+            return max([anchor * 1.2, *nearby]) if nearby else anchor * 1.6
+
+        p_free, q_free = self._find_intersection(self.demand, self.supply)
+        q_max = extent(
+            [self.q, q_free, self.demand.q(self.__p_consumer),
+             self.supply.q(self.__p_producer)],
+            [piece.q_intercept for piece in self.demand.pieces if piece],
+        )
+        p_max = extent(
+            [self.__p_consumer, self.__p_producer, p_free],
+            [piece.intercept for piece in self.demand.pieces + self.supply.pieces
+             if piece],
+        )
+        return q_max, p_max
 
     def plot_surplus(self, ax):
         """
@@ -313,18 +370,15 @@ class Equilibrium:
 
         # 1) Consumer surplus
         self.demand.plot_surplus(
-            p=self.__p_consumer, ax=ax, q=(0, self.q), alpha=alpha
+            p=self.__p_consumer, q=(0, self.q), ax=ax,
+            color=CONSUMER_FILL, alpha=alpha,
         )
         # 2) Producer surplus
-        if self.exports > 0:
-            q = self.supply.q(self.__p_producer)
-            self.supply.plot_surplus(
-                p=self.__p_producer, ax=ax, q=(0, q), alpha=alpha
-            )
-        else:
-            self.supply.plot_surplus(
-                p=self.__p_producer, ax=ax, q=(0, self.q), alpha=alpha
-            )
+        q = self.q - self.net_imports
+        self.supply.plot_surplus(
+            p=self.__p_producer, q=(0, q), ax=ax,
+            color=PRODUCER_FILL, alpha=alpha,
+        )
 
         # 3) Government revenue shading
         self._plot_gov_revenue(ax)
@@ -347,7 +401,7 @@ class Equilibrium:
         if self.govt_revenue <= 0:
             return None
 
-        color_rev = '.93'
+        color_rev = REVENUE_FILL
         if self.__world_price is not None and self.__tariff != 0:
             # small open economy with a tariff
             if self._importer:
@@ -399,25 +453,25 @@ class Equilibrium:
         """
         # find free market eq (no policy)
         fm = Equilibrium(self.demand, self.supply)
-        q_star, p_star = fm.q, fm.p
+        q_star = fm.q
         q_new = self.q
         if q_new == q_star:
             return
-
-        q0, q1 = sorted((q_new, q_star))
-        red = (1, 0.5, 0.5)
-        for piece in self.demand.pieces + self.supply.pieces:
-            if piece:
-                minq, maxq = np.min(piece._domain), np.max(piece._domain)
-                left, right = max(q0, minq), min(q1, maxq)
-                if left < right:
-                    piece.plot_area(
-                        p=p_star,
-                        q=[left, right],
-                        color=red,
-                        ax=ax,
-                        force=True,
-                    )
+        left, right = sorted((q_new, q_star))
+        # Intersect the two piece partitions so each lost (or excess) trade is
+        # shaded once, exactly between its marginal benefit and marginal cost.
+        for demand in self.demand.pieces:
+            if demand is None:
+                continue
+            for supply in self.supply.pieces:
+                if supply is None:
+                    continue
+                lo = max(left, min(demand._domain), min(supply._domain))
+                hi = min(right, max(demand._domain), max(supply._domain))
+                if hi > lo:
+                    ax.fill_between([lo, hi], [demand(lo), demand(hi)],
+                                    [supply(lo), supply(hi)],
+                                    color=DWL_FILL, zorder=0.5)
 
     def _plot_tariff_dwl(self, ax):
         """
@@ -445,7 +499,7 @@ class Equilibrium:
         Qs_new = self.supply.q(self.p)
 
         Pw = self.__world_price
-        red = (1, 0.5, 0.5)
+        red = DWL_FILL
 
         if ft._importer:
             # under-consumption wedge => Qd_new..Qd_old

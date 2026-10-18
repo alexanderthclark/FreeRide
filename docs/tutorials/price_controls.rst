@@ -1,16 +1,7 @@
 Price Controls
 ==============
 
-.. raw:: html
-
-   <div style="margin-bottom: 1rem;">
-     <a href="https://colab.research.google.com/github/alexanderthclark/FreeRide/blob/main/docs/notebooks/price_controls.ipynb" target="_blank">
-       <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" style="margin-right: 10px;"/>
-     </a>
-     <a href="../notebooks/price_controls.ipynb" download>
-       <img src="https://img.shields.io/badge/Download-Notebook-blue?style=flat&logo=jupyter" alt="Download Notebook"/>
-     </a>
-   </div>
+:download:`Download the notebook <../notebooks/price_controls.ipynb>`
 
 
 The Concept
@@ -22,9 +13,14 @@ Price controls are government-imposed constraints on market prices:
 - **Price Floor**: A legal minimum price (e.g., minimum wage)
 
 When binding, price controls create market distortions:
+
 - Binding ceilings (below equilibrium) create **shortages**
 - Binding floors (above equilibrium) create **surpluses**
 - Both generate **deadweight loss** by preventing mutually beneficial trades
+
+Welfare calculations assume that available units go to the buyers with the
+highest willingness to pay and the sellers with the lowest costs. A price
+floor does not imply government purchases of unsold output.
 
 Modeling with FreeRide
 ----------------------
@@ -50,7 +46,7 @@ Let's explore how price controls affect market outcomes:
 .. code-block:: text
 
    Free Market Equilibrium: P = $10.00, Q = 10
-   Total Surplus: $125.00
+   Total Surplus: $75.00
 
 Price Ceilings
 --------------
@@ -84,7 +80,7 @@ A binding price ceiling creates a shortage because quantity demanded exceeds qua
      Quantity Supplied: 6
      Quantity Demanded: 12
      Shortage: 6 units
-     Deadweight Loss: $8.00
+     Deadweight Loss: $12.00
 
 The plot shows the binding ceiling creating a wedge between quantity supplied and demanded, 
 with the red area representing deadweight loss.
@@ -121,7 +117,7 @@ A binding price floor creates a surplus because quantity supplied exceeds quanti
      Quantity Demanded: 8
      Quantity Supplied: 14
      Surplus: 6 units
-     Deadweight Loss: $8.00
+     Deadweight Loss: $3.00
 
 The plot shows the binding floor creating excess supply, with producers unable to sell all 
 they wish at the floor price.

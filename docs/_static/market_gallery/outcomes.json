@@ -1,0 +1,56 @@
+{
+  "equilibrium": {
+    "p_consumer": 10.0,
+    "p_producer": 10.0,
+    "q": 10.0,
+    "consumer_surplus": 50.0,
+    "producer_surplus": 25.0,
+    "govt_revenue": 0.0,
+    "dwl": 0.0
+  },
+  "tax": {
+    "p_consumer": 12.0,
+    "p_producer": 9.0,
+    "q": 7.999999999999999,
+    "consumer_surplus": 31.999999999999996,
+    "producer_surplus": 15.999999999999998,
+    "govt_revenue": 23.999999999999996,
+    "dwl": 3.000000000000014
+  },
+  "subsidy": {
+    "p_consumer": 8.0,
+    "p_producer": 11.0,
+    "q": 12.0,
+    "consumer_surplus": 72.0,
+    "producer_surplus": 36.0,
+    "govt_revenue": -36.0,
+    "dwl": 3.0
+  },
+  "ceiling": {
+    "p_consumer": 8.0,
+    "p_producer": 8.0,
+    "q": 6.0,
+    "consumer_surplus": 54.0,
+    "producer_surplus": 9.0,
+    "govt_revenue": 0.0,
+    "dwl": 12.0
+  },
+  "floor": {
+    "p_consumer": 12.0,
+    "p_producer": 12.0,
+    "q": 8.0,
+    "consumer_surplus": 32.0,
+    "producer_surplus": 40.0,
+    "govt_revenue": 0.0,
+    "dwl": 3.0
+  },
+  "aggregation": {
+    "p_consumer": 10.5,
+    "p_producer": 10.5,
+    "q": 11.0,
+    "consumer_surplus": 46.25,
+    "producer_surplus": 30.25,
+    "govt_revenue": 0.0,
+    "dwl": 0.0
+  }
+}

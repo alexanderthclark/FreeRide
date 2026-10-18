@@ -15,6 +15,36 @@ AREA_FILLS = [
     for i in range(0, 8)
 ]
 
+# Keep market curves and their corresponding welfare areas recognizable together.
+DEMAND_COLOR = "#b4473f"
+SUPPLY_COLOR = "#287aa7"
+CONSUMER_FILL = "#f3d6d2"
+PRODUCER_FILL = "#d1e5f0"
+REVENUE_FILL = "#e9dfbd"
+DWL_FILL = "#d98d81"
+
+
+def _visible_curve_pieces(curve, q_max, p_max):
+    """Yield finite line segments within a market diagram's economic domain."""
+    for piece in curve.pieces:
+        if piece is None:
+            continue
+        lo, hi = sorted(piece._domain)
+        lo, hi = max(0, lo), min(q_max, hi)
+        if not np.isfinite(piece.intercept) or not np.isfinite(piece.slope):
+            continue
+        if piece.slope:
+            price_bounds = sorted((
+                -piece.intercept / piece.slope,
+                (p_max - piece.intercept) / piece.slope,
+            ))
+            lo, hi = max(lo, price_bounds[0]), min(hi, price_bounds[1])
+        elif not 0 <= piece.intercept <= p_max:
+            continue
+        if hi > lo:
+            yield np.array([lo, hi]), np.array([piece(lo), piece(hi)])
+
+
 def textbook_axes(ax: Optional[plt.Axes] = None) -> plt.Axes:
     """
     Creates textbook-style axes.

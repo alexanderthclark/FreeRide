@@ -1,22 +1,14 @@
 Market Equilibrium
 ==================
 
-.. raw:: html
-
-   <div style="margin-bottom: 1rem;">
-     <a href="https://colab.research.google.com/github/alexanderthclark/FreeRide/blob/main/docs/notebooks/market_equilibrium.ipynb" target="_blank">
-       <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" style="margin-right: 10px;"/>
-     </a>
-     <a href="../notebooks/market_equilibrium.ipynb" download>
-       <img src="https://img.shields.io/badge/Download-Notebook-blue?style=flat&logo=jupyter" alt="Download Notebook"/>
-     </a>
-   </div>
+:download:`Download the notebook <../notebooks/market_equilibrium.ipynb>`
 
 
 The Concept
 -----------
 
 At equilibrium:
+
 - One price "clears" the market - quantity supplied equals quantity demanded
 - There's no pressure for price to change (hence the term equilibrium)
 - The sum of consumer and producer surplus is maximized
@@ -91,16 +83,16 @@ higher prices, being less price sensitive.
      Demand 1: Q = 2, elasticity = -4.00
      Demand 2: Q = 4, elasticity = -2.00
 
-Notice that Demand 2 is more inelastic (elasticity = -2.00) compared to Demand 1 (elasticity = -4.00) at the 
-same price. This illustrates that elasticity depends on both the slope AND the position 
-of the demand curve.
+Demand 2 is less elastic in absolute value (-2.00 versus -4.00) at the
+same price. Both demands are elastic at this price. Elasticity depends on
+both the slope and the position of the demand curve.
 
 
 
 Try It Yourself
 ---------------
 
-Click the **"Open in Colab"** button above to run this example interactively! You can:
+Download the notebook above to explore the example in your preferred environment. You can:
 
 1. Compare demand curves with the same slope but different intercepts
 2. See how elasticity depends on both slope AND position
